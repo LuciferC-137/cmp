@@ -1,4 +1,4 @@
-package com.luciferc137.cmp.model;
+package com.luciferc137.cmp.library;
 
 import com.luciferc137.cmp.database.model.MusicEntity;
 

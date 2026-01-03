@@ -1,6 +1,6 @@
 package com.luciferc137.cmp.audio;
 
-import com.luciferc137.cmp.model.Music;
+import com.luciferc137.cmp.library.Music;
 
 public interface AudioPlayer {
 

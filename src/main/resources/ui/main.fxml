@@ -1,43 +1,122 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import com.luciferc137.cmp.ui.*?>
+<?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?import com.luciferc137.cmp.ui.WaveformProgressBar?>
 
 <BorderPane xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.luciferc137.cmp.ui.MainController">
 
     <top>
-        <VBox>
-            <WaveformProgressBar fx:id="waveformProgressBar" prefHeight="60" />
+        <VBox spacing="5">
+            <padding>
+                <Insets bottom="5" left="10" right="10" top="10" />
+            </padding>
 
-            <ToolBar>
-                <Button onAction="#onPlay" text="Play" />
-                <Button onAction="#onPause" text="Pause" />
-                <Button onAction="#onStop" text="Stop" />
-                <Separator />
-                <Label text="Volume" />
-                <Slider fx:id="volumeSlider" min="0" max="100" value="50" prefWidth="120" />
-                <Separator />
-                <TextField fx:id="searchField" promptText="Search..." prefWidth="200" onAction="#onSearch" />
-                <Button onAction="#onClearSearch" text="✕" />
-                <Separator />
-                <Pane HBox.hgrow="ALWAYS" />
-                <Button onAction="#onSettings" text="⚙ Settings" />
-            </ToolBar>
+            <!-- Top bar: Song info on left, controls in center, volume on right -->
+            <HBox alignment="CENTER" spacing="20">
+                <!-- Current song info (left) -->
+                <VBox alignment="CENTER_LEFT" minWidth="250" maxWidth="250">
+                    <Label fx:id="currentTitleLabel" style="-fx-font-size: 14px; -fx-font-weight: bold;" styleClass="song-title" text="" />
+                    <Label fx:id="currentArtistLabel" style="-fx-font-size: 12px;" styleClass="song-artist" text="" />
+                </VBox>
+
+                <!-- Playback controls (center) -->
+                <VBox alignment="CENTER" spacing="3" HBox.hgrow="ALWAYS">
+                    <!-- Main control buttons -->
+                    <HBox alignment="CENTER" spacing="10">
+                        <Button fx:id="prevButton" onAction="#onPrevious" prefWidth="40" style="-fx-font-size: 16px;" text="⏮" />
+                        <Button fx:id="stopButton" onAction="#onStop" prefWidth="40" style="-fx-font-size: 16px;" text="■" />
+                        <Button fx:id="playButton" onAction="#onPlay" prefWidth="40" style="-fx-font-size: 16px;" text="▶" />
+                        <Button fx:id="pauseButton" onAction="#onPause" prefWidth="40" style="-fx-font-size: 16px;" text="⏸" />
+                        <Button fx:id="nextButton" onAction="#onNext" prefWidth="40" style="-fx-font-size: 16px;" text="⏭" />
+                    </HBox>
+                    <!-- Secondary controls: shuffle and loop -->
+                    <HBox alignment="CENTER" spacing="15">
+                        <Button fx:id="shuffleButton" onAction="#onShuffle" prefWidth="60" prefHeight="24" style="-fx-font-size: 11px;" text="Shuf" />
+                        <Button fx:id="loopButton" onAction="#onToggleLoop" prefWidth="60" prefHeight="24" style="-fx-font-size: 11px;" text="Loop" />
+                    </HBox>
+                </VBox>
+
+                <!-- Volume control (right) -->
+                <HBox alignment="CENTER_RIGHT" spacing="5" minWidth="250" maxWidth="250">
+                    <Label style="-fx-font-size: 14px;" text="🔊" />
+                    <Slider fx:id="volumeSlider" max="100" min="0" prefWidth="100" value="50" />
+                </HBox>
+            </HBox>
+
+            <!-- Progress bar with time labels -->
+            <HBox alignment="BOTTOM_CENTER" spacing="10">
+                <Label fx:id="elapsedTimeLabel" alignment="BOTTOM_LEFT" prefWidth="50" style="-fx-font-size: 11px;" text="0:00" />
+                <WaveformProgressBar fx:id="waveformProgressBar" prefHeight="50" HBox.hgrow="ALWAYS" />
+                <Label fx:id="totalTimeLabel" alignment="BOTTOM_RIGHT" prefWidth="50" style="-fx-font-size: 11px;" text="0:00" />
+            </HBox>
         </VBox>
     </top>
 
     <center>
-        <TableView fx:id="musicTable" VBox.vgrow="ALWAYS">
-            <columns>
-                <TableColumn fx:id="titleColumn" text="Title" prefWidth="200" />
-                <TableColumn fx:id="artistColumn" text="Artist" prefWidth="150" />
-                <TableColumn fx:id="albumColumn" text="Album" prefWidth="150" />
-                <TableColumn fx:id="durationColumn" text="Duration" prefWidth="80" />
-                <TableColumn fx:id="tagsColumn" text="Tags" prefWidth="150" />
-                <TableColumn fx:id="ratingColumn" text="Rating" prefWidth="100" />
-            </columns>
-        </TableView>
+        <SplitPane dividerPositions="0.7">
+            <!-- Music library table (left) -->
+            <TableView fx:id="musicTable" VBox.vgrow="ALWAYS">
+                <columns>
+                    <TableColumn fx:id="titleColumn" prefWidth="200" text="Title" />
+                    <TableColumn fx:id="artistColumn" prefWidth="150" text="Artist" />
+                    <TableColumn fx:id="albumColumn" prefWidth="150" text="Album" />
+                    <TableColumn fx:id="durationColumn" prefWidth="80" text="Duration" />
+                    <TableColumn fx:id="tagsColumn" prefWidth="120" text="Tags" />
+                    <TableColumn fx:id="ratingColumn" prefWidth="100" text="Rating" />
+                </columns>
+            </TableView>
+
+            <!-- Playlist panel (right) -->
+            <VBox spacing="5" minWidth="200" prefWidth="250">
+                <padding>
+                    <Insets top="0" right="0" bottom="0" left="5" />
+                </padding>
+
+                <!-- Playlist tabs header -->
+                <HBox alignment="CENTER_LEFT" spacing="5">
+                    <ScrollPane fx:id="playlistTabsScrollPane" hbarPolicy="NEVER" vbarPolicy="NEVER"
+                                fitToHeight="true" HBox.hgrow="ALWAYS" style="-fx-background-color: transparent;">
+                        <HBox fx:id="playlistTabsContainer" spacing="3" alignment="CENTER_LEFT" />
+                    </ScrollPane>
+                    <Button fx:id="addPlaylistButton" onAction="#onAddPlaylist" text="+" prefWidth="30"
+                            style="-fx-font-size: 14px; -fx-font-weight: bold;" />
+                </HBox>
+
+                <!-- Current playlist name -->
+                <Label fx:id="currentPlaylistLabel" text="Local" style="-fx-font-weight: bold; -fx-font-size: 13px;" />
+
+                <!-- Playlist content -->
+                <ListView fx:id="playlistView" VBox.vgrow="ALWAYS" />
+
+                <!-- Playlist info -->
+                <Label fx:id="playlistInfoLabel" text="0 tracks" style="-fx-font-size: 11px; -fx-text-fill: #666;" />
+            </VBox>
+        </SplitPane>
     </center>
+
+    <bottom>
+        <HBox alignment="CENTER" spacing="20">
+            <padding>
+                <Insets bottom="10" left="10" right="10" top="10" />
+            </padding>
+
+            <!-- Spacer left -->
+            <Pane HBox.hgrow="ALWAYS" />
+
+            <!-- Search bar (center) -->
+            <HBox alignment="CENTER" spacing="5">
+                <TextField fx:id="searchField" onAction="#onSearch" prefWidth="250" promptText="Search..." />
+                <Button onAction="#onClearSearch" prefWidth="30" text="✕" />
+            </HBox>
+
+            <!-- Spacer right -->
+            <Pane HBox.hgrow="ALWAYS" />
+
+            <!-- Settings button (right) -->
+            <Button onAction="#onSettings" text="⚙ Settings" />
+        </HBox>
+    </bottom>
 
 </BorderPane>

@@ -9,35 +9,38 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 /**
- * Gestionnaire des paramètres de l'application.
- * Gère la lecture et l'écriture des paramètres dans un fichier JSON.
+ * Settings manager for the application.
+ * Handles reading and writing settings and session data to JSON files.
  */
 public class SettingsManager {
 
     private static final String APP_FOLDER_NAME = ".cmp";
     private static final String SETTINGS_FILE_NAME = "settings.json";
+    private static final String SESSION_FILE_NAME = "session.json";
 
     private static SettingsManager instance;
 
     private final Path settingsFilePath;
+    private final Path sessionFilePath;
     private final Gson gson;
     private Settings settings;
+    private PlaybackSession session;
 
     /**
-     * Constructeur privé pour le pattern Singleton.
+     * Private constructor for Singleton pattern.
      */
     private SettingsManager() {
-        this.settingsFilePath = getSettingsFilePath();
+        this.settingsFilePath = getAppFolder().resolve(SETTINGS_FILE_NAME);
+        this.sessionFilePath = getAppFolder().resolve(SESSION_FILE_NAME);
         this.gson = new GsonBuilder()
                 .setPrettyPrinting()
                 .create();
-        this.settings = load();
+        this.settings = loadSettings();
+        this.session = loadSession();
     }
 
     /**
-     * Retourne l'instance unique du SettingsManager.
-     *
-     * @return L'instance du SettingsManager
+     * Returns the unique instance of SettingsManager.
      */
     public static synchronized SettingsManager getInstance() {
         if (instance == null) {
@@ -47,24 +50,17 @@ public class SettingsManager {
     }
 
     /**
-     * Détermine le chemin du fichier de paramètres.
-     * Le fichier est stocké dans ~/.cmp/settings.json
-     *
-     * @return Le chemin vers le fichier de paramètres
+     * Returns the app folder path (~/.cmp/).
      */
-    private Path getSettingsFilePath() {
+    private Path getAppFolder() {
         String userHome = System.getProperty("user.home");
-        Path appFolder = Paths.get(userHome, APP_FOLDER_NAME);
-        return appFolder.resolve(SETTINGS_FILE_NAME);
+        return Paths.get(userHome, APP_FOLDER_NAME);
     }
 
     /**
-     * Charge les paramètres depuis le fichier JSON.
-     * Si le fichier n'existe pas ou est invalide, retourne les paramètres par défaut.
-     *
-     * @return Les paramètres chargés ou les valeurs par défaut
+     * Loads settings from the JSON file.
      */
-    private Settings load() {
+    private Settings loadSettings() {
         if (!Files.exists(settingsFilePath)) {
             return new Settings();
         }
@@ -74,53 +70,89 @@ public class SettingsManager {
             Settings loaded = gson.fromJson(json, Settings.class);
             return loaded != null ? loaded : new Settings();
         } catch (IOException e) {
-            System.err.println("Erreur lors du chargement des paramètres: " + e.getMessage());
+            System.err.println("Error loading settings: " + e.getMessage());
             return new Settings();
         }
     }
 
     /**
-     * Sauvegarde les paramètres dans le fichier JSON.
-     * Crée le dossier parent si nécessaire.
+     * Loads playback session from the JSON file.
+     */
+    private PlaybackSession loadSession() {
+        if (!Files.exists(sessionFilePath)) {
+            return new PlaybackSession();
+        }
+
+        try {
+            String json = Files.readString(sessionFilePath);
+            PlaybackSession loaded = gson.fromJson(json, PlaybackSession.class);
+            return loaded != null ? loaded : new PlaybackSession();
+        } catch (IOException e) {
+            System.err.println("Error loading session: " + e.getMessage());
+            return new PlaybackSession();
+        }
+    }
+
+    /**
+     * Saves settings to the JSON file.
      */
     public void save() {
         try {
-            // Créer le dossier parent si nécessaire
             Path parentDir = settingsFilePath.getParent();
             if (parentDir != null && !Files.exists(parentDir)) {
                 Files.createDirectories(parentDir);
             }
 
-            // Écrire le fichier JSON
             String json = gson.toJson(settings);
             Files.writeString(settingsFilePath, json);
         } catch (IOException e) {
-            System.err.println("Erreur lors de la sauvegarde des paramètres: " + e.getMessage());
+            System.err.println("Error saving settings: " + e.getMessage());
         }
     }
 
     /**
-     * Retourne les paramètres actuels.
-     *
-     * @return Les paramètres
+     * Saves playback session to the JSON file.
+     */
+    public synchronized void saveSession() {
+        try {
+            Path parentDir = sessionFilePath.getParent();
+            if (parentDir != null && !Files.exists(parentDir)) {
+                Files.createDirectories(parentDir);
+            }
+
+            String json = gson.toJson(session);
+            Files.writeString(sessionFilePath, json,
+                    java.nio.file.StandardOpenOption.CREATE,
+                    java.nio.file.StandardOpenOption.TRUNCATE_EXISTING,
+                    java.nio.file.StandardOpenOption.WRITE);
+        } catch (IOException e) {
+            System.err.println("Error saving session: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Returns the current settings.
      */
     public Settings getSettings() {
         return settings;
     }
 
     /**
-     * Obtient le dernier volume utilisé.
-     *
-     * @return Le volume (0-100)
+     * Returns the current playback session.
+     */
+    public PlaybackSession getSession() {
+        return session;
+    }
+
+    /**
+     * Gets the last used volume.
      */
     public int getLastVolume() {
         return settings.getLastVolume();
     }
 
     /**
-     * Définit et sauvegarde le dernier volume utilisé.
-     *
-     * @param volume Le volume (0-100)
+     * Sets and saves the last used volume.
      */
     public void setLastVolume(int volume) {
         settings.setLastVolume(volume);
@@ -128,18 +160,14 @@ public class SettingsManager {
     }
 
     /**
-     * Obtient le chemin du dossier de musique.
-     *
-     * @return Le chemin du dossier
+     * Gets the music folder path.
      */
     public String getMusicFolderPath() {
         return settings.getMusicFolderPath();
     }
 
     /**
-     * Définit et sauvegarde le chemin du dossier de musique.
-     *
-     * @param path Le chemin du dossier
+     * Sets and saves the music folder path.
      */
     public void setMusicFolderPath(String path) {
         settings.setMusicFolderPath(path);
@@ -147,11 +175,10 @@ public class SettingsManager {
     }
 
     /**
-     * Recharge les paramètres depuis le fichier.
-     * Utile si le fichier a été modifié externellement.
+     * Reloads settings from file.
      */
     public void reload() {
-        this.settings = load();
+        this.settings = loadSettings();
+        this.session = loadSession();
     }
 }
-

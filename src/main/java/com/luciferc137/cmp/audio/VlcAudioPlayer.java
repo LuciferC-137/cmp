@@ -1,6 +1,6 @@
 package com.luciferc137.cmp.audio;
 
-import com.luciferc137.cmp.model.Music;
+import com.luciferc137.cmp.library.Music;
 import uk.co.caprica.vlcj.player.base.MediaPlayer;
 import uk.co.caprica.vlcj.player.base.MediaPlayerEventAdapter;
 import uk.co.caprica.vlcj.player.component.AudioPlayerComponent;

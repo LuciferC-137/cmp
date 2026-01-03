@@ -5,7 +5,6 @@ import com.luciferc137.cmp.database.model.MusicEntity;
 import com.luciferc137.cmp.database.model.TagEntity;
 import com.luciferc137.cmp.database.sync.SyncProgressListener;
 import com.luciferc137.cmp.database.sync.SyncResult;
-import com.luciferc137.cmp.model.Music;
 import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyIntegerProperty;
@@ -21,7 +20,6 @@ import java.util.stream.Collectors;
 /**
  * MusicLibrary is the main interface between the database and the UI.
  * It provides an ObservableList of Music objects that can be filtered, searched, and sorted.
- *
  * This class follows the singleton pattern to ensure a single source of truth for the library.
  */
 public class MusicLibrary {
@@ -181,7 +179,7 @@ public class MusicLibrary {
                     music.setTags(tagNames);
                     return music;
                 })
-                .collect(Collectors.toList());
+                .toList();
 
         // Apply filters
         List<Music> filtered = allMusic.stream()
