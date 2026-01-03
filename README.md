@@ -146,12 +146,20 @@ src/main/java/com/luciferc137/cmp/
 ├── settings/                 # Application settings
 │   ├── Settings.java
 │   └── SettingsManager.java
-└── ui/                       # User interface
-    ├── MainController.java   # Main window controller
-    ├── WaveformProgressBar.java # Custom waveform component
+└── ui/
+    ├── MainController.java   # Main UI controller
+    ├── PlaylistManagerDialog.java
+    ├── WaveformProgressBar.java
+    ├── handlers/            # UI event handlers
+    │   ├── PlaybackHandler.java
+    │   ├── PlaylistPanelHandler.java
+    │   ├── TableHandler.java
+    │   ├── ContextMenuHandler.java
+    │   ├── FilterPopupHandler.java
+    │   ├── SessionHandler.java
+    │   └── ShuffleLoopHandler.java
     └── settings/
-        ├── SettingsController.java
-        └── SettingsWindow.java
+ 
 ```
 
 ## Database Schema
