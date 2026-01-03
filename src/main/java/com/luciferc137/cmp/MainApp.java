@@ -18,6 +18,10 @@ public class MainApp extends Application {
         );
 
         Scene scene = new Scene(loader.load());
+
+        // Apply dark theme stylesheet
+        scene.getStylesheets().add(getClass().getResource("/ui/styles/dark-theme.css").toExternalForm());
+
         stage.setTitle("Custom Music Player");
         stage.setScene(scene);
         stage.show();

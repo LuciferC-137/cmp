@@ -8,42 +8,44 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * Extrait les données de waveform (amplitude RMS) d'un fichier audio.
- * Retourne un tableau de valeurs normalisées (0.0 à 1.0) représentant
- * l'amplitude audio à intervalles réguliers.
+ * Extracts waveform data (RMS amplitude) from an audio file.
+ * Returns an array of normalized values (0.0 to 1.0) representing
+ * audio amplitude at regular intervals.
  */
 public class WaveformExtractor {
 
+    /** Default number of bins/samples for waveform display. */
+    public static final int DEFAULT_NUM_BINS = 400;
+
     /**
-     * Extrait la waveform d'un fichier audio de manière asynchrone.
+     * Extracts the waveform from an audio file asynchronously.
      *
-     * @param filePath chemin du fichier audio
-     * @param numSamples nombre de samples à retourner (résolution de la waveform)
-     * @return CompletableFuture contenant le tableau des amplitudes normalisées
+     * @param filePath path to the audio file
+     * @param numSamples number of samples to return (waveform resolution)
+     * @return CompletableFuture containing the normalized amplitude array
      */
     public CompletableFuture<float[]> extractAsync(String filePath, int numSamples) {
         return CompletableFuture.supplyAsync(() -> {
             try {
                 return extract(filePath, numSamples);
             } catch (Exception e) {
-                System.err.println("Erreur lors de l'extraction de la waveform: " + e.getMessage());
-                e.printStackTrace();
+                System.err.println("Error extracting waveform: " + e.getMessage());
                 return new float[numSamples];
             }
         });
     }
 
     /**
-     * Extrait la waveform d'un fichier audio.
+     * Extracts the waveform from an audio file.
      *
-     * @param filePath chemin du fichier audio
-     * @param numSamples nombre de samples à retourner
-     * @return tableau des amplitudes normalisées (0.0 à 1.0)
+     * @param filePath path to the audio file
+     * @param numSamples number of samples to return
+     * @return array of normalized amplitudes (0.0 to 1.0)
      */
     public float[] extract(String filePath, int numSamples) throws UnsupportedAudioFileException, IOException {
         File audioFile = new File(filePath);
         if (!audioFile.exists()) {
-            throw new IOException("Fichier audio introuvable: " + filePath);
+            throw new IOException("Audio file not found: " + filePath);
         }
 
         List<Float> rmsValues = new ArrayList<>();
@@ -51,7 +53,7 @@ public class WaveformExtractor {
         try (AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(audioFile)) {
             AudioFormat baseFormat = audioInputStream.getFormat();
 
-            // Convertir en PCM si nécessaire (pour les fichiers MP3)
+            // Convert to PCM if necessary (for MP3 files)
             AudioFormat decodedFormat = new AudioFormat(
                     AudioFormat.Encoding.PCM_SIGNED,
                     baseFormat.getSampleRate(),
@@ -79,7 +81,7 @@ public class WaveformExtractor {
     }
 
     /**
-     * Calcule la valeur RMS (Root Mean Square) à partir d'un buffer de bytes audio.
+     * Calculates the RMS (Root Mean Square) value from an audio byte buffer.
      */
     private float calculateRMSFromBytes(byte[] buffer, int bytesRead, int bytesPerFrame, int channels) {
         int samplesPerChannel = bytesRead / bytesPerFrame;
@@ -89,9 +91,9 @@ public class WaveformExtractor {
         int sampleCount = 0;
 
         for (int i = 0; i < bytesRead - 1; i += 2) {
-            // Convertir 2 bytes en un échantillon 16-bit signé (little-endian)
+            // Convert 2 bytes to a 16-bit signed sample (little-endian)
             short sample = (short) ((buffer[i + 1] << 8) | (buffer[i] & 0xFF));
-            // Normaliser entre -1 et 1
+            // Normalize between -1 and 1
             float normalizedSample = sample / 32768.0f;
             sum += normalizedSample * normalizedSample;
             sampleCount++;
@@ -102,8 +104,8 @@ public class WaveformExtractor {
     }
 
     /**
-     * Rééchantillonne la liste de valeurs RMS pour correspondre au nombre
-     * de samples désiré (pour la résolution de la barre de progression).
+     * Resamples the list of RMS values to match the desired number
+     * of samples (for progress bar resolution).
      */
     private float[] resampleToSize(List<Float> values, int targetSize) {
         if (values.isEmpty()) {
@@ -113,12 +115,12 @@ public class WaveformExtractor {
         float[] result = new float[targetSize];
         float maxValue = 0;
 
-        // Trouver la valeur max pour normalisation
+        // Find max value for normalization
         for (Float v : values) {
             if (v > maxValue) maxValue = v;
         }
 
-        if (maxValue == 0) maxValue = 1; // Éviter division par zéro
+        if (maxValue == 0) maxValue = 1; // Avoid division by zero
 
         float ratio = (float) values.size() / targetSize;
 
@@ -127,7 +129,7 @@ public class WaveformExtractor {
             int endIdx = (int) ((i + 1) * ratio);
             endIdx = Math.min(endIdx, values.size());
 
-            // Moyenne des valeurs dans cet intervalle
+            // Average values in this interval
             float sum = 0;
             int count = 0;
             for (int j = startIdx; j < endIdx; j++) {
@@ -136,7 +138,7 @@ public class WaveformExtractor {
             }
 
             if (count > 0) {
-                result[i] = (sum / count) / maxValue; // Normaliser entre 0 et 1
+                result[i] = (sum / count) / maxValue; // Normalize between 0 and 1
             }
         }
 

@@ -133,10 +133,10 @@ public class SyncLogDao {
     }
 
     /**
-     * Retourne les N derniers logs de synchronisation.
+     * Returns the N most recent synchronization logs.
      *
-     * @param limit Le nombre maximum de logs à retourner
-     * @return Liste des logs
+     * @param limit The maximum number of logs to return
+     * @return List of logs
      */
     public List<SyncLogEntity> findRecent(int limit) throws SQLException {
         String sql = "SELECT * FROM sync_log ORDER BY sync_date DESC LIMIT ?";

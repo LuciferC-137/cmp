@@ -15,19 +15,19 @@ public interface AudioPlayer {
     boolean isPlaying();
 
     /**
-     * Obtient la position actuelle de lecture en millisecondes.
+     * Gets the current playback position in milliseconds.
      */
     long getPosition();
 
     /**
-     * Obtient la durée totale du média en millisecondes.
+     * Gets the total media duration in milliseconds.
      */
     long getDuration();
 
     /**
-     * Déplace la lecture à une position spécifique.
+     * Seeks to a specific position.
      *
-     * @param positionMs position en millisecondes
+     * @param positionMs position in milliseconds
      */
     void seek(long positionMs);
 }

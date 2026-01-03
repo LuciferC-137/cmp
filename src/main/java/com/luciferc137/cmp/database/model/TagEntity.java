@@ -3,7 +3,7 @@ package com.luciferc137.cmp.database.model;
 import java.time.LocalDateTime;
 
 /**
- * Entité représentant un tag/étiquette dans la base de données.
+ * Entity representing a tag/label in the database.
  */
 public class TagEntity {
 
@@ -17,7 +17,7 @@ public class TagEntity {
 
     public TagEntity(String name) {
         this.name = name;
-        this.color = "#808080"; // Couleur par défaut
+        this.color = "#808080"; // Default color
     }
 
     public TagEntity(String name, String color) {
@@ -25,7 +25,7 @@ public class TagEntity {
         this.color = color;
     }
 
-    // Getters et Setters
+    // Getters and Setters
 
     public Long getId() {
         return id;

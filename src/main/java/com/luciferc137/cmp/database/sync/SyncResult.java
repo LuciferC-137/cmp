@@ -1,7 +1,7 @@
 package com.luciferc137.cmp.database.sync;
 
 /**
- * Résultat d'une synchronisation de la bibliothèque musicale.
+ * Result of a music library synchronization.
  */
 public class SyncResult {
 

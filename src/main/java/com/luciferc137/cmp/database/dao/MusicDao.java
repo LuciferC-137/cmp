@@ -85,9 +85,9 @@ public class MusicDao {
     }
 
     /**
-     * Supprime une musique par son ID.
+     * Deletes a music by its ID.
      *
-     * @param id L'ID de la musique à supprimer
+     * @param id The ID of the music to delete
      */
     public void delete(long id) throws SQLException {
         String sql = "DELETE FROM music WHERE id = ?";
@@ -194,10 +194,10 @@ public class MusicDao {
     }
 
     /**
-     * Recherche des musiques par artiste.
+     * Searches for music by artist.
      *
-     * @param artist Le nom de l'artiste
-     * @return Liste des musiques de l'artiste
+     * @param artist The artist name
+     * @return List of music by the artist
      */
     public List<MusicEntity> findByArtist(String artist) throws SQLException {
         String sql = "SELECT * FROM music WHERE artist LIKE ? ORDER BY album, title";
@@ -320,9 +320,9 @@ public class MusicDao {
     }
 
     /**
-     * Retourne la liste de tous les albums uniques.
+     * Returns the list of all unique albums.
      *
-     * @return Liste des albums
+     * @return List of albums
      */
     public List<String> findAllAlbums() throws SQLException {
         String sql = "SELECT DISTINCT album FROM music WHERE album IS NOT NULL ORDER BY album";

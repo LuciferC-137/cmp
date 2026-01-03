@@ -8,8 +8,8 @@ import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 
 /**
- * Composant personnalisé affichant une barre de progression avec
- * un histogramme de waveform en arrière-plan.
+ * Custom component displaying a progress bar with
+ * a waveform histogram in the background.
  */
 public class WaveformProgressBar extends Pane {
 
@@ -22,7 +22,7 @@ public class WaveformProgressBar extends Pane {
     private Color waveformColor = Color.rgb(100, 100, 100, 0.5);
     private Color waveformPlayedColor = Color.rgb(30, 144, 255, 0.8);
     private Color progressLineColor = Color.rgb(30, 144, 255);
-    private Color backgroundColor = Color.rgb(40, 40, 40);
+    private Color backgroundColor = Color.rgb(30, 30, 30);
 
     public WaveformProgressBar() {
         waveformCanvas = new Canvas();
@@ -30,29 +30,29 @@ public class WaveformProgressBar extends Pane {
 
         getChildren().addAll(waveformCanvas, progressCanvas);
 
-        // Lier la taille des canvas à la taille du conteneur
+        // Bind canvas size to container size
         waveformCanvas.widthProperty().bind(widthProperty());
         waveformCanvas.heightProperty().bind(heightProperty());
         progressCanvas.widthProperty().bind(widthProperty());
         progressCanvas.heightProperty().bind(heightProperty());
 
-        // Redessiner quand la taille change
+        // Redraw when size changes
         widthProperty().addListener((obs, oldVal, newVal) -> redraw());
         heightProperty().addListener((obs, oldVal, newVal) -> redraw());
 
-        // Redessiner quand la progression change
+        // Redraw when progress changes
         progress.addListener((obs, oldVal, newVal) -> drawProgress());
 
-        // Style par défaut
+        // Default style
         setStyle("-fx-background-color: #282828;");
         setMinHeight(50);
         setPrefHeight(60);
     }
 
     /**
-     * Définit les données de waveform à afficher.
+     * Sets the waveform data to display.
      *
-     * @param data tableau de valeurs normalisées (0.0 à 1.0)
+     * @param data array of normalized values (0.0 to 1.0)
      */
     public void setWaveformData(float[] data) {
         this.waveformData = data;
@@ -60,30 +60,30 @@ public class WaveformProgressBar extends Pane {
     }
 
     /**
-     * Obtient la propriété de progression (0.0 à 1.0).
+     * Gets the progress property (0.0 to 1.0).
      */
     public DoubleProperty progressProperty() {
         return progress;
     }
 
     /**
-     * Définit la progression actuelle.
+     * Sets the current progress.
      *
-     * @param value valeur entre 0.0 et 1.0
+     * @param value value between 0.0 and 1.0
      */
     public void setProgress(double value) {
         progress.set(Math.max(0, Math.min(1, value)));
     }
 
     /**
-     * Obtient la progression actuelle.
+     * Gets the current progress.
      */
     public double getProgress() {
         return progress.get();
     }
 
     /**
-     * Efface les données de waveform.
+     * Clears the waveform data.
      */
     public void clear() {
         this.waveformData = null;
@@ -92,7 +92,7 @@ public class WaveformProgressBar extends Pane {
     }
 
     /**
-     * Redessine complètement le composant.
+     * Completely redraws the component.
      */
     private void redraw() {
         drawWaveform();
@@ -100,7 +100,7 @@ public class WaveformProgressBar extends Pane {
     }
 
     /**
-     * Dessine l'histogramme de waveform.
+     * Draws the waveform histogram.
      */
     private void drawWaveform() {
         double width = getWidth();
@@ -111,7 +111,7 @@ public class WaveformProgressBar extends Pane {
         GraphicsContext gc = waveformCanvas.getGraphicsContext2D();
         gc.clearRect(0, 0, width, height);
 
-        // Fond
+        // Background
         gc.setFill(backgroundColor);
         gc.fillRect(0, 0, width, height);
 
@@ -121,20 +121,20 @@ public class WaveformProgressBar extends Pane {
 
         double barWidth = width / waveformData.length;
         double centerY = height / 2;
-        double maxBarHeight = height * 0.8; // 80% de la hauteur
+        double maxBarHeight = height * 0.8; // 80% of height
 
         for (int i = 0; i < waveformData.length; i++) {
             double barHeight = waveformData[i] * maxBarHeight;
             double x = i * barWidth;
 
-            // Dessiner la barre symétrique (miroir haut/bas)
+            // Draw symmetric bar (mirrored top/bottom)
             gc.setFill(waveformColor);
             gc.fillRect(x, centerY - barHeight / 2, Math.max(1, barWidth - 1), barHeight);
         }
     }
 
     /**
-     * Dessine l'overlay de progression.
+     * Draws the progress overlay.
      */
     private void drawProgress() {
         double width = getWidth();
@@ -152,7 +152,7 @@ public class WaveformProgressBar extends Pane {
             double centerY = height / 2;
             double maxBarHeight = height * 0.8;
 
-            // Redessiner les barres "jouées" avec la couleur de progression
+            // Redraw "played" bars with progress color
             int barsPlayed = (int) (waveformData.length * progress.get());
 
             for (int i = 0; i < barsPlayed && i < waveformData.length; i++) {
@@ -164,7 +164,7 @@ public class WaveformProgressBar extends Pane {
             }
         }
 
-        // Ligne de progression
+        // Progress line
         if (progress.get() > 0) {
             gc.setStroke(progressLineColor);
             gc.setLineWidth(2);

@@ -33,6 +33,9 @@ public class PlaylistManagerDialog {
         dialog.setTitle("Playlist Manager");
         dialog.setHeaderText("Select or create a playlist");
 
+        // Apply dark theme
+        applyDarkTheme(dialog);
+
         ButtonType selectButtonType = new ButtonType("Select", ButtonBar.ButtonData.OK_DONE);
         ButtonType createButtonType = new ButtonType("New Playlist", ButtonBar.ButtonData.LEFT);
         dialog.getDialogPane().getButtonTypes().addAll(selectButtonType, createButtonType, ButtonType.CANCEL);
@@ -85,6 +88,9 @@ public class PlaylistManagerDialog {
         Dialog<PlaylistEntity> dialog = new Dialog<>();
         dialog.setTitle("Create Playlist");
         dialog.setHeaderText("Enter playlist details");
+
+        // Apply dark theme
+        applyDarkTheme(dialog);
 
         ButtonType createButtonType = new ButtonType("Create", ButtonBar.ButtonData.OK_DONE);
         dialog.getDialogPane().getButtonTypes().addAll(createButtonType, ButtonType.CANCEL);
@@ -143,6 +149,7 @@ public class PlaylistManagerDialog {
             alert.setTitle("No Playlists");
             alert.setHeaderText(null);
             alert.setContentText("No playlists available. Create one first.");
+            ThemeManager.applyDarkTheme(alert);
             alert.showAndWait();
             return;
         }
@@ -151,8 +158,16 @@ public class PlaylistManagerDialog {
         dialog.setTitle("Add to Playlist");
         dialog.setHeaderText("Select a playlist");
         dialog.setContentText("Playlist:");
+        ThemeManager.applyDarkTheme(dialog);
 
         dialog.showAndWait().ifPresent(onSelect);
+    }
+
+    /**
+     * Applies the dark theme stylesheet to a dialog.
+     */
+    private static void applyDarkTheme(Dialog<?> dialog) {
+        ThemeManager.applyDarkTheme(dialog);
     }
 }
 

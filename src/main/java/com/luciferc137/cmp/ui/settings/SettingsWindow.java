@@ -36,7 +36,12 @@ public class SettingsWindow {
 
             Stage stage = new Stage();
             stage.setTitle("Settings");
-            stage.setScene(new Scene(loader.load()));
+            Scene scene = new Scene(loader.load());
+
+            // Apply dark theme stylesheet
+            scene.getStylesheets().add(SettingsWindow.class.getResource("/ui/styles/dark-theme.css").toExternalForm());
+
+            stage.setScene(scene);
             stage.initModality(Modality.WINDOW_MODAL);
             stage.initOwner(owner);
             stage.setResizable(true);

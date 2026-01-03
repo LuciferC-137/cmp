@@ -4,6 +4,7 @@ import com.luciferc137.cmp.database.sync.SyncProgressListener;
 import com.luciferc137.cmp.database.sync.SyncResult;
 import com.luciferc137.cmp.library.MusicLibrary;
 import com.luciferc137.cmp.settings.SettingsManager;
+import com.luciferc137.cmp.ui.ThemeManager;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -210,6 +211,7 @@ public class SettingsController {
         alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(message);
+        ThemeManager.applyDarkTheme(alert);
         alert.showAndWait();
     }
 

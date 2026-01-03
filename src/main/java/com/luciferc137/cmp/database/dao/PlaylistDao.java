@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * DAO (Data Access Object) pour la gestion des playlists en base de données.
+ * DAO (Data Access Object) for managing playlists in the database.
  */
 public class PlaylistDao {
 
@@ -22,10 +22,10 @@ public class PlaylistDao {
     }
 
     /**
-     * Insère une nouvelle playlist dans la base de données.
+     * Inserts a new playlist into the database.
      *
-     * @param playlist L'entité playlist à insérer
-     * @return L'ID généré
+     * @param playlist The playlist entity to insert
+     * @return The generated ID
      */
     public long insert(PlaylistEntity playlist) throws SQLException {
         String sql = "INSERT INTO playlist (name) VALUES (?)";
@@ -46,9 +46,9 @@ public class PlaylistDao {
     }
 
     /**
-     * Met à jour une playlist existante.
+     * Updates an existing playlist.
      *
-     * @param playlist L'entité playlist à mettre à jour
+     * @param playlist The playlist entity to update
      */
     public void update(PlaylistEntity playlist) throws SQLException {
         String sql = "UPDATE playlist SET name = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?";
@@ -61,9 +61,9 @@ public class PlaylistDao {
     }
 
     /**
-     * Supprime une playlist par son ID.
+     * Deletes a playlist by its ID.
      *
-     * @param id L'ID de la playlist à supprimer
+     * @param id The ID of the playlist to delete
      */
     public void delete(long id) throws SQLException {
         String sql = "DELETE FROM playlist WHERE id = ?";
@@ -75,10 +75,10 @@ public class PlaylistDao {
     }
 
     /**
-     * Recherche une playlist par son ID.
+     * Finds a playlist by its ID.
      *
-     * @param id L'ID de la playlist
-     * @return L'entité playlist si trouvée
+     * @param id The playlist ID
+     * @return The playlist entity if found
      */
     public Optional<PlaylistEntity> findById(long id) throws SQLException {
         String sql = "SELECT * FROM playlist WHERE id = ?";
@@ -96,10 +96,10 @@ public class PlaylistDao {
     }
 
     /**
-     * Recherche une playlist par son nom.
+     * Finds a playlist by its name.
      *
-     * @param name Le nom de la playlist
-     * @return L'entité playlist si trouvée
+     * @param name The playlist name
+     * @return The playlist entity if found
      */
     public Optional<PlaylistEntity> findByName(String name) throws SQLException {
         String sql = "SELECT * FROM playlist WHERE name = ?";
@@ -117,9 +117,9 @@ public class PlaylistDao {
     }
 
     /**
-     * Retourne toutes les playlists.
+     * Returns all playlists.
      *
-     * @return Liste de toutes les playlists
+     * @return List of all playlists
      */
     public List<PlaylistEntity> findAll() throws SQLException {
         String sql = "SELECT * FROM playlist ORDER BY name";
@@ -135,13 +135,13 @@ public class PlaylistDao {
     }
 
     /**
-     * Ajoute une musique à une playlist.
+     * Adds a music to a playlist.
      *
-     * @param playlistId L'ID de la playlist
-     * @param musicId L'ID de la musique
+     * @param playlistId The playlist ID
+     * @param musicId The music ID
      */
     public void addMusic(long playlistId, long musicId) throws SQLException {
-        // Récupérer la position maximale actuelle
+        // Get the current maximum position
         int maxPosition = getMaxPosition(playlistId);
 
         String sql = "INSERT OR IGNORE INTO playlist_music (playlist_id, music_id, position) VALUES (?, ?, ?)";
@@ -155,10 +155,10 @@ public class PlaylistDao {
     }
 
     /**
-     * Supprime une musique d'une playlist.
+     * Removes a music from a playlist.
      *
-     * @param playlistId L'ID de la playlist
-     * @param musicId L'ID de la musique
+     * @param playlistId The playlist ID
+     * @param musicId The music ID
      */
     public void removeMusic(long playlistId, long musicId) throws SQLException {
         String sql = "DELETE FROM playlist_music WHERE playlist_id = ? AND music_id = ?";
@@ -171,10 +171,10 @@ public class PlaylistDao {
     }
 
     /**
-     * Retourne toutes les musiques d'une playlist ordonnées par position.
+     * Returns all music from a playlist ordered by position.
      *
-     * @param playlistId L'ID de la playlist
-     * @return Liste des musiques de la playlist
+     * @param playlistId The playlist ID
+     * @return List of music in the playlist
      */
     public List<MusicEntity> getMusicsByPlaylist(long playlistId) throws SQLException {
         String sql = """
@@ -198,11 +198,11 @@ public class PlaylistDao {
     }
 
     /**
-     * Change la position d'une musique dans une playlist.
+     * Changes the position of a music in a playlist.
      *
-     * @param playlistId L'ID de la playlist
-     * @param musicId L'ID de la musique
-     * @param newPosition La nouvelle position
+     * @param playlistId The playlist ID
+     * @param musicId The music ID
+     * @param newPosition The new position
      */
     public void updateMusicPosition(long playlistId, long musicId, int newPosition) throws SQLException {
         String sql = "UPDATE playlist_music SET position = ? WHERE playlist_id = ? AND music_id = ?";
@@ -216,10 +216,10 @@ public class PlaylistDao {
     }
 
     /**
-     * Compte le nombre de musiques dans une playlist.
+     * Counts the number of music in a playlist.
      *
-     * @param playlistId L'ID de la playlist
-     * @return Le nombre de musiques
+     * @param playlistId The playlist ID
+     * @return The number of music
      */
     public int countMusics(long playlistId) throws SQLException {
         String sql = "SELECT COUNT(*) FROM playlist_music WHERE playlist_id = ?";
@@ -237,7 +237,7 @@ public class PlaylistDao {
     }
 
     /**
-     * Récupère la position maximale dans une playlist.
+     * Gets the maximum position in a playlist.
      */
     private int getMaxPosition(long playlistId) throws SQLException {
         String sql = "SELECT MAX(position) FROM playlist_music WHERE playlist_id = ?";
@@ -255,7 +255,7 @@ public class PlaylistDao {
     }
 
     /**
-     * Convertit un ResultSet en entité PlaylistEntity.
+     * Converts a ResultSet to a PlaylistEntity.
      */
     private PlaylistEntity mapResultSet(ResultSet rs) throws SQLException {
         PlaylistEntity playlist = new PlaylistEntity();
@@ -276,7 +276,7 @@ public class PlaylistDao {
     }
 
     /**
-     * Convertit un ResultSet en entité MusicEntity.
+     * Converts a ResultSet to a MusicEntity.
      */
     private MusicEntity mapMusicResultSet(ResultSet rs) throws SQLException {
         MusicEntity music = new MusicEntity();

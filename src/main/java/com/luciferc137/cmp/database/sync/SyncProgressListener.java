@@ -1,64 +1,64 @@
 package com.luciferc137.cmp.database.sync;
 
 /**
- * Callback pour suivre la progression de la synchronisation.
+ * Callback interface to track synchronization progress.
  */
 public interface SyncProgressListener {
 
     /**
-     * Appelé lorsque la synchronisation démarre.
+     * Called when synchronization starts.
      *
-     * @param totalFiles Le nombre total de fichiers à traiter
+     * @param totalFiles The total number of files to process
      */
     void onSyncStarted(int totalFiles);
 
     /**
-     * Appelé pour chaque fichier traité.
+     * Called for each processed file.
      *
-     * @param currentFile Le numéro du fichier actuel
-     * @param totalFiles Le nombre total de fichiers
-     * @param fileName Le nom du fichier en cours
+     * @param currentFile The current file number
+     * @param totalFiles The total number of files
+     * @param fileName The current file name
      */
     void onFileProcessed(int currentFile, int totalFiles, String fileName);
 
     /**
-     * Appelé lorsqu'un fichier est ajouté à la bibliothèque.
+     * Called when a file is added to the library.
      *
-     * @param path Le chemin du fichier ajouté
+     * @param path The path of the added file
      */
     void onFileAdded(String path);
 
     /**
-     * Appelé lorsqu'un fichier est mis à jour.
+     * Called when a file is updated.
      *
-     * @param path Le chemin du fichier mis à jour
+     * @param path The path of the updated file
      */
     void onFileUpdated(String path);
 
     /**
-     * Appelé lorsqu'un fichier est supprimé de la bibliothèque.
+     * Called when a file is removed from the library.
      *
-     * @param path Le chemin du fichier supprimé
+     * @param path The path of the removed file
      */
     void onFileRemoved(String path);
 
     /**
-     * Appelé lorsqu'une erreur survient.
+     * Called when an error occurs.
      *
-     * @param path Le chemin du fichier en erreur
-     * @param error Le message d'erreur
+     * @param path The path of the file with error
+     * @param error The error message
      */
     void onError(String path, String error);
 
     /**
-     * Appelé lorsque la synchronisation est terminée.
+     * Called when synchronization is completed.
      *
-     * @param result Le résultat de la synchronisation
+     * @param result The synchronization result
      */
     void onSyncCompleted(SyncResult result);
 
     /**
-     * Implémentation vide pour quand on n'a pas besoin de callbacks.
+     * Empty implementation for when callbacks are not needed.
      */
     class Empty implements SyncProgressListener {
         @Override

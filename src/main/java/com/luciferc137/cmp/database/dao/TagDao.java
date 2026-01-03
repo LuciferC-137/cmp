@@ -98,7 +98,7 @@ public class TagDao {
     }
 
     /**
-     * Recherche un tag par son nom.
+     * Finds a tag by its name.
      *
      * @param name Le nom du tag
      * @return L'entité tag si trouvée
@@ -196,9 +196,9 @@ public class TagDao {
     }
 
     /**
-     * Retourne toutes les musiques ayant un tag spécifique.
+     * Returns all music with a specific tag.
      *
-     * @param tagId L'ID du tag
+     * @param tagId The tag ID
      * @return Liste des musiques avec ce tag
      */
     public List<MusicEntity> getMusicsByTag(long tagId) throws SQLException {
@@ -261,7 +261,7 @@ public class TagDao {
     }
 
     /**
-     * Convertit un ResultSet en entité MusicEntity.
+     * Converts a ResultSet to a MusicEntity.
      */
     private MusicEntity mapMusicResultSet(ResultSet rs) throws SQLException {
         MusicEntity music = new MusicEntity();

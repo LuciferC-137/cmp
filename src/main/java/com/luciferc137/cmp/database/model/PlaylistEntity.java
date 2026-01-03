@@ -3,7 +3,7 @@ package com.luciferc137.cmp.database.model;
 import java.time.LocalDateTime;
 
 /**
- * Entité représentant une playlist dans la base de données.
+ * Entity representing a playlist in the database.
  */
 public class PlaylistEntity {
 
@@ -19,7 +19,7 @@ public class PlaylistEntity {
         this.name = name;
     }
 
-    // Getters et Setters
+    // Getters and Setters
 
     public Long getId() {
         return id;

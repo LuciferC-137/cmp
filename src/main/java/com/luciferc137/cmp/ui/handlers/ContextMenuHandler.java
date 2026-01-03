@@ -6,6 +6,7 @@ import com.luciferc137.cmp.database.model.TagEntity;
 import com.luciferc137.cmp.library.Music;
 import com.luciferc137.cmp.library.MusicLibrary;
 import com.luciferc137.cmp.library.PlaybackQueue;
+import com.luciferc137.cmp.ui.ThemeManager;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.scene.control.*;
@@ -250,6 +251,7 @@ public class ContextMenuHandler {
         alert.setTitle("Added to Playlist");
         alert.setHeaderText(null);
         alert.setContentText(count + " track(s) added to \"" + playlist.getName() + "\"");
+        ThemeManager.applyDarkTheme(alert);
         alert.show();
 
         // Auto-hide after 2 seconds

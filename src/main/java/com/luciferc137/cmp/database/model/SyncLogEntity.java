@@ -3,7 +3,7 @@ package com.luciferc137.cmp.database.model;
 import java.time.LocalDateTime;
 
 /**
- * Entité représentant un enregistrement de synchronisation.
+ * Entity representing a synchronization log entry.
  */
 public class SyncLogEntity {
 
@@ -23,7 +23,7 @@ public class SyncLogEntity {
         this.status = "in_progress";
     }
 
-    // Getters et Setters
+    // Getters and Setters
 
     public Long getId() {
         return id;

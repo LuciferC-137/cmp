@@ -1,23 +1,23 @@
 package com.luciferc137.cmp.settings;
 
 /**
- * Classe représentant les paramètres de l'application.
- * Cette classe est sérialisée en JSON par SettingsManager.
+ * Class representing the application settings.
+ * This class is serialized to JSON by SettingsManager.
  */
 public class Settings {
 
     /**
-     * Dernier volume utilisé (0-100)
+     * Last used volume (0-100)
      */
     private int lastVolume = 50;
 
     /**
-     * Chemin du dossier de musique
+     * Music folder path
      */
     private String musicFolderPath = "";
 
     public Settings() {
-        // Constructeur par défaut pour la désérialisation
+        // Default constructor for deserialization
     }
 
     public int getLastVolume() {

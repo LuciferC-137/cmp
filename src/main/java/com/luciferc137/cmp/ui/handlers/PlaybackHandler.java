@@ -230,7 +230,7 @@ public class PlaybackHandler {
         if (waveformProgressBar == null) return;
 
         waveformProgressBar.clear();
-        int numSamples = 200;
+        int numSamples = WaveformExtractor.DEFAULT_NUM_BINS;
 
         waveformExtractor.extractAsync(music.filePath, numSamples)
                 .thenAccept(data -> Platform.runLater(() ->

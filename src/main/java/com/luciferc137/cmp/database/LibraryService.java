@@ -17,8 +17,8 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * Service principal pour la gestion de la bibliothèque musicale.
- * Fournit une interface simplifiée pour accéder aux différentes fonctionnalités.
+ * Main service for managing the music library.
+ * Provides a simplified interface for accessing various features.
  */
 public class LibraryService {
 
@@ -30,7 +30,7 @@ public class LibraryService {
     private final LibrarySyncService syncService;
 
     private LibraryService() {
-        // Initialiser la base de données
+        // Initialize the database
         DatabaseManager.getInstance();
 
         this.musicDao = new MusicDao();
@@ -40,9 +40,9 @@ public class LibraryService {
     }
 
     /**
-     * Retourne l'instance unique du LibraryService.
+     * Returns the unique instance of LibraryService.
      *
-     * @return L'instance du LibraryService
+     * @return The LibraryService instance
      */
     public static synchronized LibraryService getInstance() {
         if (instance == null) {
@@ -51,180 +51,180 @@ public class LibraryService {
         return instance;
     }
 
-    // ==================== Synchronisation ====================
+    // ==================== Synchronization ====================
 
     /**
-     * Synchronise un dossier avec la bibliothèque (synchrone).
+     * Synchronizes a folder with the library (synchronous).
      *
-     * @param folderPath Le chemin du dossier
-     * @return Le résultat de la synchronisation
+     * @param folderPath The folder path
+     * @return The synchronization result
      */
     public SyncResult syncFolder(String folderPath) {
         return syncService.syncFolder(folderPath);
     }
 
     /**
-     * Synchronise un dossier avec la bibliothèque (synchrone avec listener).
+     * Synchronizes a folder with the library (synchronous with listener).
      *
-     * @param folderPath Le chemin du dossier
-     * @param listener Le listener de progression
-     * @return Le résultat de la synchronisation
+     * @param folderPath The folder path
+     * @param listener The progress listener
+     * @return The synchronization result
      */
     public SyncResult syncFolder(String folderPath, SyncProgressListener listener) {
         return syncService.syncFolder(folderPath, listener);
     }
 
     /**
-     * Synchronise un dossier avec la bibliothèque (asynchrone).
+     * Synchronizes a folder with the library (asynchronous).
      *
-     * @param folderPath Le chemin du dossier
-     * @return Un CompletableFuture avec le résultat
+     * @param folderPath The folder path
+     * @return A CompletableFuture with the result
      */
     public CompletableFuture<SyncResult> syncFolderAsync(String folderPath) {
         return syncService.syncFolderAsync(folderPath);
     }
 
     /**
-     * Synchronise un dossier avec la bibliothèque (asynchrone avec listener).
+     * Synchronizes a folder with the library (asynchronous with listener).
      *
-     * @param folderPath Le chemin du dossier
-     * @param listener Le listener de progression
-     * @return Un CompletableFuture avec le résultat
+     * @param folderPath The folder path
+     * @param listener The progress listener
+     * @return A CompletableFuture with the result
      */
     public CompletableFuture<SyncResult> syncFolderAsync(String folderPath, SyncProgressListener listener) {
         return syncService.syncFolderAsync(folderPath, listener);
     }
 
     /**
-     * Vérifie si une synchronisation est en cours.
+     * Checks if a synchronization is in progress.
      *
-     * @return true si une sync est en cours
+     * @return true if a sync is in progress
      */
     public boolean isSyncing() {
         return syncService.isSyncing();
     }
 
     /**
-     * Annule la synchronisation en cours.
+     * Cancels the ongoing synchronization.
      */
     public void cancelSync() {
         syncService.cancelSync();
     }
 
-    // ==================== Musiques ====================
+    // ==================== Music ====================
 
     /**
-     * Retourne toutes les musiques de la bibliothèque.
+     * Returns all music from the library.
      *
-     * @return Liste de toutes les musiques
+     * @return List of all music
      */
     public List<MusicEntity> getAllMusics() {
         try {
             return musicDao.findAll();
         } catch (SQLException e) {
-            System.err.println("Erreur lors de la récupération des musiques: " + e.getMessage());
+            System.err.println("Error retrieving music: " + e.getMessage());
             return Collections.emptyList();
         }
     }
 
     /**
-     * Recherche une musique par son ID.
+     * Searches for music by its ID.
      *
-     * @param id L'ID de la musique
-     * @return La musique si trouvée
+     * @param id The music ID
+     * @return The music if found
      */
     public Optional<MusicEntity> getMusicById(long id) {
         try {
             return musicDao.findById(id);
         } catch (SQLException e) {
-            System.err.println("Erreur lors de la recherche de musique: " + e.getMessage());
+            System.err.println("Error searching for music: " + e.getMessage());
             return Optional.empty();
         }
     }
 
     /**
-     * Recherche des musiques par texte (titre, artiste, album).
+     * Searches for music by text (title, artist, album).
      *
-     * @param query Le texte à rechercher
-     * @return Liste des musiques correspondantes
+     * @param query The text to search for
+     * @return List of matching music
      */
     public List<MusicEntity> searchMusics(String query) {
         try {
             return musicDao.search(query);
         } catch (SQLException e) {
-            System.err.println("Erreur lors de la recherche: " + e.getMessage());
+            System.err.println("Error during search: " + e.getMessage());
             return Collections.emptyList();
         }
     }
 
     /**
-     * Retourne les musiques d'un artiste.
+     * Returns music by an artist.
      *
-     * @param artist Le nom de l'artiste
-     * @return Liste des musiques de l'artiste
+     * @param artist The artist name
+     * @return List of music by the artist
      */
     public List<MusicEntity> getMusicsByArtist(String artist) {
         try {
             return musicDao.findByArtist(artist);
         } catch (SQLException e) {
-            System.err.println("Erreur lors de la recherche par artiste: " + e.getMessage());
+            System.err.println("Error searching by artist: " + e.getMessage());
             return Collections.emptyList();
         }
     }
 
     /**
-     * Retourne les musiques d'un album.
+     * Returns music from an album.
      *
-     * @param album Le nom de l'album
-     * @return Liste des musiques de l'album
+     * @param album The album name
+     * @return List of music from the album
      */
     public List<MusicEntity> getMusicsByAlbum(String album) {
         try {
             return musicDao.findByAlbum(album);
         } catch (SQLException e) {
-            System.err.println("Erreur lors de la recherche par album: " + e.getMessage());
+            System.err.println("Error searching by album: " + e.getMessage());
             return Collections.emptyList();
         }
     }
 
     /**
-     * Retourne la liste de tous les artistes.
+     * Returns the list of all artists.
      *
-     * @return Liste des artistes
+     * @return List of artists
      */
     public List<String> getAllArtists() {
         try {
             return musicDao.findAllArtists();
         } catch (SQLException e) {
-            System.err.println("Erreur lors de la récupération des artistes: " + e.getMessage());
+            System.err.println("Error retrieving artists: " + e.getMessage());
             return Collections.emptyList();
         }
     }
 
     /**
-     * Retourne la liste de tous les albums.
+     * Returns the list of all albums.
      *
-     * @return Liste des albums
+     * @return List of albums
      */
     public List<String> getAllAlbums() {
         try {
             return musicDao.findAllAlbums();
         } catch (SQLException e) {
-            System.err.println("Erreur lors de la récupération des albums: " + e.getMessage());
+            System.err.println("Error retrieving albums: " + e.getMessage());
             return Collections.emptyList();
         }
     }
 
     /**
-     * Compte le nombre total de musiques.
+     * Counts the total number of music.
      *
-     * @return Le nombre de musiques
+     * @return The number of music
      */
     public int getMusicCount() {
         try {
             return musicDao.count();
         } catch (SQLException e) {
-            System.err.println("Erreur lors du comptage: " + e.getMessage());
+            System.err.println("Error counting: " + e.getMessage());
             return 0;
         }
     }
@@ -232,10 +232,10 @@ public class LibraryService {
     // ==================== Playlists ====================
 
     /**
-     * Crée une nouvelle playlist.
+     * Creates a new playlist.
      *
-     * @param name Le nom de la playlist
-     * @return La playlist créée
+     * @param name The playlist name
+     * @return The created playlist
      */
     public Optional<PlaylistEntity> createPlaylist(String name) {
         try {
@@ -243,77 +243,77 @@ public class LibraryService {
             playlistDao.insert(playlist);
             return Optional.of(playlist);
         } catch (SQLException e) {
-            System.err.println("Erreur lors de la création de la playlist: " + e.getMessage());
+            System.err.println("Error creating playlist: " + e.getMessage());
             return Optional.empty();
         }
     }
 
     /**
-     * Retourne toutes les playlists.
+     * Returns all playlists.
      *
-     * @return Liste des playlists
+     * @return List of playlists
      */
     public List<PlaylistEntity> getAllPlaylists() {
         try {
             return playlistDao.findAll();
         } catch (SQLException e) {
-            System.err.println("Erreur lors de la récupération des playlists: " + e.getMessage());
+            System.err.println("Error retrieving playlists: " + e.getMessage());
             return Collections.emptyList();
         }
     }
 
     /**
-     * Supprime une playlist.
+     * Deletes a playlist.
      *
-     * @param playlistId L'ID de la playlist
+     * @param playlistId The playlist ID
      */
     public void deletePlaylist(long playlistId) {
         try {
             playlistDao.delete(playlistId);
         } catch (SQLException e) {
-            System.err.println("Erreur lors de la suppression de la playlist: " + e.getMessage());
+            System.err.println("Error deleting playlist: " + e.getMessage());
         }
     }
 
     /**
-     * Ajoute une musique à une playlist.
+     * Adds music to a playlist.
      *
-     * @param playlistId L'ID de la playlist
-     * @param musicId L'ID de la musique
+     * @param playlistId The playlist ID
+     * @param musicId The music ID
      */
     public void addMusicToPlaylist(long playlistId, long musicId) {
         try {
             playlistDao.addMusic(playlistId, musicId);
         } catch (SQLException e) {
-            System.err.println("Erreur lors de l'ajout à la playlist: " + e.getMessage());
+            System.err.println("Error adding to playlist: " + e.getMessage());
         }
     }
 
     /**
-     * Supprime une musique d'une playlist.
+     * Removes music from a playlist.
      *
-     * @param playlistId L'ID de la playlist
-     * @param musicId L'ID de la musique
+     * @param playlistId The playlist ID
+     * @param musicId The music ID
      */
     public void removeMusicFromPlaylist(long playlistId, long musicId) {
         try {
             playlistDao.removeMusic(playlistId, musicId);
         } catch (SQLException e) {
-            System.err.println("Erreur lors de la suppression de la playlist: " + e.getMessage());
+            System.err.println("Error removing from playlist: " + e.getMessage());
         }
     }
 
     /**
-     * Retourne les musiques d'une playlist.
+     * Returns music from a playlist.
      *
-     * @param playlistId L'ID de la playlist
-     * @return Liste des musiques de la playlist
+     * @param playlistId The playlist ID
+     * @return List of music in the playlist
      */
     public List<MusicEntity> getPlaylistMusics(long playlistId) {
         try {
             return playlistDao.getMusicsByPlaylist(playlistId);
         } catch (SQLException e) {
-            System.err.println("Erreur lors de la récupération des musiques: " + e.getMessage());
+            System.err.println("Error retrieving music: " + e.getMessage());
             return Collections.emptyList();
         }
     }
@@ -321,21 +321,21 @@ public class LibraryService {
     // ==================== Tags ====================
 
     /**
-     * Crée un nouveau tag.
+     * Creates a new tag.
      *
-     * @param name Le nom du tag
-     * @return Le tag créé
+     * @param name The tag name
+     * @return The created tag
      */
     public Optional<TagEntity> createTag(String name) {
         return createTag(name, "#808080");
     }
 
     /**
-     * Crée un nouveau tag avec une couleur.
+     * Creates a new tag with a color.
      *
-     * @param name Le nom du tag
-     * @param color La couleur du tag (hex)
-     * @return Le tag créé
+     * @param name The tag name
+     * @param color The tag color (hex)
+     * @return The created tag
      */
     public Optional<TagEntity> createTag(String name, String color) {
         try {
@@ -343,77 +343,77 @@ public class LibraryService {
             tagDao.insert(tag);
             return Optional.of(tag);
         } catch (SQLException e) {
-            System.err.println("Erreur lors de la création du tag: " + e.getMessage());
+            System.err.println("Error creating tag: " + e.getMessage());
             return Optional.empty();
         }
     }
 
     /**
-     * Retourne tous les tags.
+     * Returns all tags.
      *
-     * @return Liste des tags
+     * @return List of tags
      */
     public List<TagEntity> getAllTags() {
         try {
             return tagDao.findAll();
         } catch (SQLException e) {
-            System.err.println("Erreur lors de la récupération des tags: " + e.getMessage());
+            System.err.println("Error retrieving tags: " + e.getMessage());
             return Collections.emptyList();
         }
     }
 
     /**
-     * Supprime un tag.
+     * Deletes a tag.
      *
-     * @param tagId L'ID du tag
+     * @param tagId The tag ID
      */
     public void deleteTag(long tagId) {
         try {
             tagDao.delete(tagId);
         } catch (SQLException e) {
-            System.err.println("Erreur lors de la suppression du tag: " + e.getMessage());
+            System.err.println("Error deleting tag: " + e.getMessage());
         }
     }
 
     /**
-     * Ajoute un tag à une musique.
+     * Adds a tag to music.
      *
-     * @param musicId L'ID de la musique
-     * @param tagId L'ID du tag
+     * @param musicId The music ID
+     * @param tagId The tag ID
      */
     public void addTagToMusic(long musicId, long tagId) {
         try {
             tagDao.addTagToMusic(musicId, tagId);
         } catch (SQLException e) {
-            System.err.println("Erreur lors de l'ajout du tag: " + e.getMessage());
+            System.err.println("Error adding tag: " + e.getMessage());
         }
     }
 
     /**
-     * Supprime un tag d'une musique.
+     * Removes a tag from music.
      *
-     * @param musicId L'ID de la musique
-     * @param tagId L'ID du tag
+     * @param musicId The music ID
+     * @param tagId The tag ID
      */
     public void removeTagFromMusic(long musicId, long tagId) {
         try {
             tagDao.removeTagFromMusic(musicId, tagId);
         } catch (SQLException e) {
-            System.err.println("Erreur lors de la suppression du tag: " + e.getMessage());
+            System.err.println("Error removing tag: " + e.getMessage());
         }
     }
 
     /**
-     * Retourne les tags d'une musique.
+     * Returns the tags of a music.
      *
-     * @param musicId L'ID de la musique
-     * @return Liste des tags de la musique
+     * @param musicId The music ID
+     * @return List of tags for the music
      */
     public List<TagEntity> getMusicTags(long musicId) {
         try {
             return tagDao.getTagsByMusic(musicId);
         } catch (SQLException e) {
-            System.err.println("Erreur lors de la récupération des tags: " + e.getMessage());
+            System.err.println("Error retrieving tags: " + e.getMessage());
             return Collections.emptyList();
         }
     }

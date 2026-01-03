@@ -1,0 +1,510 @@
+/*
+ * Dark Theme Stylesheet
+ * Color palette based on WaveformProgressBar colors:
+ * - Primary Blue: #1E90FF (DodgerBlue)
+ * - Dark Background: #282828
+ * - Medium Gray: #646464
+ * - Light Gray: #888888
+ */
+
+/* === Root Variables === */
+.root {
+    -fx-base: #282828;
+    -fx-background: #1E1E1E;
+    -fx-control-inner-background: #2D2D2D;
+    -fx-control-inner-background-alt: #333333;
+    -fx-accent: #1E90FF;
+    -fx-focus-color: #1E90FF;
+    -fx-faint-focus-color: rgba(30, 144, 255, 0.3);
+    -fx-selection-bar: #1E90FF;
+    -fx-selection-bar-non-focused: #404040;
+    -fx-default-button: #1E90FF;
+    -fx-text-base-color: #E0E0E0;
+    -fx-text-fill: #E0E0E0;
+    -fx-light-text-color: #E0E0E0;
+    -fx-mid-text-color: #B0B0B0;
+    -fx-dark-text-color: #E0E0E0;
+    -fx-mark-color: #E0E0E0;
+    -fx-mark-highlight-color: derive(-fx-mark-color, 20%);
+    -fx-background-color: #1E1E1E;
+}
+
+/* === General Pane/Border Pane === */
+.border-pane, .pane, .vbox, .hbox, .stack-pane {
+    -fx-background-color: #1E1E1E;
+}
+
+/* === Labels === */
+.label {
+    -fx-text-fill: #E0E0E0;
+}
+
+.song-title {
+    -fx-text-fill: #FFFFFF;
+    -fx-font-weight: bold;
+}
+
+.song-artist {
+    -fx-text-fill: #B0B0B0;
+}
+
+.hint-text {
+    -fx-text-fill: #888888;
+    -fx-font-size: 11px;
+}
+
+.status-text {
+    -fx-text-fill: #1E90FF;
+    -fx-font-size: 12px;
+}
+
+.section-title {
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #FFFFFF;
+}
+
+.settings-title {
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #FFFFFF;
+    -fx-padding: 0 0 10 0;
+}
+
+/* === Buttons === */
+.button {
+    -fx-background-color: #3C3C3C;
+    -fx-text-fill: #E0E0E0;
+    -fx-background-radius: 4;
+    -fx-border-radius: 4;
+    -fx-border-color: #505050;
+    -fx-border-width: 1;
+    -fx-cursor: hand;
+}
+
+.button:hover {
+    -fx-background-color: #4A4A4A;
+    -fx-border-color: #1E90FF;
+}
+
+.button:pressed {
+    -fx-background-color: #1E90FF;
+    -fx-text-fill: #FFFFFF;
+}
+
+.button:focused {
+    -fx-border-color: #1E90FF;
+    -fx-border-width: 1;
+}
+
+.button:default, .primary-button {
+    -fx-background-color: #1E90FF;
+    -fx-text-fill: #FFFFFF;
+    -fx-border-color: #1A7AD9;
+}
+
+.button:default:hover, .primary-button:hover {
+    -fx-background-color: #3AA0FF;
+    -fx-border-color: #1E90FF;
+}
+
+.button:default:pressed, .primary-button:pressed {
+    -fx-background-color: #1570C0;
+}
+
+/* Shuffle/Loop toggle buttons - active state */
+.button.active {
+    -fx-background-color: #1E90FF;
+    -fx-text-fill: #FFFFFF;
+    -fx-border-color: #1A7AD9;
+}
+
+/* === Text Fields === */
+.text-field {
+    -fx-background-color: #2D2D2D;
+    -fx-text-fill: #E0E0E0;
+    -fx-prompt-text-fill: #888888;
+    -fx-background-radius: 4;
+    -fx-border-radius: 4;
+    -fx-border-color: #505050;
+    -fx-border-width: 1;
+}
+
+.text-field:focused {
+    -fx-border-color: #1E90FF;
+    -fx-background-color: #333333;
+}
+
+/* === Sliders (Volume) === */
+.slider .track {
+    -fx-background-color: #404040;
+    -fx-background-radius: 3;
+}
+
+.slider .thumb {
+    -fx-background-color: #1E90FF;
+    -fx-background-radius: 10;
+    -fx-cursor: hand;
+}
+
+.slider .thumb:hover {
+    -fx-background-color: #3AA0FF;
+}
+
+.slider:focused .thumb {
+    -fx-background-color: #3AA0FF;
+}
+
+.slider .colored-track {
+    -fx-background-color: #1E90FF;
+}
+
+/* === Progress Bar === */
+.progress-bar {
+    -fx-background-color: #404040;
+    -fx-background-radius: 4;
+}
+
+.progress-bar .bar {
+    -fx-background-color: #1E90FF;
+    -fx-background-radius: 4;
+    -fx-background-insets: 0;
+}
+
+.progress-bar .track {
+    -fx-background-color: #333333;
+    -fx-background-radius: 4;
+}
+
+/* === Tables === */
+.table-view {
+    -fx-background-color: #1E1E1E;
+    -fx-table-cell-border-color: #3C3C3C;
+}
+
+.table-view .column-header-background {
+    -fx-background-color: #282828;
+}
+
+.table-view .column-header {
+    -fx-background-color: #282828;
+    -fx-border-color: transparent #3C3C3C transparent transparent;
+}
+
+.table-view .column-header .label {
+    -fx-text-fill: #B0B0B0;
+    -fx-font-weight: bold;
+}
+
+.table-view .table-row-cell {
+    -fx-background-color: #1E1E1E;
+    -fx-border-color: transparent;
+}
+
+.table-view .table-row-cell:odd {
+    -fx-background-color: #242424;
+}
+
+.table-view .table-row-cell:hover {
+    -fx-background-color: #333333;
+}
+
+.table-view .table-row-cell:selected {
+    -fx-background-color: #1E90FF;
+}
+
+.table-view .table-row-cell:selected .label,
+.table-view .table-row-cell:selected .text {
+    -fx-text-fill: #FFFFFF;
+}
+
+.table-view .table-cell {
+    -fx-text-fill: #E0E0E0;
+    -fx-alignment: CENTER-LEFT;
+    -fx-padding: 5 10 5 10;
+}
+
+.table-view .placeholder .label {
+    -fx-text-fill: #888888;
+}
+
+.table-view .filler {
+    -fx-background-color: #282828;
+}
+
+/* === List View === */
+.list-view {
+    -fx-background-color: #1E1E1E;
+    -fx-background-insets: 0;
+}
+
+.list-view .list-cell {
+    -fx-background-color: #1E1E1E;
+    -fx-text-fill: #E0E0E0;
+    -fx-padding: 8 10 8 10;
+}
+
+.list-view .list-cell:odd {
+    -fx-background-color: #242424;
+}
+
+.list-view .list-cell:hover {
+    -fx-background-color: #333333;
+}
+
+.list-view .list-cell:selected {
+    -fx-background-color: #1E90FF;
+}
+
+.list-view .list-cell:selected .label {
+    -fx-text-fill: #FFFFFF;
+}
+
+.list-view .list-cell:empty {
+    -fx-background-color: #1E1E1E;
+}
+
+/* === Scroll Pane === */
+.scroll-pane {
+    -fx-background-color: transparent;
+}
+
+.scroll-pane > .viewport {
+    -fx-background-color: transparent;
+}
+
+/* === Scroll Bars === */
+.scroll-bar {
+    -fx-background-color: #282828;
+}
+
+.scroll-bar .thumb {
+    -fx-background-color: #505050;
+    -fx-background-radius: 4;
+}
+
+.scroll-bar .thumb:hover {
+    -fx-background-color: #646464;
+}
+
+.scroll-bar .thumb:pressed {
+    -fx-background-color: #1E90FF;
+}
+
+.scroll-bar .increment-button,
+.scroll-bar .decrement-button {
+    -fx-background-color: #282828;
+}
+
+.scroll-bar .increment-arrow,
+.scroll-bar .decrement-arrow {
+    -fx-background-color: #646464;
+}
+
+/* === Split Pane === */
+.split-pane {
+    -fx-background-color: #1E1E1E;
+}
+
+.split-pane > .split-pane-divider {
+    -fx-background-color: #3C3C3C;
+    -fx-padding: 0 2 0 2;
+}
+
+.split-pane > .split-pane-divider:hover {
+    -fx-background-color: #1E90FF;
+}
+
+/* === Separator === */
+.separator .line {
+    -fx-border-color: #3C3C3C;
+    -fx-border-width: 1 0 0 0;
+}
+
+/* === Settings Window === */
+.settings-window {
+    -fx-background-color: #1E1E1E;
+}
+
+.category-panel {
+    -fx-background-color: #282828;
+    -fx-border-color: transparent #3C3C3C transparent transparent;
+    -fx-border-width: 0 1 0 0;
+}
+
+/* === Playlist Tabs === */
+.playlist-tab {
+    -fx-background-color: #3C3C3C;
+    -fx-text-fill: #B0B0B0;
+    -fx-padding: 5 12 5 12;
+    -fx-background-radius: 4 4 0 0;
+    -fx-border-radius: 4 4 0 0;
+    -fx-cursor: hand;
+}
+
+.playlist-tab:hover {
+    -fx-background-color: #4A4A4A;
+}
+
+.playlist-tab.active {
+    -fx-background-color: #1E90FF;
+    -fx-text-fill: #FFFFFF;
+}
+
+/* === Tooltips === */
+.tooltip {
+    -fx-background-color: #404040;
+    -fx-text-fill: #E0E0E0;
+    -fx-background-radius: 4;
+    -fx-border-radius: 4;
+    -fx-border-color: #505050;
+    -fx-padding: 5 10 5 10;
+}
+
+/* === Context Menu === */
+.context-menu {
+    -fx-background-color: #2D2D2D;
+    -fx-background-radius: 4;
+    -fx-border-radius: 4;
+    -fx-border-color: #505050;
+    -fx-padding: 5;
+}
+
+.context-menu .menu-item {
+    -fx-background-color: transparent;
+}
+
+.context-menu .menu-item .label {
+    -fx-text-fill: #E0E0E0;
+}
+
+.context-menu .menu-item:hover,
+.context-menu .menu-item:focused {
+    -fx-background-color: #1E90FF;
+}
+
+.context-menu .menu-item:hover .label,
+.context-menu .menu-item:focused .label {
+    -fx-text-fill: #FFFFFF;
+}
+
+.context-menu .separator {
+    -fx-background-color: #3C3C3C;
+}
+
+/* === Dialog Pane === */
+.dialog-pane {
+    -fx-background-color: #1E1E1E;
+}
+
+.dialog-pane .header-panel {
+    -fx-background-color: #282828;
+}
+
+.dialog-pane .header-panel .label {
+    -fx-text-fill: #FFFFFF;
+    -fx-font-weight: bold;
+}
+
+.dialog-pane .content {
+    -fx-background-color: #1E1E1E;
+}
+
+.dialog-pane .button-bar {
+    -fx-background-color: #282828;
+}
+
+/* === Check Box === */
+.check-box {
+    -fx-text-fill: #E0E0E0;
+}
+
+.check-box .box {
+    -fx-background-color: #2D2D2D;
+    -fx-border-color: #505050;
+    -fx-border-radius: 3;
+    -fx-background-radius: 3;
+}
+
+.check-box:hover .box {
+    -fx-border-color: #1E90FF;
+}
+
+.check-box:selected .box {
+    -fx-background-color: #1E90FF;
+    -fx-border-color: #1E90FF;
+}
+
+.check-box:selected .mark {
+    -fx-background-color: #FFFFFF;
+}
+
+/* === Combo Box === */
+.combo-box {
+    -fx-background-color: #2D2D2D;
+    -fx-border-color: #505050;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+}
+
+.combo-box:hover {
+    -fx-border-color: #1E90FF;
+}
+
+.combo-box .list-cell {
+    -fx-text-fill: #E0E0E0;
+    -fx-background-color: transparent;
+}
+
+.combo-box .arrow-button {
+    -fx-background-color: transparent;
+}
+
+.combo-box .arrow {
+    -fx-background-color: #888888;
+}
+
+.combo-box-popup .list-view {
+    -fx-background-color: #2D2D2D;
+    -fx-border-color: #505050;
+}
+
+/* === Tab Pane === */
+.tab-pane .tab-header-area {
+    -fx-background-color: #282828;
+}
+
+.tab-pane .tab {
+    -fx-background-color: #3C3C3C;
+    -fx-border-color: transparent;
+}
+
+.tab-pane .tab .tab-label {
+    -fx-text-fill: #B0B0B0;
+}
+
+.tab-pane .tab:selected {
+    -fx-background-color: #1E90FF;
+}
+
+.tab-pane .tab:selected .tab-label {
+    -fx-text-fill: #FFFFFF;
+}
+
+.tab-pane .tab:hover {
+    -fx-background-color: #4A4A4A;
+}
+
+.tab-pane .tab-content-area {
+    -fx-background-color: #1E1E1E;
+}
+
+/* === Rating stars (if using special styling) === */
+.rating-star {
+    -fx-text-fill: #646464;
+}
+
+.rating-star.filled {
+    -fx-text-fill: #FFD700;
+}
+

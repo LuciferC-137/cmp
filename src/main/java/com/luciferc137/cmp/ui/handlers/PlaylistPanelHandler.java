@@ -5,6 +5,7 @@ import com.luciferc137.cmp.database.model.PlaylistEntity;
 import com.luciferc137.cmp.library.Music;
 import com.luciferc137.cmp.library.PlaybackQueue;
 import com.luciferc137.cmp.ui.PlaylistManagerDialog;
+import com.luciferc137.cmp.ui.ThemeManager;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
@@ -93,7 +94,7 @@ public class PlaylistPanelHandler {
                 } else {
                     setText(item.title + " - " + (item.artist != null ? item.artist : "Unknown"));
                     if (item.equals(playbackQueue.getCurrentTrack())) {
-                        setStyle("-fx-font-weight: bold; -fx-background-color: #e3f2fd;");
+                        setStyle("-fx-font-weight: bold; -fx-background-color: #1E90FF; -fx-text-fill: white;");
                     } else {
                         setStyle("");
                     }
@@ -155,7 +156,7 @@ public class PlaylistPanelHandler {
 
     private Button createPlaylistTab(String name, Long playlistId) {
         Button tab = new Button(name);
-        tab.setStyle("-fx-font-size: 11px; -fx-padding: 3 8;");
+        tab.setStyle("-fx-font-size: 11px; -fx-padding: 3 8; -fx-background-color: #3C3C3C; -fx-text-fill: #B0B0B0;");
         tab.setOnAction(e -> {
             displayedPlaylistId = playlistId;
             loadPlaylistIntoView(playlistId, name);
@@ -190,11 +191,11 @@ public class PlaylistPanelHandler {
             boolean isPlaying = playbackQueue.getCurrentPlaylistId() == (tabPlaylistId != null ? tabPlaylistId : -1);
 
             if (isActive) {
-                tab.setStyle("-fx-font-size: 11px; -fx-padding: 3 8; -fx-background-color: #2196F3; -fx-text-fill: white;");
+                tab.setStyle("-fx-font-size: 11px; -fx-padding: 3 8; -fx-background-color: #1E90FF; -fx-text-fill: white;");
             } else if (isPlaying) {
-                tab.setStyle("-fx-font-size: 11px; -fx-padding: 3 8; -fx-background-color: #81C784;");
+                tab.setStyle("-fx-font-size: 11px; -fx-padding: 3 8; -fx-background-color: #2E7D32; -fx-text-fill: white;");
             } else {
-                tab.setStyle("-fx-font-size: 11px; -fx-padding: 3 8;");
+                tab.setStyle("-fx-font-size: 11px; -fx-padding: 3 8; -fx-background-color: #3C3C3C; -fx-text-fill: #B0B0B0;");
             }
         }
     }
@@ -258,6 +259,7 @@ public class PlaylistPanelHandler {
         confirm.setTitle("Delete Playlist");
         confirm.setHeaderText("Delete \"" + name + "\"?");
         confirm.setContentText("This action cannot be undone.");
+        ThemeManager.applyDarkTheme(confirm);
 
         confirm.showAndWait().ifPresent(response -> {
             if (response == ButtonType.OK) {
