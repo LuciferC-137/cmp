@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import com.luciferc137.cmp.ui.WaveformProgressBar?>
+
+<BorderPane xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.luciferc137.cmp.ui.MainController">
+
+    <top>
+        <VBox>
+            <WaveformProgressBar fx:id="waveformProgressBar" prefHeight="60" />
+
+            <ToolBar>
+                <Button onAction="#onPlay" text="Play" />
+                <Button onAction="#onPause" text="Pause" />
+                <Button onAction="#onStop" text="Stop" />
+                <Separator />
+                <Label text="Volume" />
+                <Slider fx:id="volumeSlider" min="0" max="100" value="50" prefWidth="120" />
+                <Separator />
+                <TextField fx:id="searchField" promptText="Search..." prefWidth="200" onAction="#onSearch" />
+                <Button onAction="#onClearSearch" text="✕" />
+                <Separator />
+                <Pane HBox.hgrow="ALWAYS" />
+                <Button onAction="#onSettings" text="⚙ Settings" />
+            </ToolBar>
+        </VBox>
+    </top>
+
+    <center>
+        <TableView fx:id="musicTable" VBox.vgrow="ALWAYS">
+            <columns>
+                <TableColumn fx:id="titleColumn" text="Title" prefWidth="200" />
+                <TableColumn fx:id="artistColumn" text="Artist" prefWidth="150" />
+                <TableColumn fx:id="albumColumn" text="Album" prefWidth="150" />
+                <TableColumn fx:id="durationColumn" text="Duration" prefWidth="80" />
+                <TableColumn fx:id="tagsColumn" text="Tags" prefWidth="150" />
+                <TableColumn fx:id="ratingColumn" text="Rating" prefWidth="100" />
+            </columns>
+        </TableView>
+    </center>
+
+</BorderPane>
