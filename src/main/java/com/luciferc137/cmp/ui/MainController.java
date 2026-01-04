@@ -235,6 +235,14 @@ public class MainController {
             public void onDisplayedPlaylistRefreshNeeded(Long playlistId) {
                 playlistPanelHandler.refreshDisplayedPlaylist();
             }
+
+            @Override
+            public void onEditMetadataRequested(Music music) {
+                boolean saved = MetadataEditorDialog.show(music);
+                if (saved) {
+                    musicTable.refresh();
+                }
+            }
         });
 
         // Session restore events

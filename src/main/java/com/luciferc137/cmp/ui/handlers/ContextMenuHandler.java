@@ -39,6 +39,7 @@ public class ContextMenuHandler {
         void onShowCreateTagDialog();
         void onPlaylistRefreshNeeded();
         void onDisplayedPlaylistRefreshNeeded(Long playlistId);
+        void onEditMetadataRequested(Music music);
     }
 
     public ContextMenuHandler() {
@@ -110,6 +111,18 @@ public class ContextMenuHandler {
 
         // Add to playlist submenu
         contextMenu.getItems().add(createAddToPlaylistMenu(selectedMusic, displayedPlaylistId));
+
+        // Edit Metadata option (only for single selection)
+        if (!isMultiple) {
+            contextMenu.getItems().add(new SeparatorMenuItem());
+            MenuItem editMetadataItem = new MenuItem("Edit Metadata...");
+            editMetadataItem.setOnAction(e -> {
+                if (eventListener != null) {
+                    eventListener.onEditMetadataRequested(selectedMusic.getFirst());
+                }
+            });
+            contextMenu.getItems().add(editMetadataItem);
+        }
 
         contextMenu.show(musicTable, screenX, screenY);
     }

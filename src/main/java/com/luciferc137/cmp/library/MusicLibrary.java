@@ -260,6 +260,26 @@ public class MusicLibrary {
     // ==================== Rating & Tags ====================
 
     /**
+     * Updates the metadata for a music track in the database.
+     * The Music object should already have updated title, artist, and album.
+     */
+    public void updateMusicMetadata(Music music) {
+        if (music.getId() == null) return;
+
+        libraryService.updateMusicMetadata(
+                music.getId(),
+                music.title,
+                music.artist,
+                music.album
+        );
+
+        // Notify listeners
+        if (onLibraryChangedListener != null) {
+            onLibraryChangedListener.run();
+        }
+    }
+
+    /**
      * Updates the rating for a music track.
      */
     public void updateRating(Music music, int rating) {

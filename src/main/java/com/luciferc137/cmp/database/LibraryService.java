@@ -481,6 +481,29 @@ public class LibraryService {
         }
     }
 
+    /**
+     * Updates the metadata (title, artist, album) for a music track in the database.
+     *
+     * @param musicId The music ID
+     * @param title The new title
+     * @param artist The new artist
+     * @param album The new album
+     */
+    public void updateMusicMetadata(long musicId, String title, String artist, String album) {
+        try {
+            Optional<MusicEntity> optMusic = musicDao.findById(musicId);
+            if (optMusic.isPresent()) {
+                MusicEntity music = optMusic.get();
+                music.setTitle(title);
+                music.setArtist(artist);
+                music.setAlbum(album);
+                musicDao.update(music);
+            }
+        } catch (SQLException e) {
+            System.err.println("Error updating music metadata: " + e.getMessage());
+        }
+    }
+
     // ==================== Utilities ====================
 
     /**
