@@ -11,19 +11,17 @@ This project has been highly inspired by AIMP music player. It aims to be as por
 - **Multi-format support**: MP3, M4A, FLAC, OGG, WAV, AAC, WMA, AIFF
 - **VLC-powered playback**: Uses VLCJ for reliable audio playback
 - **Waveform visualization**: Visual representation of the audio track with progress indicator
-- **Seek functionality**: Click anywhere on the waveform to jump to that position
-- **Volume control**: Adjustable volume with persistent settings
+- **All basic audio player functionnalities**: Play, Pause, Stop, Seek, Volume control
 
 ### 📚 Library Management
 - **SQLite database**: Local database to store your music library metadata
 - **Folder synchronization**: Scan a folder to import music and extract metadata automatically
-- **Metadata extraction**: Uses JAudioTagger to read title, artist, album, and duration from audio files
-- **On-demand sync**: Synchronization only happens when you request it, not automatically
+- **Metadata extraction & edition**: Uses JAudioTagger to read and edit all common metadata
 
 ### 🏷️ Organization
 - **Tags**: Create custom tags and assign them to any track
 - **Ratings**: Rate your music from 1 to 5 stars (click stars to set rating)
-- **Playlists**: Organize your music into playlists (database structure ready, not yet implemented in UI)
+- **Playlists**: Organize your music into playlists
 
 ### 🔍 Advanced Filtering & Sorting
 - **Column sorting**: Click on Title, Artist, Album, or Duration column headers to sort
@@ -39,7 +37,8 @@ This project has been highly inspired by AIMP music player. It aims to be as por
 
 ### ⚙️ Settings
 - **Music folder selection**: Choose which folder to scan for music
-- **Persistent settings**: Volume and preferences saved between sessions
+- **Persistent settings**: Preferences saved between sessions
+- **Session restoration**: Resume playback and queue from last session
 - **Settings stored in**: `~/.cmp/settings.json`
 - **Database stored in**: `~/.cmp/library.db`
 
@@ -53,7 +52,7 @@ This project has been highly inspired by AIMP music player. It aims to be as por
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/cmp.git
+   git clone https://github.com/LuciferC-137/cmp.git
    cd cmp
    ```
 
@@ -83,6 +82,17 @@ This project has been highly inspired by AIMP music player. It aims to be as por
 3. Use the waveform bar to see progress and seek
 4. Use **Pause** to pause/resume and **Stop** to stop playback
 
+### Queue & Playlists
+
+When a song si double-clicked or played, it is added to the default playlist named `Local`.
+This playlist is always overwritten when a new song is played from the left table.
+It acts otherwise as any other playlist, except that it cannot be deleted.
+To create custom playlists:
+1. Click the **⚙** icon above the playlist panel (or go in Settings → Playlists)
+2. Create a new playlist and give it a name with `Create Playlist` button
+3. You can add song using right click → `Add to Playlist` → `My Playlist` (multiple selection supported)
+4. Delete a playlist from the same settings menu
+
 ### Organizing with Tags
 
 1. **Create a tag**: Click the Tags column header → "+ New Tag"
@@ -97,6 +107,7 @@ This project has been highly inspired by AIMP music player. It aims to be as por
 - Click the stars (☆☆☆☆☆) directly in the Rating column to set a rating
 - Click the same star again to remove the rating
 - Filter by rating using the Rating column header dropdown
+- Ratings can also be added from the right-click context menu (to support multiple selection)
 
 ### Sorting
 
@@ -109,19 +120,24 @@ This project has been highly inspired by AIMP music player. It aims to be as por
 
 ```
 src/main/java/com/luciferc137/cmp/
-├── MainApp.java              # Application entry point
-├── audio/                    # Audio playback components
-│   ├── VlcAudioPlayer.java   # VLC-based audio player
-│   ├── VolumeControl.java    # Volume management
+├── MainApp.java               # Application entry point
+├── audio/                     # Audio playback components
+│   ├── AudioFormat.java       # Enum of supported audio formats
+│   ├── AudioMetadata.java     # Unified audio metadata representation
+│   ├── AudioPlayer.java       # Audio player interface
+│   ├── VlcAudioPlayer.java    # VLC-based audio player
+│   ├── VolumeControl.java     # Volume management interface
 │   └── WaveformExtractor.java # Audio waveform extraction
-├── database/                 # Database layer
-│   ├── DatabaseManager.java  # SQLite connection & schema
-│   ├── LibraryService.java   # High-level database operations
-│   ├── dao/                  # Data Access Objects
+├── database/                  # Database layer
+│   ├── DatabaseManager.java   # SQLite connection & schema
+│   ├── LibraryService.java    # High-level database operations
+│   ├── dao/                   # Data Access Objects
 │   │   ├── MusicDao.java
 │   │   ├── PlaylistDao.java
 │   │   ├── TagDao.java
 │   │   └── SyncLogDao.java
+│   ├── importer/                     # Import tools
+│   │   └── AimpPlaylistImporter.java # Import AIMP windows playlist
 │   ├── model/                # Database entities
 │   │   ├── MusicEntity.java
 │   │   ├── PlaylistEntity.java
@@ -133,24 +149,31 @@ src/main/java/com/luciferc137/cmp/
 │       ├── SyncProgressListener.java
 │       └── SyncResult.java
 ├── library/                  # Library management & filtering
-│   ├── MusicLibrary.java     # Main library interface
 │   ├── AdvancedFilter.java   # Filter configuration
-│   ├── TagFilterState.java   # Tri-state filter enum
 │   ├── ColumnSortState.java  # Sort state enum
-│   ├── SortableColumn.java   # Sortable columns enum
 │   ├── FilterType.java       # Filter types enum
 │   ├── LibraryFilter.java    # Simple filter class
-│   └── SortOrder.java        # Sort order enum
+│   ├── Music.java            # Object representing a playable track
+│   ├── MusicLibrary.java     # Main library interface
+│   ├── PlaybackQueue.java    # Queue management
+│   ├── TagFilterState.java   # Tri-state filter enum
+│   ├── SortableColumn.java   # Sortable columns enum
+│   └── TagFilterState.java   # Tri-state filter enum
 ├── model/                    # UI models
 │   └── Music.java            # Music track model
 ├── settings/                 # Application settings
-│   ├── Settings.java
-│   └── SettingsManager.java
+│   ├── PlayBackSession.java  # Used to restore user sessions
+│   ├── Settings.java         # Settings data model
+│   └── SettingsManager.java  # Load/save settings
 └── ui/
-    ├── MainController.java   # Main UI controller
+    ├── BatchCoverArtDialog.java
+    ├── ConverArtLoader.java
+    ├── MainController.java            # Main UI controller
+    ├── MetadataEditorDialog.java
     ├── PlaylistManagerDialog.java
+    ├── ThemeManager.java
     ├── WaveformProgressBar.java
-    ├── handlers/            # UI event handlers
+    ├── handlers/                      # UI event handlers
     │   ├── PlaybackHandler.java
     │   ├── PlaylistPanelHandler.java
     │   ├── TableHandler.java
@@ -159,6 +182,9 @@ src/main/java/com/luciferc137/cmp/
     │   ├── SessionHandler.java
     │   └── ShuffleLoopHandler.java
     └── settings/
+        ├── SettingsController.java
+        └── SettingsWindow.java
+    
  
 ```
 
@@ -190,18 +216,14 @@ sync_log (id, sync_date, folder_path, files_added, files_updated, files_removed,
 
 ## Roadmap
 
-- [ ] Playlist management UI
-- [ ] Album art display
 - [ ] Equalizer
 - [ ] Keyboard shortcuts
-- [ ] Dark/Light theme toggle
-- [ ] Import/Export playlists
-- [ ] Scrobbling support (Last.fm)
-- [ ] CSS styling for UI customization
+- [ ] Lyrics auto-fetching and better display
+- [ ] YouTube Music auto-downloader
 
 ## License
 
-This project is currently unlicensed. All rights reserved.
+This project is under GPL-3.0 License
 
 by LuciferC137
 
