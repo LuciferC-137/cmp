@@ -14,6 +14,7 @@ import java.io.IOException;
 public class SettingsWindow {
 
     private static Stage settingsStage = null;
+    private static SettingsController currentController = null;
     private static Runnable onPlaylistsChangedCallback = null;
 
     /**
@@ -30,10 +31,24 @@ public class SettingsWindow {
      * @param owner The parent window
      */
     public static void show(Window owner) {
-        // If window is already open, bring it to front
+        show(owner, null);
+    }
+
+    /**
+     * Opens the settings window on a specific category.
+     * If already open, brings it to front and switches to the specified category.
+     *
+     * @param owner The parent window
+     * @param initialCategory The category to show initially (e.g., "Library", "Playlists")
+     */
+    public static void show(Window owner, String initialCategory) {
+        // If window is already open, bring it to front and switch category if needed
         if (settingsStage != null && settingsStage.isShowing()) {
             settingsStage.toFront();
             settingsStage.requestFocus();
+            if (initialCategory != null && currentController != null) {
+                currentController.selectCategory(initialCategory);
+            }
             return;
         }
 
@@ -48,8 +63,14 @@ public class SettingsWindow {
 
             // Get the controller and set the callback
             SettingsController controller = loader.getController();
-            if (controller != null && onPlaylistsChangedCallback != null) {
-                controller.setOnPlaylistsChangedCallback(onPlaylistsChangedCallback);
+            currentController = controller;
+            if (controller != null) {
+                if (onPlaylistsChangedCallback != null) {
+                    controller.setOnPlaylistsChangedCallback(onPlaylistsChangedCallback);
+                }
+                if (initialCategory != null) {
+                    controller.selectCategory(initialCategory);
+                }
             }
 
             // Apply dark theme stylesheet
@@ -63,7 +84,10 @@ public class SettingsWindow {
             stage.setMinHeight(650);
 
             // Clean up reference when window is closed
-            stage.setOnHidden(e -> settingsStage = null);
+            stage.setOnHidden(e -> {
+                settingsStage = null;
+                currentController = null;
+            });
 
             settingsStage = stage;
             stage.show();

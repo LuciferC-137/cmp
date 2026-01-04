@@ -86,8 +86,8 @@
                                 fitToHeight="true" HBox.hgrow="ALWAYS" style="-fx-background-color: transparent;">
                         <HBox fx:id="playlistTabsContainer" spacing="3" alignment="CENTER_LEFT" />
                     </ScrollPane>
-                    <Button fx:id="addPlaylistButton" onAction="#onAddPlaylist" text="+" prefWidth="30"
-                            style="-fx-font-size: 14px; -fx-font-weight: bold;" />
+                    <Button fx:id="managePlaylistsButton" onAction="#onManagePlaylists"  text="⚙" prefWidth="40"
+                            style="-fx-font-size: 16px;" />
                 </HBox>
 
                 <!-- Current playlist name -->

@@ -111,6 +111,17 @@ public class SettingsController {
     }
 
     /**
+     * Selects a specific category in the settings.
+     *
+     * @param category The category name to select (e.g., "Library", "Playlists")
+     */
+    public void selectCategory(String category) {
+        if (categoryList.getItems().contains(category)) {
+            categoryList.getSelectionModel().select(category);
+        }
+    }
+
+    /**
      * Notifies that playlists have changed.
      */
     private void notifyPlaylistsChanged() {

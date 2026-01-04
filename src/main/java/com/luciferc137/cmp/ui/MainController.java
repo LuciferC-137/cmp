@@ -52,7 +52,7 @@ public class MainController {
     @FXML private Button loopButton;
     @FXML private Button prevButton;
     @FXML private Button nextButton;
-    @FXML private Button addPlaylistButton;
+    @FXML private Button managePlaylistsButton;
 
     // ==================== Core Services ====================
 
@@ -500,8 +500,12 @@ public class MainController {
     }
 
     @FXML
-    private void onAddPlaylist() {
-        playlistPanelHandler.showCreatePlaylistDialog();
+    private void onManagePlaylists() {
+        // Open settings window on the Playlists tab
+        SettingsWindow.setOnPlaylistsChangedCallback(() -> {
+            Platform.runLater(() -> playlistPanelHandler.refreshPlaylistTabs());
+        });
+        SettingsWindow.show(musicTable.getScene().getWindow(), "Playlists");
     }
 
     @FXML
