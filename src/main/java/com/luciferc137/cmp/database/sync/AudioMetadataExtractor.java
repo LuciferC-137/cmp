@@ -1,10 +1,7 @@
 package com.luciferc137.cmp.database.sync;
 
-import org.jaudiotagger.audio.AudioFile;
-import org.jaudiotagger.audio.AudioFileIO;
-import org.jaudiotagger.audio.AudioHeader;
-import org.jaudiotagger.tag.FieldKey;
-import org.jaudiotagger.tag.Tag;
+import com.luciferc137.cmp.audio.AudioFormat;
+import com.luciferc137.cmp.audio.AudioMetadata;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -12,27 +9,21 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
- * Metadata extractor for audio files.
- * Uses JAudioTagger library for broad format support (MP3, M4A, FLAC, OGG, WAV, etc.).
+ * Metadata extractor for audio files during library synchronization.
+ * Uses the centralized AudioMetadata class for reading metadata.
+ * Adds file hash computation for tracking file changes.
  */
 public class AudioMetadataExtractor {
 
     private static final int HASH_BUFFER_SIZE = 8192;
     private static final int HASH_MAX_BYTES = 1024 * 1024; // 1 MB for hash (beginning of file)
 
-    static {
-        // Disable JAudioTagger verbose logging
-        Logger.getLogger("org.jaudiotagger").setLevel(Level.OFF);
-    }
-
     /**
-     * Metadata extracted from an audio file.
+     * Metadata result from extraction, including file hash.
      */
-    public static class AudioMetadata {
+    public static class ExtractedMetadata {
         private String title;
         private String artist;
         private String album;
@@ -81,7 +72,7 @@ public class AudioMetadataExtractor {
 
         @Override
         public String toString() {
-            return "AudioMetadata{" +
+            return "ExtractedMetadata{" +
                     "title='" + title + '\'' +
                     ", artist='" + artist + '\'' +
                     ", album='" + album + '\'' +
@@ -95,58 +86,23 @@ public class AudioMetadataExtractor {
      * Extracts metadata from an audio file.
      *
      * @param file The audio file
-     * @return The extracted metadata
+     * @return The extracted metadata with hash
      */
-    public AudioMetadata extract(File file) throws IOException {
-        AudioMetadata metadata = new AudioMetadata();
+    public ExtractedMetadata extract(File file) throws IOException {
+        ExtractedMetadata result = new ExtractedMetadata();
 
-        // Extract file hash
-        metadata.setHash(computeFileHash(file));
+        // Compute file hash for change detection
+        result.setHash(computeFileHash(file));
 
-        // Default title = filename without extension
-        String fileName = file.getName();
-        int dotIndex = fileName.lastIndexOf('.');
-        String defaultTitle = dotIndex > 0 ? fileName.substring(0, dotIndex) : fileName;
-        metadata.setTitle(defaultTitle);
+        // Use centralized AudioMetadata class for reading
+        AudioMetadata metadata = AudioMetadata.fromFile(file);
 
-        try {
-            AudioFile audioFile = AudioFileIO.read(file);
+        result.setTitle(metadata.getTitle());
+        result.setArtist(metadata.getArtist());
+        result.setAlbum(metadata.getAlbum());
+        result.setDuration(metadata.getDuration());
 
-            // Extract duration from audio header
-            AudioHeader header = audioFile.getAudioHeader();
-            if (header != null) {
-                // Duration is in seconds, convert to milliseconds
-                metadata.setDuration(header.getTrackLength() * 1000L);
-            }
-
-            // Extract metadata from tags
-            Tag tag = audioFile.getTag();
-            if (tag != null) {
-                // Extract title
-                String title = tag.getFirst(FieldKey.TITLE);
-                if (title != null && !title.trim().isEmpty()) {
-                    metadata.setTitle(title.trim());
-                }
-
-                // Extract artist
-                String artist = tag.getFirst(FieldKey.ARTIST);
-                if (artist != null && !artist.trim().isEmpty()) {
-                    metadata.setArtist(artist.trim());
-                }
-
-                // Extract album
-                String album = tag.getFirst(FieldKey.ALBUM);
-                if (album != null && !album.trim().isEmpty()) {
-                    metadata.setAlbum(album.trim());
-                }
-            }
-
-        } catch (Exception e) {
-            // Format not supported or error reading file, keep default values
-            System.err.println("Error reading metadata for: " + file.getAbsolutePath() + " - " + e.getMessage());
-        }
-
-        return metadata;
+        return result;
     }
 
     /**
@@ -191,19 +147,6 @@ public class AudioMetadataExtractor {
      * @return true if it's a supported audio file
      */
     public boolean isAudioFile(File file) {
-        if (!file.isFile()) {
-            return false;
-        }
-
-        String name = file.getName().toLowerCase();
-        return name.endsWith(".mp3") ||
-               name.endsWith(".wav") ||
-               name.endsWith(".flac") ||
-               name.endsWith(".ogg") ||
-               name.endsWith(".m4a") ||
-               name.endsWith(".aac") ||
-               name.endsWith(".wma") ||
-               name.endsWith(".aiff") ||
-               name.endsWith(".aif");
+        return AudioFormat.isSupported(file);
     }
 }

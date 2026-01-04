@@ -1,5 +1,6 @@
 package com.luciferc137.cmp.ui;
 
+import com.luciferc137.cmp.audio.AudioMetadata;
 import com.luciferc137.cmp.library.Music;
 import com.luciferc137.cmp.library.MusicLibrary;
 import javafx.geometry.Insets;
@@ -7,24 +8,22 @@ import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
-import org.jaudiotagger.audio.AudioFile;
-import org.jaudiotagger.audio.AudioFileIO;
-import org.jaudiotagger.tag.FieldKey;
-import org.jaudiotagger.tag.Tag;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Optional;
 
 /**
  * Dialog for editing music track metadata.
  * Provides two tabs: Info (title, artist, album, etc.) and Lyrics.
- * Changes are saved directly to the audio file using JAudioTagger.
+ * Changes are saved directly to the audio file using the AudioMetadata class.
  */
 public class MetadataEditorDialog {
 
     private final Music music;
     private final File audioFile;
-    
+    private AudioMetadata metadata;
+
     // Info tab fields
     private TextField titleField;
     private TextField artistField;
@@ -32,11 +31,17 @@ public class MetadataEditorDialog {
     private TextField albumArtistField;
     private TextField yearField;
     private TextField trackNumberField;
+    private TextField discNumberField;
     private TextField genreField;
     private TextField composerField;
     
     // Lyrics tab
     private TextArea lyricsArea;
+
+    // Technical info (read-only)
+    private TextField bitrateField;
+    private TextField sampleRateField;
+    private TextField formatField;
 
     public MetadataEditorDialog(Music music) {
         this.music = music;
@@ -57,15 +62,13 @@ public class MetadataEditorDialog {
     private boolean showDialog() {
         Dialog<ButtonType> dialog = new Dialog<>();
         dialog.setTitle("Edit Metadata");
-        dialog.setHeaderText(music.title + " - " + music.artist);
+        dialog.setHeaderText(music.title + " - " + (music.artist != null ? music.artist : "Unknown Artist"));
         dialog.setResizable(true);
-        dialog.setHeight(600); // Valeur plus raisonnable
-        dialog.setWidth(500);
+        dialog.setWidth(600);
+        dialog.setHeight(500);
 
-        // Centrer la fenêtre lors de l'affichage
-        dialog.setOnShown(e -> {
-            dialog.getDialogPane().getScene().getWindow().centerOnScreen();
-        });
+        // Center window on screen when shown
+        dialog.setOnShown(e -> dialog.getDialogPane().getScene().getWindow().centerOnScreen());
 
         // Apply dark theme
         ThemeManager.applyDarkTheme(dialog);
@@ -81,9 +84,10 @@ public class MetadataEditorDialog {
         tabPane.setPrefHeight(400);
         
         // Add tabs
-        tabPane.getTabs().add(createInfoTab());
-        tabPane.getTabs().add(createLyricsTab());
-        
+        tabPane.getTabs().add(createInfoTab());      // Editable metadata
+        tabPane.getTabs().add(createLyricsTab());    // Editable lyrics
+        tabPane.getTabs().add(createTechnicalTab()); // Read-only technical info
+
         dialog.getDialogPane().setContent(tabPane);
         
         // Load current metadata
@@ -118,56 +122,52 @@ public class MetadataEditorDialog {
         // Artist
         grid.add(new Label("Artist:"), 0, row);
         artistField = new TextField();
+        artistField.setPrefWidth(350);
         grid.add(artistField, 1, row++);
         
         // Album
         grid.add(new Label("Album:"), 0, row);
         albumField = new TextField();
+        albumField.setPrefWidth(350);
         grid.add(albumField, 1, row++);
         
         // Album Artist
         grid.add(new Label("Album Artist:"), 0, row);
         albumArtistField = new TextField();
+        albumArtistField.setPrefWidth(350);
         grid.add(albumArtistField, 1, row++);
         
         // Year
         grid.add(new Label("Year:"), 0, row);
         yearField = new TextField();
-        yearField.setPrefWidth(100);
+        yearField.setPrefWidth(350);
         grid.add(yearField, 1, row++);
         
         // Track Number
         grid.add(new Label("Track Number:"), 0, row);
         trackNumberField = new TextField();
-        trackNumberField.setPrefWidth(100);
+        trackNumberField.setPrefWidth(350);
         grid.add(trackNumberField, 1, row++);
         
+        // Disc Number
+        grid.add(new Label("Disc Number:"), 0, row);
+        discNumberField = new TextField();
+        discNumberField.setPrefWidth(350);
+        grid.add(discNumberField, 1, row++);
+
         // Genre
         grid.add(new Label("Genre:"), 0, row);
         genreField = new TextField();
+        genreField.setPrefWidth(350);
         grid.add(genreField, 1, row++);
         
         // Composer
         grid.add(new Label("Composer:"), 0, row);
         composerField = new TextField();
+        composerField.setPrefWidth(350);
         grid.add(composerField, 1, row++);
         
-        // File path (read-only)
-        grid.add(new Label("File:"), 0, row);
-        TextField filePathField = new TextField(music.filePath);
-        filePathField.setEditable(false);
-        filePathField.setStyle("-fx-opacity: 0.7;");
-        grid.add(filePathField, 1, row++);
-        
-        // Duration (read-only)
-        grid.add(new Label("Duration:"), 0, row);
-        TextField durationField = new TextField(music.getFormattedDuration());
-        durationField.setEditable(false);
-        durationField.setStyle("-fx-opacity: 0.7;");
-        durationField.setPrefWidth(100);
-        grid.add(durationField, 1, row);
-        
-        // Ajout du ScrollPane autour du GridPane
+        // Wrap in ScrollPane
         ScrollPane scrollPane = new ScrollPane(grid);
         scrollPane.setFitToWidth(true);
         scrollPane.setFitToHeight(true);
@@ -192,7 +192,7 @@ public class MetadataEditorDialog {
         
         content.getChildren().addAll(label, lyricsArea);
         
-        // Ajout du ScrollPane autour du VBox
+        // Wrap in ScrollPane
         ScrollPane scrollPane = new ScrollPane(content);
         scrollPane.setFitToWidth(true);
         scrollPane.setFitToHeight(true);
@@ -202,36 +202,96 @@ public class MetadataEditorDialog {
         return lyricsTab;
     }
 
+    private Tab createTechnicalTab() {
+        Tab techTab = new Tab("Technical");
+
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.setPadding(new Insets(20));
+
+        int row = 0;
+
+        // File path
+        grid.add(new Label("File:"), 0, row);
+        TextField filePathField = new TextField(music.filePath);
+        filePathField.setEditable(false);
+        filePathField.setStyle("-fx-opacity: 0.7;");
+        filePathField.setPrefWidth(350);
+        grid.add(filePathField, 1, row++);
+
+        // Duration
+        grid.add(new Label("Duration:"), 0, row);
+        TextField durationField = new TextField(music.getFormattedDuration());
+        durationField.setEditable(false);
+        durationField.setStyle("-fx-opacity: 0.7;");
+        durationField.setPrefWidth(350);
+        grid.add(durationField, 1, row++);
+
+        // Format
+        grid.add(new Label("Format:"), 0, row);
+        formatField = new TextField();
+        formatField.setEditable(false);
+        formatField.setStyle("-fx-opacity: 0.7;");
+        formatField.setPrefWidth(350);
+        grid.add(formatField, 1, row++);
+
+        // Bitrate
+        grid.add(new Label("Bitrate:"), 0, row);
+        bitrateField = new TextField();
+        bitrateField.setEditable(false);
+        bitrateField.setStyle("-fx-opacity: 0.7;");
+        bitrateField.setPrefWidth(350);
+        grid.add(bitrateField, 1, row++);
+
+        // Sample Rate
+        grid.add(new Label("Sample Rate:"), 0, row);
+        sampleRateField = new TextField();
+        sampleRateField.setEditable(false);
+        sampleRateField.setStyle("-fx-opacity: 0.7;");
+        sampleRateField.setPrefWidth(350);
+        grid.add(sampleRateField, 1, row);
+
+        ScrollPane scrollPane = new ScrollPane(grid);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setFitToHeight(true);
+        techTab.setContent(scrollPane);
+        return techTab;
+    }
+
     /**
      * Loads the current metadata from the audio file into the form fields.
      */
     private void loadMetadata() {
         try {
-            AudioFile audioFile = AudioFileIO.read(this.audioFile);
-            Tag tag = audioFile.getTag();
-            
-            if (tag != null) {
-                titleField.setText(getTagValue(tag, FieldKey.TITLE));
-                artistField.setText(getTagValue(tag, FieldKey.ARTIST));
-                albumField.setText(getTagValue(tag, FieldKey.ALBUM));
-                albumArtistField.setText(getTagValue(tag, FieldKey.ALBUM_ARTIST));
-                yearField.setText(getTagValue(tag, FieldKey.YEAR));
-                trackNumberField.setText(getTagValue(tag, FieldKey.TRACK));
-                genreField.setText(getTagValue(tag, FieldKey.GENRE));
-                composerField.setText(getTagValue(tag, FieldKey.COMPOSER));
-                lyricsArea.setText(getTagValue(tag, FieldKey.LYRICS));
-            } else {
-                // No tag, use default values from Music object
-                titleField.setText(music.title);
-                artistField.setText(music.artist != null ? music.artist : "");
-                albumField.setText(music.album != null ? music.album : "");
+            metadata = AudioMetadata.fromFile(audioFile);
+
+            // Populate form fields
+            titleField.setText(nvl(metadata.getTitle()));
+            artistField.setText(nvl(metadata.getArtist()));
+            albumField.setText(nvl(metadata.getAlbum()));
+            albumArtistField.setText(nvl(metadata.getAlbumArtist()));
+            yearField.setText(nvl(metadata.getYear()));
+            trackNumberField.setText(nvl(metadata.getTrackNumber()));
+            discNumberField.setText(nvl(metadata.getDiscNumber()));
+            genreField.setText(nvl(metadata.getGenre()));
+            composerField.setText(nvl(metadata.getComposer()));
+            lyricsArea.setText(nvl(metadata.getLyrics()));
+
+            // Technical info
+            if (metadata.getFormat() != null) {
+                formatField.setText(metadata.getFormat().getDescription() +
+                    (metadata.getEncodingType() != null ? " (" + metadata.getEncodingType() + ")" : ""));
             }
-        } catch (Exception e) {
+            bitrateField.setText(metadata.getFormattedBitrate());
+            sampleRateField.setText(metadata.getFormattedSampleRate());
+
+        } catch (IOException e) {
             // Could not read file, use values from Music object
             titleField.setText(music.title);
-            artistField.setText(music.artist != null ? music.artist : "");
-            albumField.setText(music.album != null ? music.album : "");
-            
+            artistField.setText(nvl(music.artist));
+            albumField.setText(nvl(music.album));
+
             showError("Could not read metadata from file: " + e.getMessage());
         }
     }
@@ -243,28 +303,30 @@ public class MetadataEditorDialog {
      */
     private boolean saveMetadata() {
         try {
-            AudioFile audioFile = AudioFileIO.read(this.audioFile);
-            Tag tag = audioFile.getTagOrCreateAndSetDefault();
-            
-            // Update tag fields
-            setTagValue(tag, FieldKey.TITLE, titleField.getText());
-            setTagValue(tag, FieldKey.ARTIST, artistField.getText());
-            setTagValue(tag, FieldKey.ALBUM, albumField.getText());
-            setTagValue(tag, FieldKey.ALBUM_ARTIST, albumArtistField.getText());
-            setTagValue(tag, FieldKey.YEAR, yearField.getText());
-            setTagValue(tag, FieldKey.TRACK, trackNumberField.getText());
-            setTagValue(tag, FieldKey.GENRE, genreField.getText());
-            setTagValue(tag, FieldKey.COMPOSER, composerField.getText());
-            setTagValue(tag, FieldKey.LYRICS, lyricsArea.getText());
-            
-            // Save the file
-            audioFile.commit();
-            
+            if (metadata == null) {
+                metadata = AudioMetadata.fromFile(audioFile);
+            }
+
+            // Update metadata object from form fields
+            metadata.setTitle(titleField.getText().trim());
+            metadata.setArtist(artistField.getText().trim());
+            metadata.setAlbum(albumField.getText().trim());
+            metadata.setAlbumArtist(albumArtistField.getText().trim());
+            metadata.setYear(yearField.getText().trim());
+            metadata.setTrackNumber(trackNumberField.getText().trim());
+            metadata.setDiscNumber(discNumberField.getText().trim());
+            metadata.setGenre(genreField.getText().trim());
+            metadata.setComposer(composerField.getText().trim());
+            metadata.setLyrics(lyricsArea.getText());
+
+            // Save to file
+            metadata.saveToFile(audioFile);
+
             // Update the Music object to reflect the changes in the UI
-            music.title = titleField.getText().trim();
-            music.artist = artistField.getText().trim();
-            music.album = albumField.getText().trim();
-            
+            music.title = metadata.getTitle();
+            music.artist = metadata.getArtist();
+            music.album = metadata.getAlbum();
+
             // Also update in the database if the music has an ID
             if (music.getId() != null) {
                 MusicLibrary.getInstance().updateMusicMetadata(music);
@@ -272,33 +334,15 @@ public class MetadataEditorDialog {
             
             return true;
             
-        } catch (Exception e) {
+        } catch (IOException e) {
             showError("Could not save metadata: " + e.getMessage());
             System.err.println("Error saving metadata: " + e.getMessage());
             return false;
         }
     }
 
-    private String getTagValue(Tag tag, FieldKey key) {
-        try {
-            String value = tag.getFirst(key);
-            return value != null ? value : "";
-        } catch (Exception e) {
-            return "";
-        }
-    }
-
-    private void setTagValue(Tag tag, FieldKey key, String value) {
-        try {
-            if (value != null && !value.trim().isEmpty()) {
-                tag.setField(key, value.trim());
-            } else {
-                tag.deleteField(key);
-            }
-        } catch (Exception e) {
-            // Some fields might not be supported for certain formats
-            System.err.println("Could not set field " + key + ": " + e.getMessage());
-        }
+    private String nvl(String value) {
+        return value != null ? value : "";
     }
 
     private void showError(String message) {

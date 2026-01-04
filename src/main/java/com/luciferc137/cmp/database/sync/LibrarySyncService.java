@@ -128,7 +128,7 @@ public class LibrarySyncService {
                     try {
                         Optional<MusicEntity> existing = musicDao.findByPath(path);
 
-                        AudioMetadataExtractor.AudioMetadata metadata = metadataExtractor.extract(file);
+                        AudioMetadataExtractor.ExtractedMetadata metadata = metadataExtractor.extract(file);
                         if (existing.isPresent()) {
                             // File already exists, check if update needed
 
@@ -245,7 +245,7 @@ public class LibrarySyncService {
     /**
      * Creates a MusicEntity from metadata.
      */
-    private MusicEntity createEntityFromMetadata(String path, AudioMetadataExtractor.AudioMetadata metadata) {
+    private MusicEntity createEntityFromMetadata(String path, AudioMetadataExtractor.ExtractedMetadata metadata) {
         return new MusicEntity(
             path,
             metadata.getTitle(),
@@ -259,7 +259,7 @@ public class LibrarySyncService {
     /**
      * Updates a MusicEntity with new metadata.
      */
-    private void updateEntityFromMetadata(MusicEntity entity, AudioMetadataExtractor.AudioMetadata metadata) {
+    private void updateEntityFromMetadata(MusicEntity entity, AudioMetadataExtractor.ExtractedMetadata metadata) {
         entity.setTitle(metadata.getTitle());
         entity.setArtist(metadata.getArtist());
         entity.setAlbum(metadata.getAlbum());
