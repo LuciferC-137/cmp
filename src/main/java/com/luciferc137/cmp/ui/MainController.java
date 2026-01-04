@@ -267,6 +267,21 @@ public class MainController {
             public void onMetadataChanged() {
                 refreshAllViews();
             }
+
+            @Override
+            public void onRemoveFromPlaylistRequested(List<Music> musicList, Long playlistId) {
+                if (playlistId == null) return;
+
+                com.luciferc137.cmp.database.LibraryService libraryService = com.luciferc137.cmp.database.LibraryService.getInstance();
+                for (Music music : musicList) {
+                    if (music.getId() != null) {
+                        libraryService.removeMusicFromPlaylist(playlistId, music.getId());
+                    }
+                }
+
+                // Refresh the displayed playlist
+                playlistPanelHandler.refreshDisplayedPlaylist();
+            }
         });
 
         // Session restore events

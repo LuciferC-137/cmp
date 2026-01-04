@@ -46,6 +46,10 @@ public class ContextMenuHandler {
          * Should trigger a refresh of all views (table, playlist, current track display).
          */
         void onMetadataChanged();
+        /**
+         * Called when tracks should be removed from the current playlist.
+         */
+        void onRemoveFromPlaylistRequested(List<Music> musicList, Long playlistId);
     }
 
     public ContextMenuHandler() {
@@ -77,7 +81,7 @@ public class ContextMenuHandler {
             TableView<Music> musicTable,
             Long displayedPlaylistId
     ) {
-        showMusicContextMenuInternal(selectedMusic, screenX, screenY, musicTable, displayedPlaylistId);
+        showMusicContextMenuInternal(selectedMusic, screenX, screenY, musicTable, displayedPlaylistId, false);
     }
 
     /**
@@ -90,7 +94,7 @@ public class ContextMenuHandler {
             ListView<Music> playlistView,
             Long displayedPlaylistId
     ) {
-        showMusicContextMenuInternal(selectedMusic, screenX, screenY, playlistView, displayedPlaylistId);
+        showMusicContextMenuInternal(selectedMusic, screenX, screenY, playlistView, displayedPlaylistId, true);
     }
 
     private void showMusicContextMenuInternal(
@@ -98,7 +102,8 @@ public class ContextMenuHandler {
             double screenX,
             double screenY,
             Control control,
-            Long displayedPlaylistId
+            Long displayedPlaylistId,
+            boolean isFromPlaylistView
     ) {
         if (selectedMusic.isEmpty()) return;
 
@@ -141,6 +146,17 @@ public class ContextMenuHandler {
 
         // Add to playlist submenu
         contextMenu.getItems().add(createAddToPlaylistMenu(selectedMusic, displayedPlaylistId));
+
+        // Remove from playlist option (only shown when in a saved playlist view)
+        if (isFromPlaylistView && displayedPlaylistId != null) {
+            MenuItem removeFromPlaylistItem = new MenuItem(isMultiple ? "Remove All from Playlist" : "Remove from Playlist");
+            removeFromPlaylistItem.setOnAction(e -> {
+                if (eventListener != null) {
+                    eventListener.onRemoveFromPlaylistRequested(selectedMusic, displayedPlaylistId);
+                }
+            });
+            contextMenu.getItems().add(removeFromPlaylistItem);
+        }
 
         // Edit Metadata option
         contextMenu.getItems().add(new SeparatorMenuItem());

@@ -241,10 +241,11 @@ public class MusicLibrary {
     }
 
     /**
-     * Cycles the filter state for a rating.
+     * Toggles the selection of a rating in the filter.
+     * @return true if the rating is now selected, false otherwise
      */
-    public TagFilterState cycleRatingFilter(int rating) {
-        TagFilterState newState = advancedFilter.get().cycleRatingFilter(rating);
+    public boolean toggleRatingFilter(int rating) {
+        boolean newState = advancedFilter.get().toggleRatingFilter(rating);
         applyFilterAndSort();
         return newState;
     }

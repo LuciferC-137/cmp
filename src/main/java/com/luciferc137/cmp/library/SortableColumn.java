@@ -7,7 +7,7 @@ public enum SortableColumn {
     TITLE("Title"),
     ARTIST("Artist"),
     ALBUM("Album"),
-    DURATION("Duration");
+    DURATION("⏲");
 
     private final String displayName;
 

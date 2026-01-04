@@ -68,9 +68,9 @@
                     <TableColumn fx:id="titleColumn" prefWidth="200" text="Title" />
                     <TableColumn fx:id="artistColumn" prefWidth="150" text="Artist" />
                     <TableColumn fx:id="albumColumn" prefWidth="150" text="Album" />
-                    <TableColumn fx:id="durationColumn" prefWidth="80" text="Duration" />
+                    <TableColumn fx:id="durationColumn" prefWidth="70" text="⏲" />
                     <TableColumn fx:id="tagsColumn" prefWidth="120" text="Tags" />
-                    <TableColumn fx:id="ratingColumn" prefWidth="100" text="Rating" />
+                    <TableColumn fx:id="ratingColumn" prefWidth="110" text="Rating" />
                 </columns>
             </TableView>
 

@@ -32,7 +32,7 @@ This project has been highly inspired by AIMP music player. It aims to be as por
   - Include: Only show tracks with this tag
   - Exclude: Hide tracks with this tag
   - Multiple tag filters work together (AND logic)
-- **Rating filtering**: Same tri-state filtering for ratings 0-5
+- **Rating filtering**: Filter by rating using the Rating column header dropdown
 - **Search**: Text search across title, artist, and album fields
 
 ### ⚙️ Settings
@@ -92,6 +92,7 @@ To create custom playlists:
 2. Create a new playlist and give it a name with `Create Playlist` button
 3. You can add song using right click → `Add to Playlist` → `My Playlist` (multiple selection supported)
 4. Delete a playlist from the same settings menu
+5. Remove elements from a playlist using right click → `Remove from Playlist` in the playlist view
 
 ### Organizing with Tags
 

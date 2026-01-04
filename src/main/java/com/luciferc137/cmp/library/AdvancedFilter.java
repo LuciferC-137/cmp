@@ -10,14 +10,14 @@ import java.util.Map;
 public class AdvancedFilter {
 
     private final Map<Long, TagFilterState> tagFilters; // tagId -> state
-    private final Map<Integer, TagFilterState> ratingFilters; // rating value (0-5) -> state
+    private final java.util.Set<Integer> selectedRatings; // rating values (0-5) that are selected
     private SortableColumn sortColumn;
     private ColumnSortState sortState;
     private String searchQuery;
 
     public AdvancedFilter() {
         this.tagFilters = new HashMap<>();
-        this.ratingFilters = new HashMap<>();
+        this.selectedRatings = new java.util.HashSet<>();
         this.sortColumn = null;
         this.sortState = ColumnSortState.NONE;
         this.searchQuery = null;
@@ -70,45 +70,52 @@ public class AdvancedFilter {
     // ==================== Rating Filters ====================
 
     /**
-     * Gets the filter state for a rating value.
+     * Checks if a rating is selected in the filter.
      */
-    public TagFilterState getRatingFilterState(int rating) {
-        return ratingFilters.getOrDefault(rating, TagFilterState.IRRELEVANT);
+    public boolean isRatingSelected(int rating) {
+        return selectedRatings.contains(rating);
     }
 
     /**
-     * Sets the filter state for a rating value.
+     * Sets whether a rating is selected in the filter.
      */
-    public void setRatingFilterState(int rating, TagFilterState state) {
-        if (state == TagFilterState.IRRELEVANT) {
-            ratingFilters.remove(rating);
+    public void setRatingSelected(int rating, boolean selected) {
+        if (selected) {
+            selectedRatings.add(rating);
         } else {
-            ratingFilters.put(rating, state);
+            selectedRatings.remove(rating);
         }
     }
 
     /**
-     * Cycles the filter state for a rating to the next state.
+     * Toggles the selection of a rating.
+     * @return the new selection state
      */
-    public TagFilterState cycleRatingFilter(int rating) {
-        TagFilterState current = getRatingFilterState(rating);
-        TagFilterState next = current.next();
-        setRatingFilterState(rating, next);
-        return next;
+    public boolean toggleRatingFilter(int rating) {
+        boolean newState = !isRatingSelected(rating);
+        setRatingSelected(rating, newState);
+        return newState;
     }
 
     /**
-     * Returns all active rating filters (non-IRRELEVANT).
+     * Returns all selected ratings.
      */
-    public Map<Integer, TagFilterState> getActiveRatingFilters() {
-        return new HashMap<>(ratingFilters);
+    public java.util.Set<Integer> getSelectedRatings() {
+        return new java.util.HashSet<>(selectedRatings);
     }
 
     /**
      * Checks if any rating filters are active.
      */
     public boolean hasActiveRatingFilters() {
-        return !ratingFilters.isEmpty();
+        return !selectedRatings.isEmpty();
+    }
+
+    /**
+     * Clears all rating filters.
+     */
+    public void clearRatingFilters() {
+        selectedRatings.clear();
     }
 
     // ==================== Sorting ====================
@@ -232,17 +239,10 @@ public class AdvancedFilter {
             }
         }
 
-        // Check rating filters
-        for (Map.Entry<Integer, TagFilterState> entry : ratingFilters.entrySet()) {
-            int ratingValue = entry.getKey();
-            TagFilterState state = entry.getValue();
-            boolean hasRating = music.getRating() == ratingValue;
-
-            if (state == TagFilterState.INCLUDE && !hasRating) {
-                return false; // Must have this rating but doesn't
-            }
-            if (state == TagFilterState.EXCLUDE && hasRating) {
-                return false; // Must not have this rating but does
+        // Check rating filters (OR logic - music matches if its rating is among selected ratings)
+        if (hasActiveRatingFilters()) {
+            if (!selectedRatings.contains(music.getRating())) {
+                return false; // Music's rating is not among the selected ratings
             }
         }
 
@@ -254,7 +254,7 @@ public class AdvancedFilter {
      */
     public void clearAll() {
         tagFilters.clear();
-        ratingFilters.clear();
+        clearRatingFilters();
         clearSort();
         clearSearch();
     }
@@ -271,7 +271,7 @@ public class AdvancedFilter {
         StringBuilder sb = new StringBuilder("AdvancedFilter{");
         if (hasSearch()) sb.append("search='").append(searchQuery).append("', ");
         if (hasActiveTagFilters()) sb.append("tags=").append(tagFilters.size()).append(", ");
-        if (hasActiveRatingFilters()) sb.append("ratings=").append(ratingFilters.size()).append(", ");
+        if (hasActiveRatingFilters()) sb.append("ratings=").append(selectedRatings.size()).append(", ");
         if (hasSorting()) sb.append("sort=").append(sortColumn).append(" ").append(sortState);
         sb.append("}");
         return sb.toString();

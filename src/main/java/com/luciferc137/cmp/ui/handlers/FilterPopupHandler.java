@@ -16,7 +16,7 @@ import javafx.stage.Window;
 /**
  * Handles filter popup dialogs including:
  * - Tag filter popup with tri-state checkboxes
- * - Rating filter popup with tri-state toggles
+ * - Rating filter popup with checkboxes (OR logic)
  * - Create tag dialog
  */
 public class FilterPopupHandler {
@@ -102,6 +102,7 @@ public class FilterPopupHandler {
 
     /**
      * Shows the rating filter popup near the specified window coordinates.
+     * Uses checkboxes with OR logic - music matches if its rating is any of the selected ratings.
      */
     public void showRatingFilterPopup(Window window, double windowX, double windowY) {
         Popup popup = new Popup();
@@ -118,7 +119,7 @@ public class FilterPopupHandler {
         AdvancedFilter filter = musicLibrary.getAdvancedFilter();
 
         for (int rating = 5; rating >= 0; rating--) {
-            HBox row = createRatingFilterRow(rating, filter);
+            HBox row = createRatingCheckboxRow(rating, filter);
             content.getChildren().add(row);
         }
 
@@ -127,8 +128,7 @@ public class FilterPopupHandler {
             content.getChildren().add(new Separator());
             Button clearBtn = new Button("Clear Rating Filters");
             clearBtn.setOnAction(e -> {
-                filter.getActiveRatingFilters().keySet().forEach(r ->
-                        filter.setRatingFilterState(r, TagFilterState.IRRELEVANT));
+                filter.clearRatingFilters();
                 musicLibrary.applyFilterAndSort();
                 popup.hide();
             });
@@ -139,25 +139,32 @@ public class FilterPopupHandler {
         popup.show(window, windowX + 600, windowY + 100);
     }
 
-    private HBox createRatingFilterRow(int rating, AdvancedFilter filter) {
+    private HBox createRatingCheckboxRow(int rating, AdvancedFilter filter) {
         HBox row = new HBox(10);
         row.setAlignment(Pos.CENTER_LEFT);
 
-        TagFilterState state = filter.getRatingFilterState(rating);
-        Label stateLabel = new Label(state.getSymbol());
-        stateLabel.setStyle("-fx-font-size: 14px; -fx-min-width: 20px; -fx-text-fill: #E0E0E0;");
+        CheckBox checkBox = new CheckBox();
+        checkBox.setSelected(filter.isRatingSelected(rating));
+        checkBox.setStyle("-fx-text-fill: #E0E0E0;");
 
         String stars = rating == 0 ? "No rating" : "★".repeat(rating) + "☆".repeat(5 - rating);
         Label ratingLabel = new Label(stars);
         ratingLabel.setStyle("-fx-text-fill: #E0E0E0;");
 
-        row.getChildren().addAll(stateLabel, ratingLabel);
-        row.setStyle("-fx-cursor: hand;");
-        row.setOnMouseClicked(e -> {
-            TagFilterState newState = musicLibrary.cycleRatingFilter(rating);
-            stateLabel.setText(newState.getSymbol());
+        checkBox.setOnAction(e -> {
+            filter.setRatingSelected(rating, checkBox.isSelected());
+            musicLibrary.applyFilterAndSort();
         });
 
+        // Allow clicking the label to toggle the checkbox
+        ratingLabel.setOnMouseClicked(e -> {
+            checkBox.setSelected(!checkBox.isSelected());
+            filter.setRatingSelected(rating, checkBox.isSelected());
+            musicLibrary.applyFilterAndSort();
+        });
+        ratingLabel.setStyle("-fx-text-fill: #E0E0E0; -fx-cursor: hand;");
+
+        row.getChildren().addAll(checkBox, ratingLabel);
         return row;
     }
 
