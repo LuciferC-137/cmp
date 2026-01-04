@@ -192,6 +192,17 @@ public class MainController {
             public void onPlaylistTabsNeedRefresh() {
                 playlistPanelHandler.refreshPlaylistTabs();
             }
+
+            @Override
+            public void onPlaylistContextMenuRequested(List<Music> selectedMusic, double screenX, double screenY, Long playlistId) {
+                contextMenuHandler.showMusicContextMenuForPlaylist(
+                        selectedMusic,
+                        screenX,
+                        screenY,
+                        playlistView,
+                        playlistId
+                );
+            }
         });
 
         // Table handler events
@@ -243,8 +254,18 @@ public class MainController {
             public void onEditMetadataRequested(Music music) {
                 boolean saved = MetadataEditorDialog.show(music);
                 if (saved) {
-                    musicTable.refresh();
+                    onMetadataChanged();
                 }
+            }
+
+            @Override
+            public void onBatchChangeCoverArtRequested(List<Music> musicList) {
+                BatchCoverArtDialog.show(musicList, this::onMetadataChanged);
+            }
+
+            @Override
+            public void onMetadataChanged() {
+                refreshAllViews();
             }
         });
 
@@ -396,6 +417,24 @@ public class MainController {
                 playlistPanelHandler.getDisplayedPlaylistId(),
                 playbackHandler.getCurrentPosition()
         );
+    }
+
+    /**
+     * Refreshes all views after metadata changes.
+     * This includes the music table, playlist view, and current track display.
+     */
+    private void refreshAllViews() {
+        // Refresh table
+        musicTable.refresh();
+
+        // Refresh playlist view
+        playlistView.refresh();
+
+        // Refresh current track display if the current track was affected
+        Music currentTrack = playbackHandler.getCurrentMusic();
+        if (currentTrack != null) {
+            playbackHandler.displayTrackInfo(currentTrack);
+        }
     }
 
     // ==================== FXML Action Handlers ====================

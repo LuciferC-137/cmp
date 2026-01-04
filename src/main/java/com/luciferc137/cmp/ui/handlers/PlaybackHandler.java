@@ -3,7 +3,6 @@ package com.luciferc137.cmp.ui.handlers;
 import com.luciferc137.cmp.audio.VlcAudioPlayer;
 import com.luciferc137.cmp.audio.WaveformExtractor;
 import com.luciferc137.cmp.library.Music;
-import com.luciferc137.cmp.library.MusicLibrary;
 import com.luciferc137.cmp.library.PlaybackQueue;
 import com.luciferc137.cmp.settings.SettingsManager;
 import com.luciferc137.cmp.ui.CoverArtLoader;
@@ -31,7 +30,6 @@ public class PlaybackHandler {
     private final VlcAudioPlayer audioPlayer;
     private final WaveformExtractor waveformExtractor;
     private final PlaybackQueue playbackQueue;
-    private final MusicLibrary musicLibrary;
     private final SettingsManager settingsManager;
 
     // UI Components (injected)
@@ -43,7 +41,6 @@ public class PlaybackHandler {
     private Slider volumeSlider;
     private ImageView coverArtView;
 
-    private AnimationTimer progressTimer;
     private Music currentMusic;
 
     // Restored position from session (used for resuming at saved position)
@@ -65,7 +62,6 @@ public class PlaybackHandler {
         this.audioPlayer = audioPlayer;
         this.waveformExtractor = waveformExtractor;
         this.playbackQueue = PlaybackQueue.getInstance();
-        this.musicLibrary = MusicLibrary.getInstance();
         this.settingsManager = SettingsManager.getInstance();
     }
 
@@ -128,7 +124,8 @@ public class PlaybackHandler {
     // ==================== Progress Tracking ====================
 
     private void initProgressTimer() {
-        progressTimer = new AnimationTimer() {
+        // ~30fps
+        AnimationTimer progressTimer = new AnimationTimer() {
             private long lastUpdate = 0;
 
             @Override

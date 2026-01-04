@@ -55,6 +55,14 @@ public class PlaylistPanelHandler {
          */
         void onPlaylistTrackSelected(Music music, Long playlistId, List<Music> playlistContent, boolean isFromSavedPlaylist);
         void onPlaylistTabsNeedRefresh();
+        /**
+         * Called when a context menu is requested on playlist items.
+         * @param selectedMusic The list of selected music items
+         * @param screenX The screen X position for the context menu
+         * @param screenY The screen Y position for the context menu
+         * @param playlistId The playlist ID (null for Local)
+         */
+        void onPlaylistContextMenuRequested(List<Music> selectedMusic, double screenX, double screenY, Long playlistId);
     }
 
     public PlaylistPanelHandler() {
@@ -86,6 +94,9 @@ public class PlaylistPanelHandler {
      */
     public void initialize() {
         if (playlistView == null) return;
+
+        // Enable multiple selection
+        playlistView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
         // Bind playlist view to displayed content
         playlistView.setItems(displayedPlaylistContent);
@@ -119,6 +130,19 @@ public class PlaylistPanelHandler {
                     eventListener.onPlaylistTrackSelected(selected, displayedPlaylistId,
                             new ArrayList<>(displayedPlaylistContent), isFromSavedPlaylist);
                 }
+            }
+        });
+
+        // Right-click context menu on playlist items
+        playlistView.setOnContextMenuRequested(event -> {
+            List<Music> selectedItems = new ArrayList<>(playlistView.getSelectionModel().getSelectedItems());
+            if (!selectedItems.isEmpty() && eventListener != null) {
+                eventListener.onPlaylistContextMenuRequested(
+                        selectedItems,
+                        event.getScreenX(),
+                        event.getScreenY(),
+                        displayedPlaylistId
+                );
             }
         });
 

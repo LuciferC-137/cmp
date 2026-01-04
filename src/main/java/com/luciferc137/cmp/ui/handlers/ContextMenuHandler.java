@@ -40,6 +40,12 @@ public class ContextMenuHandler {
         void onPlaylistRefreshNeeded();
         void onDisplayedPlaylistRefreshNeeded(Long playlistId);
         void onEditMetadataRequested(Music music);
+        void onBatchChangeCoverArtRequested(List<Music> musicList);
+        /**
+         * Called when metadata has been changed for any music.
+         * Should trigger a refresh of all views (table, playlist, current track display).
+         */
+        void onMetadataChanged();
     }
 
     public ContextMenuHandler() {
@@ -71,6 +77,29 @@ public class ContextMenuHandler {
             TableView<Music> musicTable,
             Long displayedPlaylistId
     ) {
+        showMusicContextMenuInternal(selectedMusic, screenX, screenY, musicTable, displayedPlaylistId);
+    }
+
+    /**
+     * Shows the context menu for one or more music items from a ListView.
+     */
+    public void showMusicContextMenuForPlaylist(
+            List<Music> selectedMusic,
+            double screenX,
+            double screenY,
+            ListView<Music> playlistView,
+            Long displayedPlaylistId
+    ) {
+        showMusicContextMenuInternal(selectedMusic, screenX, screenY, playlistView, displayedPlaylistId);
+    }
+
+    private void showMusicContextMenuInternal(
+            List<Music> selectedMusic,
+            double screenX,
+            double screenY,
+            Control control,
+            Long displayedPlaylistId
+    ) {
         if (selectedMusic.isEmpty()) return;
 
         hideActiveMenu();
@@ -81,13 +110,14 @@ public class ContextMenuHandler {
 
         boolean isMultiple = selectedMusic.size() > 1;
 
-        // Add tags submenu (only for single selection)
+        // Add tags and rating submenus
         if (!isMultiple) {
             Music music = selectedMusic.getFirst();
-            contextMenu.getItems().add(createTagMenu(music, musicTable));
-            contextMenu.getItems().add(createRatingMenu(music, musicTable));
+            contextMenu.getItems().add(createTagMenu(music, control));
+            contextMenu.getItems().add(createRatingMenu(music, control));
         } else {
-            contextMenu.getItems().add(createBatchTagMenu(selectedMusic, musicTable));
+            contextMenu.getItems().add(createBatchTagMenu(selectedMusic, control));
+            contextMenu.getItems().add(createBatchRatingMenu(selectedMusic, control));
         }
 
         // Play option
@@ -112,9 +142,9 @@ public class ContextMenuHandler {
         // Add to playlist submenu
         contextMenu.getItems().add(createAddToPlaylistMenu(selectedMusic, displayedPlaylistId));
 
-        // Edit Metadata option (only for single selection)
+        // Edit Metadata option
+        contextMenu.getItems().add(new SeparatorMenuItem());
         if (!isMultiple) {
-            contextMenu.getItems().add(new SeparatorMenuItem());
             MenuItem editMetadataItem = new MenuItem("Edit Metadata...");
             editMetadataItem.setOnAction(e -> {
                 if (eventListener != null) {
@@ -122,12 +152,32 @@ public class ContextMenuHandler {
                 }
             });
             contextMenu.getItems().add(editMetadataItem);
+        } else {
+            // Batch cover art change for multiple selection
+            MenuItem changeCoverArtItem = new MenuItem("Change Cover Art for All...");
+            changeCoverArtItem.setOnAction(e -> {
+                if (eventListener != null) {
+                    eventListener.onBatchChangeCoverArtRequested(selectedMusic);
+                }
+            });
+            contextMenu.getItems().add(changeCoverArtItem);
         }
 
-        contextMenu.show(musicTable, screenX, screenY);
+        contextMenu.show(control, screenX, screenY);
     }
 
-    private Menu createTagMenu(Music music, TableView<Music> musicTable) {
+    /**
+     * Refreshes a control (TableView or ListView) after data changes.
+     */
+    private void refreshControl(Control control) {
+        if (control instanceof TableView) {
+            ((TableView<?>) control).refresh();
+        } else if (control instanceof ListView) {
+            ((ListView<?>) control).refresh();
+        }
+    }
+
+    private Menu createTagMenu(Music music, Control control) {
         Menu addTagMenu = new Menu("Add Tag");
         ObservableList<TagEntity> availableTags = musicLibrary.getAvailableTags();
 
@@ -145,7 +195,7 @@ public class ContextMenuHandler {
                     } else {
                         musicLibrary.removeTagFromMusic(music, tag);
                     }
-                    musicTable.refresh();
+                    refreshControl(control);
                 });
                 addTagMenu.getItems().add(tagItem);
             }
@@ -164,7 +214,7 @@ public class ContextMenuHandler {
         return addTagMenu;
     }
 
-    private Menu createBatchTagMenu(List<Music> selectedMusic, TableView<Music> musicTable) {
+    private Menu createBatchTagMenu(List<Music> selectedMusic, Control control) {
         Menu addTagMenu = new Menu("Add Tag to All");
         ObservableList<TagEntity> availableTags = musicLibrary.getAvailableTags();
 
@@ -179,7 +229,7 @@ public class ContextMenuHandler {
                     for (Music music : selectedMusic) {
                         musicLibrary.addTagToMusic(music, tag);
                     }
-                    musicTable.refresh();
+                    refreshControl(control);
                 });
                 addTagMenu.getItems().add(tagItem);
             }
@@ -188,7 +238,7 @@ public class ContextMenuHandler {
         return addTagMenu;
     }
 
-    private Menu createRatingMenu(Music music, TableView<Music> musicTable) {
+    private Menu createRatingMenu(Music music, Control control) {
         Menu ratingMenu = new Menu("Set Rating");
         for (int i = 0; i <= 5; i++) {
             final int rating = i;
@@ -197,7 +247,24 @@ public class ContextMenuHandler {
             ratingItem.setSelected(music.getRating() == i);
             ratingItem.setOnAction(e -> {
                 musicLibrary.updateRating(music, rating);
-                musicTable.refresh();
+                refreshControl(control);
+            });
+            ratingMenu.getItems().add(ratingItem);
+        }
+        return ratingMenu;
+    }
+
+    private Menu createBatchRatingMenu(List<Music> selectedMusic, Control control) {
+        Menu ratingMenu = new Menu("Set Rating for All");
+        for (int i = 0; i <= 5; i++) {
+            final int rating = i;
+            String label = i == 0 ? "No rating" : "★".repeat(i) + "☆".repeat(5 - rating);
+            MenuItem ratingItem = new MenuItem(label);
+            ratingItem.setOnAction(e -> {
+                for (Music music : selectedMusic) {
+                    musicLibrary.updateRating(music, rating);
+                }
+                refreshControl(control);
             });
             ratingMenu.getItems().add(ratingItem);
         }
