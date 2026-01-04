@@ -6,6 +6,7 @@ import org.jaudiotagger.audio.AudioHeader;
 import org.jaudiotagger.tag.FieldKey;
 import org.jaudiotagger.tag.Tag;
 import org.jaudiotagger.tag.images.Artwork;
+import org.jaudiotagger.tag.images.ArtworkFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -150,6 +151,24 @@ public class AudioMetadata {
             setTagValue(tag, FieldKey.LYRICS, lyrics);
             setTagValue(tag, FieldKey.COMMENT, comment);
             
+            // Save cover art if present
+            if (coverArt != null && coverArt.length > 0) {
+                try {
+                    // Remove existing artwork
+                    tag.deleteArtworkField();
+
+                    // Create and add new artwork
+                    Artwork artwork = ArtworkFactory.createArtworkFromFile(file);
+                    artwork.setBinaryData(coverArt);
+                    if (coverArtMimeType != null) {
+                        artwork.setMimeType(coverArtMimeType);
+                    }
+                    tag.setField(artwork);
+                } catch (Exception e) {
+                    System.err.println("Could not save cover art: " + e.getMessage());
+                }
+            }
+
             audioFile.commit();
             
         } catch (Exception e) {

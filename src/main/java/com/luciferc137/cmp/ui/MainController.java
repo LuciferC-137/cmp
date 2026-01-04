@@ -9,6 +9,7 @@ import com.luciferc137.cmp.ui.settings.SettingsWindow;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.HBox;
 
@@ -39,6 +40,7 @@ public class MainController {
     @FXML private Label currentArtistLabel;
     @FXML private Label elapsedTimeLabel;
     @FXML private Label totalTimeLabel;
+    @FXML private ImageView currentCoverArt;
 
     @FXML private ListView<Music> playlistView;
     @FXML private HBox playlistTabsContainer;
@@ -128,7 +130,8 @@ public class MainController {
                 currentArtistLabel,
                 elapsedTimeLabel,
                 totalTimeLabel,
-                volumeSlider
+                volumeSlider,
+                currentCoverArt
         );
 
         playlistPanelHandler.bindUIComponents(

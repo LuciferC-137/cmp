@@ -6,11 +6,13 @@ import com.luciferc137.cmp.library.Music;
 import com.luciferc137.cmp.library.MusicLibrary;
 import com.luciferc137.cmp.library.PlaybackQueue;
 import com.luciferc137.cmp.settings.SettingsManager;
+import com.luciferc137.cmp.ui.CoverArtLoader;
 import com.luciferc137.cmp.ui.WaveformProgressBar;
 import javafx.animation.AnimationTimer;
 import javafx.application.Platform;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 
 import java.util.ArrayList;
@@ -39,6 +41,7 @@ public class PlaybackHandler {
     private Label elapsedTimeLabel;
     private Label totalTimeLabel;
     private Slider volumeSlider;
+    private ImageView coverArtView;
 
     private AnimationTimer progressTimer;
     private Music currentMusic;
@@ -75,7 +78,8 @@ public class PlaybackHandler {
             Label currentArtistLabel,
             Label elapsedTimeLabel,
             Label totalTimeLabel,
-            Slider volumeSlider
+            Slider volumeSlider,
+            ImageView coverArtView
     ) {
         this.waveformProgressBar = waveformProgressBar;
         this.currentTitleLabel = currentTitleLabel;
@@ -83,6 +87,12 @@ public class PlaybackHandler {
         this.elapsedTimeLabel = elapsedTimeLabel;
         this.totalTimeLabel = totalTimeLabel;
         this.volumeSlider = volumeSlider;
+        this.coverArtView = coverArtView;
+
+        // Set default cover art initially (100x100 to match FXML)
+        if (coverArtView != null) {
+            coverArtView.setImage(CoverArtLoader.getDefaultCover(CoverArtLoader.DEFAULT_SIZE));
+        }
     }
 
     public void setEventListener(PlaybackEventListener listener) {
@@ -472,6 +482,11 @@ public class PlaybackHandler {
         }
         if (elapsedTimeLabel != null) {
             elapsedTimeLabel.setText("0:00");
+        }
+
+        // Load cover art (100x100 to match FXML)
+        if (coverArtView != null) {
+            coverArtView.setImage(CoverArtLoader.loadCoverArt(music.filePath, CoverArtLoader.DEFAULT_SIZE));
         }
     }
 
