@@ -60,6 +60,11 @@ public class PlaybackSession {
     private List<Long> queueTrackIds = new ArrayList<>();
 
     /**
+     * IDs of tracks in the Local playlist (preserved independently of what is currently playing)
+     */
+    private List<Long> localPlaylistTrackIds = new ArrayList<>();
+
+    /**
      * List of playlist IDs that were open as tabs
      */
     private List<Long> openPlaylistIds = new ArrayList<>();
@@ -153,6 +158,14 @@ public class PlaybackSession {
 
     public void setQueueTrackIds(List<Long> queueTrackIds) {
         this.queueTrackIds = queueTrackIds != null ? queueTrackIds : new ArrayList<>();
+    }
+
+    public List<Long> getLocalPlaylistTrackIds() {
+        return localPlaylistTrackIds;
+    }
+
+    public void setLocalPlaylistTrackIds(List<Long> localPlaylistTrackIds) {
+        this.localPlaylistTrackIds = localPlaylistTrackIds != null ? localPlaylistTrackIds : new ArrayList<>();
     }
 
     public List<Long> getOpenPlaylistIds() {

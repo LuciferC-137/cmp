@@ -36,10 +36,10 @@ public class FilterPopupHandler {
 
         VBox content = new VBox(5);
         content.setPadding(new Insets(10));
-        content.setStyle("-fx-background-color: white; -fx-border-color: #ccc; -fx-border-radius: 5;");
+        content.setStyle("-fx-background-color: #2D2D2D; -fx-border-color: #505050; -fx-border-radius: 5; -fx-background-radius: 5;");
 
         Label title = new Label("Filter by Tags");
-        title.setStyle("-fx-font-weight: bold;");
+        title.setStyle("-fx-font-weight: bold; -fx-text-fill: #E0E0E0;");
         content.getChildren().add(title);
 
         ObservableList<TagEntity> tags = musicLibrary.getAvailableTags();
@@ -85,9 +85,10 @@ public class FilterPopupHandler {
 
         TagFilterState state = filter.getTagFilterState(tag.getId());
         Label stateLabel = new Label(state.getSymbol());
-        stateLabel.setStyle("-fx-font-size: 14px; -fx-min-width: 20px;");
+        stateLabel.setStyle("-fx-font-size: 14px; -fx-min-width: 20px; -fx-text-fill: #E0E0E0;");
 
         Label nameLabel = new Label(tag.getName());
+        nameLabel.setStyle("-fx-text-fill: #E0E0E0;");
 
         row.getChildren().addAll(stateLabel, nameLabel);
         row.setStyle("-fx-cursor: hand;");
@@ -108,10 +109,10 @@ public class FilterPopupHandler {
 
         VBox content = new VBox(5);
         content.setPadding(new Insets(10));
-        content.setStyle("-fx-background-color: white; -fx-border-color: #ccc; -fx-border-radius: 5;");
+        content.setStyle("-fx-background-color: #2D2D2D; -fx-border-color: #505050; -fx-border-radius: 5; -fx-background-radius: 5;");
 
         Label title = new Label("Filter by Rating");
-        title.setStyle("-fx-font-weight: bold;");
+        title.setStyle("-fx-font-weight: bold; -fx-text-fill: #E0E0E0;");
         content.getChildren().add(title);
 
         AdvancedFilter filter = musicLibrary.getAdvancedFilter();
@@ -144,10 +145,11 @@ public class FilterPopupHandler {
 
         TagFilterState state = filter.getRatingFilterState(rating);
         Label stateLabel = new Label(state.getSymbol());
-        stateLabel.setStyle("-fx-font-size: 14px; -fx-min-width: 20px;");
+        stateLabel.setStyle("-fx-font-size: 14px; -fx-min-width: 20px; -fx-text-fill: #E0E0E0;");
 
         String stars = rating == 0 ? "No rating" : "★".repeat(rating) + "☆".repeat(5 - rating);
         Label ratingLabel = new Label(stars);
+        ratingLabel.setStyle("-fx-text-fill: #E0E0E0;");
 
         row.getChildren().addAll(stateLabel, ratingLabel);
         row.setStyle("-fx-cursor: hand;");
@@ -158,6 +160,7 @@ public class FilterPopupHandler {
 
         return row;
     }
+
 
     /**
      * Shows a dialog to create a new tag.

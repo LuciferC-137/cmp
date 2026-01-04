@@ -21,10 +21,10 @@ public class SyncLogDao {
     }
 
     /**
-     * Insère un nouveau log de synchronisation.
+     * Insert a new synchronization log into the database.
      *
-     * @param syncLog L'entité de log à insérer
-     * @return L'ID généré
+     * @param syncLog Log entity to insert
+     * @return Generated ID
      */
     public long insert(SyncLogEntity syncLog) throws SQLException {
         String sql = """
@@ -155,10 +155,10 @@ public class SyncLogDao {
     }
 
     /**
-     * Supprime les logs plus anciens qu'une certaine date.
+     * Remove logs older than the specified date.
      *
-     * @param olderThan La date limite
-     * @return Le nombre de logs supprimés
+     * @param olderThan Limit date
+     * @return Number of deleted records
      */
     public int deleteOlderThan(LocalDateTime olderThan) throws SQLException {
         String sql = "DELETE FROM sync_log WHERE sync_date < ?";
@@ -170,7 +170,7 @@ public class SyncLogDao {
     }
 
     /**
-     * Convertit un ResultSet en entité SyncLogEntity.
+     * Convert a ResultSet row to a SyncLogEntity.
      */
     private SyncLogEntity mapResultSet(ResultSet rs) throws SQLException {
         SyncLogEntity syncLog = new SyncLogEntity();

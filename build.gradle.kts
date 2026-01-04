@@ -42,6 +42,7 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     implementation("org.xerial:sqlite-jdbc:3.45.1.0")
+    implementation("org.jetbrains:annotations:24.0.1")
 
     // JSON for settings management
     implementation("com.google.code.gson:gson:2.10.1")

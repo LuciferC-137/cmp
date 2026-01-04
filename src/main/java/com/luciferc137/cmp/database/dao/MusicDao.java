@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * DAO (Data Access Object) pour la gestion des musiques en base de données.
+ * DAO (Data Access Object) for music management in database.
  */
 public class MusicDao {
 
@@ -21,10 +21,10 @@ public class MusicDao {
     }
 
     /**
-     * Insère une nouvelle musique dans la base de données.
+     * Insert new music into the database.
      *
-     * @param music L'entité musique à insérer
-     * @return L'ID généré
+     * @param music Music entity to insert
+     * @return generated ID of the inserted music
      */
     public long insert(MusicEntity music) throws SQLException {
         String sql = """
@@ -54,9 +54,9 @@ public class MusicDao {
     }
 
     /**
-     * Met à jour une musique existante.
+     * Update data on existing music.
      *
-     * @param music L'entité musique à mettre à jour
+     * @param music Music entity with updated data
      */
     public void update(MusicEntity music) throws SQLException {
         String sql = """
@@ -99,9 +99,9 @@ public class MusicDao {
     }
 
     /**
-     * Supprime une musique par son chemin.
+     * Delete a music by its file path.
      *
-     * @param path Le chemin du fichier
+     * @param path Path of the music file
      */
     public void deleteByPath(String path) throws SQLException {
         String sql = "DELETE FROM music WHERE path = ?";
@@ -113,10 +113,10 @@ public class MusicDao {
     }
 
     /**
-     * Recherche une musique par son ID.
+     * Search a music by its ID.
      *
-     * @param id L'ID de la musique
-     * @return L'entité musique si trouvée
+     * @param id ID of music
+     * @return Music entity if found
      */
     public Optional<MusicEntity> findById(long id) throws SQLException {
         String sql = "SELECT * FROM music WHERE id = ?";
@@ -134,10 +134,10 @@ public class MusicDao {
     }
 
     /**
-     * Recherche une musique par son chemin.
+     * Search music by its file path.
      *
-     * @param path Le chemin du fichier
-     * @return L'entité musique si trouvée
+     * @param path File path of the music
+     * @return Music entity if found
      */
     public Optional<MusicEntity> findByPath(String path) throws SQLException {
         String sql = "SELECT * FROM music WHERE path = ?";
@@ -155,10 +155,10 @@ public class MusicDao {
     }
 
     /**
-     * Recherche une musique par son hash.
+     * Search music by its file hash.
      *
-     * @param hash Le hash du fichier
-     * @return L'entité musique si trouvée
+     * @param hash File hash of the music
+     * @return Music entity if found
      */
     public Optional<MusicEntity> findByHash(String hash) throws SQLException {
         String sql = "SELECT * FROM music WHERE hash = ?";
@@ -176,9 +176,9 @@ public class MusicDao {
     }
 
     /**
-     * Retourne toutes les musiques.
+     * Returns all musics in the database.
      *
-     * @return Liste de toutes les musiques
+     * @return List of all musics
      */
     public List<MusicEntity> findAll() throws SQLException {
         String sql = "SELECT * FROM music ORDER BY artist, album, title";
@@ -216,10 +216,10 @@ public class MusicDao {
     }
 
     /**
-     * Recherche des musiques par album.
+     * Search for music by album.
      *
-     * @param album Le nom de l'album
-     * @return Liste des musiques de l'album
+     * @param album The name of the album
+     * @return List of musics in the album
      */
     public List<MusicEntity> findByAlbum(String album) throws SQLException {
         String sql = "SELECT * FROM music WHERE album LIKE ? ORDER BY title";
@@ -238,10 +238,10 @@ public class MusicDao {
     }
 
     /**
-     * Recherche globale dans les titres, artistes et albums.
+     * Global search in title, artist, and album.
      *
-     * @param query Le texte à rechercher
-     * @return Liste des musiques correspondantes
+     * @param query Text to search
+     * @return List of corresponding musics
      */
     public List<MusicEntity> search(String query) throws SQLException {
         String sql = """
@@ -267,9 +267,9 @@ public class MusicDao {
     }
 
     /**
-     * Retourne tous les chemins de fichiers en base.
+     * Returns the list of all music file paths.
      *
-     * @return Liste des chemins
+     * @return List of music file paths
      */
     public List<String> findAllPaths() throws SQLException {
         String sql = "SELECT path FROM music";
@@ -285,9 +285,9 @@ public class MusicDao {
     }
 
     /**
-     * Compte le nombre total de musiques.
+     * Count the total number of musics in the database.
      *
-     * @return Le nombre de musiques
+     * @return Number of musics
      */
     public int count() throws SQLException {
         String sql = "SELECT COUNT(*) FROM music";
@@ -302,9 +302,9 @@ public class MusicDao {
     }
 
     /**
-     * Retourne la liste de tous les artistes uniques.
+     * Returns the list of all unique artists.
      *
-     * @return Liste des artistes
+     * @return List of artists
      */
     public List<String> findAllArtists() throws SQLException {
         String sql = "SELECT DISTINCT artist FROM music WHERE artist IS NOT NULL ORDER BY artist";

@@ -36,6 +36,9 @@ public class PlaybackQueue {
     private final StringProperty currentPlaylistName;
     private final LongProperty currentPlaylistId;
 
+    // Separate storage for Local playlist content (preserved when playing other playlists)
+    private final ObservableList<Music> localPlaylistContent;
+
     // Shuffle order - precomputed to avoid repeating songs
     private List<Integer> shuffleOrder;
     private int shufflePosition;
@@ -43,6 +46,7 @@ public class PlaybackQueue {
 
     private PlaybackQueue() {
         this.queue = FXCollections.observableArrayList();
+        this.localPlaylistContent = FXCollections.observableArrayList();
         this.currentTrack = new SimpleObjectProperty<>(null);
         this.currentIndex = new SimpleIntegerProperty(-1);
         this.shuffleEnabled = new SimpleBooleanProperty(false);
@@ -151,6 +155,7 @@ public class PlaybackQueue {
      */
     public void setLocalQueue(List<Music> tracks, Music startTrack) {
         queue.setAll(tracks);
+        localPlaylistContent.setAll(tracks); // Save Local content separately
         currentPlaylistName.set("Local");
         currentPlaylistId.set(-1);
         
@@ -168,6 +173,20 @@ public class PlaybackQueue {
         if (isShuffleEnabled()) {
             generateShuffleOrder();
         }
+    }
+
+    /**
+     * Gets the Local playlist content (preserved even when playing other playlists).
+     */
+    public ObservableList<Music> getLocalPlaylistContent() {
+        return localPlaylistContent;
+    }
+
+    /**
+     * Sets the Local playlist content without changing the current playback queue.
+     */
+    public void setLocalPlaylistContent(List<Music> tracks) {
+        localPlaylistContent.setAll(tracks);
     }
 
     /**
@@ -471,6 +490,26 @@ public class PlaybackQueue {
             }
         }
         return ids;
+    }
+
+    /**
+     * Gets all track IDs in the Local playlist for persistence.
+     */
+    public List<Long> getLocalPlaylistTrackIds() {
+        List<Long> ids = new ArrayList<>();
+        for (Music music : localPlaylistContent) {
+            if (music.getId() != null) {
+                ids.add(music.getId());
+            }
+        }
+        return ids;
+    }
+
+    /**
+     * Restores the Local playlist content from a list of Music objects.
+     */
+    public void restoreLocalPlaylistContent(List<Music> tracks) {
+        localPlaylistContent.setAll(tracks);
     }
 
     /**

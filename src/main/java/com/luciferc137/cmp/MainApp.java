@@ -5,6 +5,8 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
+import java.util.Objects;
+
 public class MainApp extends Application {
 
     public static void main(String[] args) {
@@ -20,7 +22,8 @@ public class MainApp extends Application {
         Scene scene = new Scene(loader.load());
 
         // Apply dark theme stylesheet
-        scene.getStylesheets().add(getClass().getResource("/ui/styles/dark-theme.css").toExternalForm());
+        scene.getStylesheets().add(Objects.requireNonNull(getClass()
+                .getResource("/ui/styles/dark-theme.css")).toExternalForm());
 
         stage.setTitle("Custom Music Player");
         stage.setScene(scene);

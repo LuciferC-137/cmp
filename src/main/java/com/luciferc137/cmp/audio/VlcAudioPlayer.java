@@ -63,6 +63,10 @@ public class VlcAudioPlayer implements AudioPlayer, VolumeControl {
         return mediaPlayer != null && mediaPlayer.status().isPlaying();
     }
 
+    public boolean isPaused() {
+        return mediaPlayer != null && !mediaPlayer.status().isPlaying() && mediaPlayer.status().length() > 0;
+    }
+
     public void release() {
         if (audioPlayerComponent != null) {
             audioPlayerComponent.release();

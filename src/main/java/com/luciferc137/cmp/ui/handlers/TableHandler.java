@@ -145,18 +145,31 @@ public class TableHandler {
         column.setSortable(false);
 
         Label header = new Label(sortCol.getDisplayName());
+        header.setMaxWidth(Double.MAX_VALUE);
+        header.setMaxHeight(Double.MAX_VALUE);
+        header.setStyle("-fx-cursor: hand;");
+
+        // Make the entire column header area clickable
+        column.setGraphic(header);
+        column.setText("");
+
+        // Listen for clicks on the column header
+        column.getStyleClass().add("clickable-column");
+
+        // Use a wrapper approach: when header is clicked
         header.setOnMouseClicked(e -> {
             if (e.getButton() == MouseButton.PRIMARY) {
                 onColumnHeaderClicked(sortCol);
                 updateColumnHeaders();
             }
         });
-        column.setGraphic(header);
-        column.setText("");
     }
 
     private Label createFilterableHeader(String text, Runnable onFilterClick) {
         Label header = new Label(text + " ▼");
+        header.setMaxWidth(Double.MAX_VALUE);
+        header.setMaxHeight(Double.MAX_VALUE);
+        header.setStyle("-fx-cursor: hand;");
         header.setOnMouseClicked(e -> {
             if (e.getButton() == MouseButton.PRIMARY) {
                 onFilterClick.run();

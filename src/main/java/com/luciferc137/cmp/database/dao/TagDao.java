@@ -22,10 +22,10 @@ public class TagDao {
     }
 
     /**
-     * Insère un nouveau tag dans la base de données.
+     * Insert new tag in the database.
      *
-     * @param tag L'entité tag à insérer
-     * @return L'ID généré
+     * @param tag Tag entity to insert
+     * @return Generated ID
      */
     public long insert(TagEntity tag) throws SQLException {
         String sql = "INSERT INTO tag (name, color) VALUES (?, ?)";
@@ -47,9 +47,9 @@ public class TagDao {
     }
 
     /**
-     * Met à jour un tag existant.
+     * Update existing tag.
      *
-     * @param tag L'entité tag à mettre à jour
+     * @param tag Tag entity to update
      */
     public void update(TagEntity tag) throws SQLException {
         String sql = "UPDATE tag SET name = ?, color = ? WHERE id = ?";
@@ -63,9 +63,9 @@ public class TagDao {
     }
 
     /**
-     * Supprime un tag par son ID.
+     * Delete a tag by its ID.
      *
-     * @param id L'ID du tag à supprimer
+     * @param id Tag to delete
      */
     public void delete(long id) throws SQLException {
         String sql = "DELETE FROM tag WHERE id = ?";
@@ -77,10 +77,10 @@ public class TagDao {
     }
 
     /**
-     * Recherche un tag par son ID.
+     * Search a tag by its ID.
      *
-     * @param id L'ID du tag
-     * @return L'entité tag si trouvée
+     * @param id tag ID
+     * @return tag entity if found
      */
     public Optional<TagEntity> findById(long id) throws SQLException {
         String sql = "SELECT * FROM tag WHERE id = ?";
@@ -100,8 +100,8 @@ public class TagDao {
     /**
      * Finds a tag by its name.
      *
-     * @param name Le nom du tag
-     * @return L'entité tag si trouvée
+     * @param name Name of tag
+     * @return Tag entity if found
      */
     public Optional<TagEntity> findByName(String name) throws SQLException {
         String sql = "SELECT * FROM tag WHERE name = ?";
@@ -119,9 +119,9 @@ public class TagDao {
     }
 
     /**
-     * Retourne tous les tags.
+     * Returns all tags
      *
-     * @return Liste de tous les tags
+     * @return List of all tags
      */
     public List<TagEntity> findAll() throws SQLException {
         String sql = "SELECT * FROM tag ORDER BY name";
@@ -137,10 +137,10 @@ public class TagDao {
     }
 
     /**
-     * Ajoute un tag à une musique.
+     * Add a tag to a track
      *
-     * @param musicId L'ID de la musique
-     * @param tagId L'ID du tag
+     * @param musicId Music ID
+     * @param tagId Tag ID
      */
     public void addTagToMusic(long musicId, long tagId) throws SQLException {
         String sql = "INSERT OR IGNORE INTO music_tag (music_id, tag_id) VALUES (?, ?)";
@@ -153,10 +153,10 @@ public class TagDao {
     }
 
     /**
-     * Supprime un tag d'une musique.
+     * Remove a tag from a music
      *
-     * @param musicId L'ID de la musique
-     * @param tagId L'ID du tag
+     * @param musicId Music ID
+     * @param tagId Tag ID
      */
     public void removeTagFromMusic(long musicId, long tagId) throws SQLException {
         String sql = "DELETE FROM music_tag WHERE music_id = ? AND tag_id = ?";
@@ -169,10 +169,10 @@ public class TagDao {
     }
 
     /**
-     * Retourne tous les tags d'une musique.
+     * Returns all tags for a specific music.
      *
-     * @param musicId L'ID de la musique
-     * @return Liste des tags de la musique
+     * @param musicId Music ID
+     * @return List of tags for this music
      */
     public List<TagEntity> getTagsByMusic(long musicId) throws SQLException {
         String sql = """
@@ -223,10 +223,10 @@ public class TagDao {
     }
 
     /**
-     * Compte le nombre de musiques ayant un tag.
+     * Count number of music with a specific tag.
      *
-     * @param tagId L'ID du tag
-     * @return Le nombre de musiques
+     * @param tagId tag ID
+     * @return Number of music with this tag
      */
     public int countMusics(long tagId) throws SQLException {
         String sql = "SELECT COUNT(*) FROM music_tag WHERE tag_id = ?";
@@ -244,7 +244,7 @@ public class TagDao {
     }
 
     /**
-     * Convertit un ResultSet en entité TagEntity.
+     * Converts a ResultSet to a TagEntity.
      */
     private TagEntity mapResultSet(ResultSet rs) throws SQLException {
         TagEntity tag = new TagEntity();

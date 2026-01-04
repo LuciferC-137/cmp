@@ -1,0 +1,1016 @@
+@startuml
+class com.luciferc137.cmp.ui.ThemeManager {
+- {static} String DARK_THEME_PATH
++ {static} String getDarkThemeUrl()
++ {static} void applyDarkTheme(Dialog<?>)
++ {static} void applyDarkTheme(Alert)
+}
+
+
+enum com.luciferc137.cmp.library.SortOrder {
++  TITLE_ASC
++  TITLE_DESC
++  ARTIST_ALBUM
++  ALBUM_TITLE
++  DURATION_ASC
++  DURATION_DESC
++  DATE_ADDED_DESC
++  DATE_ADDED_ASC
+- String displayName
++ String getDisplayName()
++ String toString()
+}
+
+
+interface com.luciferc137.cmp.database.sync.SyncProgressListener {
+~ void onSyncStarted(int)
+~ void onFileProcessed(int,int,String)
+~ void onFileAdded(String)
+~ void onFileUpdated(String)
+~ void onFileRemoved(String)
+~ void onError(String,String)
+~ void onSyncCompleted(SyncResult)
+}
+
+class com.luciferc137.cmp.database.sync.SyncProgressListener$Empty {
++ void onSyncStarted(int)
++ void onFileProcessed(int,int,String)
++ void onFileAdded(String)
++ void onFileUpdated(String)
++ void onFileRemoved(String)
++ void onError(String,String)
++ void onSyncCompleted(SyncResult)
+}
+
+class com.luciferc137.cmp.database.model.SyncLogEntity {
+- Long id
+- LocalDateTime syncDate
+- String folderPath
+- int filesAdded
+- int filesUpdated
+- int filesRemoved
+- String status
++ Long getId()
++ void setId(Long)
++ LocalDateTime getSyncDate()
++ void setSyncDate(LocalDateTime)
++ String getFolderPath()
++ void setFolderPath(String)
++ int getFilesAdded()
++ void setFilesAdded(int)
++ int getFilesUpdated()
++ void setFilesUpdated(int)
++ int getFilesRemoved()
++ void setFilesRemoved(int)
++ String getStatus()
++ void setStatus(String)
++ String toString()
+}
+
+
+class com.luciferc137.cmp.ui.MainController {
+- TableView<Music> musicTable
+- TableColumn<Music,String> titleColumn
+- TableColumn<Music,String> artistColumn
+- TableColumn<Music,String> albumColumn
+- TableColumn<Music,String> durationColumn
+- TableColumn<Music,String> tagsColumn
+- TableColumn<Music,String> ratingColumn
+- TextField searchField
+- Slider volumeSlider
+- WaveformProgressBar waveformProgressBar
+- Label currentTitleLabel
+- Label currentArtistLabel
+- Label elapsedTimeLabel
+- Label totalTimeLabel
+- ListView<Music> playlistView
+- HBox playlistTabsContainer
+- ScrollPane playlistTabsScrollPane
+- Label currentPlaylistLabel
+- Label playlistInfoLabel
+- Button shuffleButton
+- Button loopButton
+- Button prevButton
+- Button nextButton
+- Button addPlaylistButton
+- VlcAudioPlayer audioPlayer
+- WaveformExtractor waveformExtractor
+- MusicLibrary musicLibrary
+- PlaybackQueue playbackQueue
+- PlaybackHandler playbackHandler
+- PlaylistPanelHandler playlistPanelHandler
+- TableHandler tableHandler
+- ContextMenuHandler contextMenuHandler
+- FilterPopupHandler filterPopupHandler
+- SessionHandler sessionHandler
+- ShuffleLoopHandler shuffleLoopHandler
++ void initialize()
+- void initializeHandlers()
+- void bindHandlerUIComponents()
+- void configureHandlerListeners()
+- void setupTableClickHandlers()
+- void setupStateListeners()
+- void setupWindowCloseHandler()
+- void saveSession()
+- void onSearch()
+- void onClearSearch()
+- void onPlay()
+- void onPause()
+- void onStop()
+- void onPrevious()
+- void onNext()
+- void onShuffle()
+- void onToggleLoop()
+- void onAddPlaylist()
+- void onSettings()
+}
+
+
+class com.luciferc137.cmp.library.MusicLibrary {
+- {static} MusicLibrary instance
+- LibraryService libraryService
+- ObservableList<Music> musicList
+- ObservableList<TagEntity> availableTags
+- ReadOnlyIntegerWrapper totalCount
+- ObjectProperty<AdvancedFilter> advancedFilter
+- Map<Long,Set<Long>> musicTagCache
+- Runnable onLibraryChangedListener
++ {static} MusicLibrary getInstance()
++ ObservableList<Music> getMusicList()
++ ObservableList<TagEntity> getAvailableTags()
++ ReadOnlyIntegerProperty totalCountProperty()
++ ObjectProperty<AdvancedFilter> advancedFilterProperty()
++ AdvancedFilter getAdvancedFilter()
++ void setOnLibraryChanged(Runnable)
++ void refresh()
++ CompletableFuture<Void> refreshAsync()
+- void loadAllMusic()
+- void loadAvailableTags()
++ void applyFilterAndSort()
++ void search(String)
++ void clearSearch()
++ void cycleSort(SortableColumn)
++ TagFilterState cycleTagFilter(Long)
++ TagFilterState cycleRatingFilter(int)
++ void clearAllFilters()
++ void updateRating(Music,int)
++ void addTagToMusic(Music,TagEntity)
++ void removeTagFromMusic(Music,TagEntity)
++ Optional<TagEntity> createTag(String,String)
++ void deleteTag(TagEntity)
++ CompletableFuture<SyncResult> syncFolder(String,SyncProgressListener)
+- Comparator<Music> getComparator(SortableColumn,ColumnSortState)
++ List<String> getAllArtists()
++ List<String> getAllAlbums()
+- void notifyLibraryChanged()
+}
+
+
+class com.luciferc137.cmp.database.model.MusicEntity {
+- Long id
+- String path
+- String title
+- String artist
+- String album
+- long duration
+- String hash
+- int rating
+- LocalDateTime createdAt
+- LocalDateTime updatedAt
++ Long getId()
++ void setId(Long)
++ String getPath()
++ void setPath(String)
++ String getTitle()
++ void setTitle(String)
++ String getArtist()
++ void setArtist(String)
++ String getAlbum()
++ void setAlbum(String)
++ long getDuration()
++ void setDuration(long)
++ String getHash()
++ void setHash(String)
++ int getRating()
++ void setRating(int)
++ LocalDateTime getCreatedAt()
++ void setCreatedAt(LocalDateTime)
++ LocalDateTime getUpdatedAt()
++ void setUpdatedAt(LocalDateTime)
++ String toString()
++ boolean equals(Object)
++ int hashCode()
+}
+
+
+class com.luciferc137.cmp.audio.WaveformExtractor {
++ {static} int DEFAULT_NUM_BINS
++ CompletableFuture<float[]> extractAsync(String,int)
++ float[] extract(String,int)
+- float calculateRMSFromBytes(byte[],int,int,int)
+- float[] resampleToSize(List<Float>,int)
+}
+
+
+class com.luciferc137.cmp.database.sync.SyncResult {
+- int filesAdded
+- int filesUpdated
+- int filesRemoved
+- int filesSkipped
+- int errors
+- long durationMs
+- String status
++ int getFilesAdded()
++ int getFilesUpdated()
++ int getFilesRemoved()
++ int getFilesSkipped()
++ int getErrors()
++ long getDurationMs()
++ String getStatus()
++ int getTotalProcessed()
++ String toString()
+}
+
+
+class com.luciferc137.cmp.database.LibraryService {
+- {static} LibraryService instance
+- MusicDao musicDao
+- PlaylistDao playlistDao
+- TagDao tagDao
+- LibrarySyncService syncService
++ {static} LibraryService getInstance()
++ SyncResult syncFolder(String)
++ SyncResult syncFolder(String,SyncProgressListener)
++ CompletableFuture<SyncResult> syncFolderAsync(String)
++ CompletableFuture<SyncResult> syncFolderAsync(String,SyncProgressListener)
++ boolean isSyncing()
++ void cancelSync()
++ List<MusicEntity> getAllMusics()
++ Optional<MusicEntity> getMusicById(long)
++ List<MusicEntity> searchMusics(String)
++ List<MusicEntity> getMusicsByArtist(String)
++ List<MusicEntity> getMusicsByAlbum(String)
++ List<String> getAllArtists()
++ List<String> getAllAlbums()
++ int getMusicCount()
++ Optional<PlaylistEntity> createPlaylist(String)
++ List<PlaylistEntity> getAllPlaylists()
++ void deletePlaylist(long)
++ void addMusicToPlaylist(long,long)
++ void removeMusicFromPlaylist(long,long)
++ List<MusicEntity> getPlaylistMusics(long)
++ Optional<TagEntity> createTag(String)
++ Optional<TagEntity> createTag(String,String)
++ List<TagEntity> getAllTags()
++ void deleteTag(long)
++ void addTagToMusic(long,long)
++ void removeTagFromMusic(long,long)
++ List<TagEntity> getMusicTags(long)
++ List<MusicEntity> getMusicsByTag(long)
++ void updateMusicRating(long,int)
++ java.util.Set<Long> getMusicTagIds(long)
++ List<String> getMusicTagNames(long)
++ void shutdown()
+}
+
+
+enum com.luciferc137.cmp.library.SortableColumn {
++  TITLE
++  ARTIST
++  ALBUM
++  DURATION
+- String displayName
++ String getDisplayName()
++ String toString()
+}
+
+
+class com.luciferc137.cmp.library.LibraryFilter {
+- FilterType type
+- String value
+- Long entityId
++ {static} LibraryFilter all()
++ {static} LibraryFilter byArtist(String)
++ {static} LibraryFilter byAlbum(String)
++ {static} LibraryFilter byTag(Long,String)
++ {static} LibraryFilter byPlaylist(Long,String)
++ {static} LibraryFilter search(String)
++ FilterType getType()
++ String getValue()
++ Long getEntityId()
++ String getDescription()
++ String toString()
++ boolean equals(Object)
++ int hashCode()
+}
+
+
+class com.luciferc137.cmp.database.DatabaseManager {
+- {static} String APP_FOLDER_NAME
+- {static} String DATABASE_FILE_NAME
+- {static} int CURRENT_SCHEMA_VERSION
+- {static} DatabaseManager instance
+- Connection connection
++ {static} DatabaseManager getInstance()
+- void initializeConnection()
+- Path getDatabasePath()
+- void initializeSchema()
+- void migrateSchema(int)
+- int getSchemaVersion()
+- void setSchemaVersion(int)
+- void createTables()
++ Connection getConnection()
++ void close()
++ void beginTransaction()
++ void commit()
++ void rollback()
+}
+
+
+class com.luciferc137.cmp.database.dao.PlaylistDao {
+- DatabaseManager dbManager
++ long insert(PlaylistEntity)
++ void update(PlaylistEntity)
++ void delete(long)
++ Optional<PlaylistEntity> findById(long)
++ Optional<PlaylistEntity> findByName(String)
++ List<PlaylistEntity> findAll()
++ void addMusic(long,long)
++ void removeMusic(long,long)
++ List<MusicEntity> getMusicsByPlaylist(long)
++ void updateMusicPosition(long,long,int)
++ int countMusics(long)
+- int getMaxPosition(long)
+- PlaylistEntity mapResultSet(ResultSet)
+- MusicEntity mapMusicResultSet(ResultSet)
+}
+
+
+class com.luciferc137.cmp.ui.handlers.ContextMenuHandler {
+- MusicLibrary musicLibrary
+- LibraryService libraryService
+- PlaybackQueue playbackQueue
+- ContextMenu activeContextMenu
+- ContextMenuEventListener eventListener
++ void setEventListener(ContextMenuEventListener)
++ void hideActiveMenu()
++ void showMusicContextMenu(List<Music>,double,double,TableView<Music>,Long)
+- Menu createTagMenu(Music,TableView<Music>)
+- Menu createBatchTagMenu(List<Music>,TableView<Music>)
+- Menu createRatingMenu(Music,TableView<Music>)
+- Menu createAddToPlaylistMenu(List<Music>,Long)
+- void addMusicsToPlaylist(List<Music>,PlaylistEntity,Long)
+}
+
+
+interface com.luciferc137.cmp.ui.handlers.ContextMenuHandler$ContextMenuEventListener {
+~ void onPlayRequested(Music)
+~ void onShowCreateTagDialog()
+~ void onPlaylistRefreshNeeded()
+~ void onDisplayedPlaylistRefreshNeeded(Long)
+}
+
+class com.luciferc137.cmp.ui.PlaylistManagerDialog {
+- LibraryService libraryService
+- Consumer<PlaylistEntity> onPlaylistSelected
+- Runnable onPlaylistCreated
++ {static} void show(Consumer<PlaylistEntity>,Runnable)
++ {static} Optional<PlaylistEntity> showCreatePlaylistDialog(Runnable)
++ {static} void showPlaylistSelector(Consumer<PlaylistEntity>)
+- {static} void applyDarkTheme(Dialog<?>)
+}
+
+
+class com.luciferc137.cmp.database.dao.MusicDao {
+- DatabaseManager dbManager
++ long insert(MusicEntity)
++ void update(MusicEntity)
++ void delete(long)
++ void deleteByPath(String)
++ Optional<MusicEntity> findById(long)
++ Optional<MusicEntity> findByPath(String)
++ Optional<MusicEntity> findByHash(String)
++ List<MusicEntity> findAll()
++ List<MusicEntity> findByArtist(String)
++ List<MusicEntity> findByAlbum(String)
++ List<MusicEntity> search(String)
++ List<String> findAllPaths()
++ int count()
++ List<String> findAllArtists()
++ List<String> findAllAlbums()
+- MusicEntity mapResultSet(ResultSet)
++ void updateRating(long,int)
+}
+
+
+class com.luciferc137.cmp.ui.settings.SettingsWindow {
+- {static} Stage settingsStage
++ {static} void show(Window)
++ {static} void close()
+}
+
+
+interface com.luciferc137.cmp.audio.VolumeControl {
+~ {static} int DEFAULT_MAX_VOLUME
+~ {static} int DEFAULT_MIN_VOLUME
+~ void setVolume(int)
+~ int getVolume()
+}
+
+
+class com.luciferc137.cmp.ui.settings.SettingsController {
+- ListView<String> categoryList
+- StackPane contentPane
+- VBox libraryPane
+- TextField musicFolderField
+- Button browseButton
+- Button resyncButton
+- ProgressBar syncProgressBar
+- Label syncStatusLabel
+- SettingsManager settingsManager
+- MusicLibrary musicLibrary
++ void initialize()
+- void showCategoryContent(String)
+- void onBrowse()
+- void onResync()
+- void showAlert(String,String)
+- void onClose()
+}
+
+
+class com.luciferc137.cmp.ui.handlers.ShuffleLoopHandler {
+- PlaybackQueue playbackQueue
+- Button shuffleButton
+- Button loopButton
++ void bindUIComponents(Button,Button)
++ void updateShuffleButtonStyle()
++ void updateLoopButtonStyle()
++ void updateAllButtonStyles()
+}
+
+
+class com.luciferc137.cmp.ui.handlers.SessionHandler {
+- SettingsManager settingsManager
+- PlaybackQueue playbackQueue
+- LibraryService libraryService
+- boolean isRestoringSession
+- SessionRestoreListener restoreListener
++ void setRestoreListener(SessionRestoreListener)
++ boolean isRestoringSession()
++ void saveSession(Long,long)
++ void restoreSession()
+}
+
+
+interface com.luciferc137.cmp.ui.handlers.SessionHandler$SessionRestoreListener {
+~ void onShuffleStateRestored(boolean)
+~ void onLoopModeRestored(PlaybackQueue.LoopMode)
+~ void onCurrentTrackRestored(Music)
+~ void onDisplayedPlaylistRestored(Long)
+~ void onSessionRestoreComplete()
+}
+
+class com.luciferc137.cmp.ui.handlers.PlaylistPanelHandler {
+- LibraryService libraryService
+- PlaybackQueue playbackQueue
+- ListView<Music> playlistView
+- HBox playlistTabsContainer
+- Label currentPlaylistLabel
+- Label playlistInfoLabel
+- Long displayedPlaylistId
+- List<PlaylistEntity> availablePlaylists
+- ObservableList<Music> displayedPlaylistContent
+- PlaylistEventListener eventListener
++ void bindUIComponents(ListView<Music>,HBox,Label,Label)
++ void setEventListener(PlaylistEventListener)
++ void initialize()
++ void refreshPlaylistTabs()
+- Button createPlaylistTab(String,Long)
++ void updatePlaylistTabStyles()
++ void loadPlaylistIntoView(Long,String)
++ void refreshDisplayedPlaylist()
+- void updatePlaylistInfo()
+- void deletePlaylist(Long,String)
++ void showCreatePlaylistDialog()
++ Long getDisplayedPlaylistId()
++ void setDisplayedPlaylistId(Long)
++ ObservableList<Music> getDisplayedPlaylistContent()
++ List<PlaylistEntity> getAvailablePlaylists()
+- String formatTime(long)
+}
+
+
+interface com.luciferc137.cmp.ui.handlers.PlaylistPanelHandler$PlaylistEventListener {
+~ void onPlaylistTrackSelected(Music,Long,List<Music>)
+~ void onPlaylistTabsNeedRefresh()
+}
+
+class com.luciferc137.cmp.ui.WaveformProgressBar {
+- Canvas waveformCanvas
+- Canvas progressCanvas
+- float[] waveformData
+- DoubleProperty progress
+- Color waveformColor
+- Color waveformPlayedColor
+- Color progressLineColor
+- Color backgroundColor
++ void setWaveformData(float[])
++ DoubleProperty progressProperty()
++ void setProgress(double)
++ double getProgress()
++ void clear()
+- void redraw()
+- void drawWaveform()
+- void drawProgress()
++ void setWaveformColor(Color)
++ void setWaveformPlayedColor(Color)
++ void setProgressLineColor(Color)
++ void setBackgroundColor(Color)
+}
+
+
+enum com.luciferc137.cmp.library.FilterType {
++  ALL
++  ARTIST
++  ALBUM
++  TAG
++  PLAYLIST
++  SEARCH
+}
+
+class com.luciferc137.cmp.database.dao.TagDao {
+- DatabaseManager dbManager
++ long insert(TagEntity)
++ void update(TagEntity)
++ void delete(long)
++ Optional<TagEntity> findById(long)
++ Optional<TagEntity> findByName(String)
++ List<TagEntity> findAll()
++ void addTagToMusic(long,long)
++ void removeTagFromMusic(long,long)
++ List<TagEntity> getTagsByMusic(long)
++ List<MusicEntity> getMusicsByTag(long)
++ int countMusics(long)
+- TagEntity mapResultSet(ResultSet)
+- MusicEntity mapMusicResultSet(ResultSet)
+}
+
+
+class com.luciferc137.cmp.settings.PlaybackSession {
+- long playingPlaylistId
+- String playingPlaylistName
+- long currentTrackId
+- int currentTrackIndex
+- long playbackPosition
+- boolean shuffleEnabled
+- List<Integer> shuffleOrder
+- int shufflePosition
+- String loopMode
+- List<Long> queueTrackIds
+- List<Long> openPlaylistIds
+- long displayedPlaylistId
++ long getPlayingPlaylistId()
++ void setPlayingPlaylistId(long)
++ String getPlayingPlaylistName()
++ void setPlayingPlaylistName(String)
++ long getCurrentTrackId()
++ void setCurrentTrackId(long)
++ int getCurrentTrackIndex()
++ void setCurrentTrackIndex(int)
++ long getPlaybackPosition()
++ void setPlaybackPosition(long)
++ boolean isShuffleEnabled()
++ void setShuffleEnabled(boolean)
++ List<Integer> getShuffleOrder()
++ void setShuffleOrder(List<Integer>)
++ int getShufflePosition()
++ void setShufflePosition(int)
++ String getLoopMode()
++ void setLoopMode(String)
++ List<Long> getQueueTrackIds()
++ void setQueueTrackIds(List<Long>)
++ List<Long> getOpenPlaylistIds()
++ void setOpenPlaylistIds(List<Long>)
++ long getDisplayedPlaylistId()
++ void setDisplayedPlaylistId(long)
++ boolean hasValidSession()
++ String toString()
+}
+
+
+class com.luciferc137.cmp.ui.handlers.PlaybackHandler {
+- VlcAudioPlayer audioPlayer
+- WaveformExtractor waveformExtractor
+- PlaybackQueue playbackQueue
+- MusicLibrary musicLibrary
+- SettingsManager settingsManager
+- WaveformProgressBar waveformProgressBar
+- Label currentTitleLabel
+- Label currentArtistLabel
+- Label elapsedTimeLabel
+- Label totalTimeLabel
+- Slider volumeSlider
+- AnimationTimer progressTimer
+- Music currentMusic
+- PlaybackEventListener eventListener
++ void bindUIComponents(WaveformProgressBar,Label,Label,Label,Label,Slider)
++ void setEventListener(PlaybackEventListener)
++ void initialize()
+- void initVolumeControl()
+- void initProgressTimer()
+- void updateProgress()
+- void setupTrackEndDetection()
+- void onTrackEnded()
+- void setupWaveformClickHandler()
+- void onWaveformClicked(MouseEvent)
+- void loadWaveform(Music)
++ void playFromTable(Music,List<Music>)
++ void playTrack(Music)
++ void pause()
++ void stop()
++ void previous()
++ void next()
++ void toggleShuffle()
++ void cycleLoopMode()
+- void updateCurrentSongLabels(Music)
++ void displayTrackInfo(Music)
+- String formatTime(long)
+- void notifyTrackChanged(Music)
+- void notifySessionNeedsSave()
++ Music getCurrentMusic()
++ VlcAudioPlayer getAudioPlayer()
++ long getCurrentPosition()
+}
+
+
+interface com.luciferc137.cmp.ui.handlers.PlaybackHandler$PlaybackEventListener {
+~ void onTrackChanged(Music)
+~ void onSessionNeedsSave()
+}
+
+class com.luciferc137.cmp.library.AdvancedFilter {
+- Map<Long,TagFilterState> tagFilters
+- Map<Integer,TagFilterState> ratingFilters
+- SortableColumn sortColumn
+- ColumnSortState sortState
+- String searchQuery
++ TagFilterState getTagFilterState(Long)
++ void setTagFilterState(Long,TagFilterState)
++ TagFilterState cycleTagFilter(Long)
++ Map<Long,TagFilterState> getActiveTagFilters()
++ boolean hasActiveTagFilters()
++ TagFilterState getRatingFilterState(int)
++ void setRatingFilterState(int,TagFilterState)
++ TagFilterState cycleRatingFilter(int)
++ Map<Integer,TagFilterState> getActiveRatingFilters()
++ boolean hasActiveRatingFilters()
++ SortableColumn getSortColumn()
++ ColumnSortState getSortState()
++ void setSort(SortableColumn,ColumnSortState)
++ void cycleSort(SortableColumn)
++ void clearSort()
++ boolean hasSorting()
++ String getSearchQuery()
++ void setSearchQuery(String)
++ void clearSearch()
++ boolean hasSearch()
++ boolean matches(Music,java.util.Set<Long>)
++ void clearAll()
++ boolean hasAnyFilter()
++ String toString()
+}
+
+
+class com.luciferc137.cmp.settings.SettingsManager {
+- {static} String APP_FOLDER_NAME
+- {static} String SETTINGS_FILE_NAME
+- {static} String SESSION_FILE_NAME
+- {static} SettingsManager instance
+- Path settingsFilePath
+- Path sessionFilePath
+- Gson gson
+- Settings settings
+- PlaybackSession session
++ {static} SettingsManager getInstance()
+- Path getAppFolder()
+- Settings loadSettings()
+- PlaybackSession loadSession()
++ void save()
++ void saveSession()
++ Settings getSettings()
++ PlaybackSession getSession()
++ int getLastVolume()
++ void setLastVolume(int)
++ String getMusicFolderPath()
++ void setMusicFolderPath(String)
++ void reload()
+}
+
+
+interface com.luciferc137.cmp.audio.AudioPlayer {
+~ void play(Music)
+~ void pause()
+~ void resume()
+~ void stop()
+~ boolean isPlaying()
+~ long getPosition()
+~ long getDuration()
+~ void seek(long)
+}
+
+class com.luciferc137.cmp.database.model.TagEntity {
+- Long id
+- String name
+- String color
+- LocalDateTime createdAt
++ Long getId()
++ void setId(Long)
++ String getName()
++ void setName(String)
++ String getColor()
++ void setColor(String)
++ LocalDateTime getCreatedAt()
++ void setCreatedAt(LocalDateTime)
++ String toString()
++ boolean equals(Object)
++ int hashCode()
+}
+
+
+class com.luciferc137.cmp.ui.handlers.TableHandler {
+- MusicLibrary musicLibrary
+- TableView<Music> musicTable
+- TableColumn<Music,String> titleColumn
+- TableColumn<Music,String> artistColumn
+- TableColumn<Music,String> albumColumn
+- TableColumn<Music,String> durationColumn
+- TableColumn<Music,String> tagsColumn
+- TableColumn<Music,String> ratingColumn
+- TableEventListener eventListener
++ void bindUIComponents(TableView<Music>,TableColumn<Music,String>,TableColumn<Music,String>,TableColumn<Music,String>,TableColumn<Music,String>,TableColumn<Music,String>,TableColumn<Music,String>)
++ void setEventListener(TableEventListener)
++ void initialize()
+- void setupTableColumns()
+- void setupSortableColumn(TableColumn<Music,String>,SortableColumn)
+- Label createFilterableHeader(String,Runnable)
++ void updateColumnHeaders()
+- void updateSortableColumnHeader(TableColumn<Music,String>,SortableColumn,SortableColumn,ColumnSortState)
+- void onColumnHeaderClicked(SortableColumn)
+- HBox createRatingStars(Music)
+- void onTagFilterClick()
+- void onRatingFilterClick()
++ void refresh()
+}
+
+
+interface com.luciferc137.cmp.ui.handlers.TableHandler$TableEventListener {
+~ void onShowTagFilterPopup()
+~ void onShowRatingFilterPopup()
+}
+
+class com.luciferc137.cmp.database.sync.LibrarySyncService {
+- MusicDao musicDao
+- SyncLogDao syncLogDao
+- AudioMetadataExtractor metadataExtractor
+- DatabaseManager dbManager
+- ExecutorService executorService
+- boolean isSyncing
+- boolean cancelRequested
++ boolean isSyncing()
++ void cancelSync()
++ SyncResult syncFolder(String)
++ SyncResult syncFolder(String,SyncProgressListener)
++ CompletableFuture<SyncResult> syncFolderAsync(String)
++ CompletableFuture<SyncResult> syncFolderAsync(String,SyncProgressListener)
+- List<File> scanAudioFiles(Path)
+- MusicEntity createEntityFromMetadata(String,AudioMetadataExtractor.AudioMetadata)
+- void updateEntityFromMetadata(MusicEntity,AudioMetadataExtractor.AudioMetadata)
++ void shutdown()
+}
+
+
+class com.luciferc137.cmp.database.dao.SyncLogDao {
+- DatabaseManager dbManager
++ long insert(SyncLogEntity)
++ void update(SyncLogEntity)
++ Optional<SyncLogEntity> findById(long)
++ Optional<SyncLogEntity> findLast()
++ List<SyncLogEntity> findAll()
++ List<SyncLogEntity> findRecent(int)
++ int deleteOlderThan(LocalDateTime)
+- SyncLogEntity mapResultSet(ResultSet)
+}
+
+
+class com.luciferc137.cmp.ui.handlers.FilterPopupHandler {
+- MusicLibrary musicLibrary
++ void showTagFilterPopup(Window,double,double)
+- HBox createTagFilterRow(TagEntity,AdvancedFilter)
++ void showRatingFilterPopup(Window,double,double)
+- HBox createRatingFilterRow(int,AdvancedFilter)
++ void showCreateTagDialog()
+}
+
+
+class com.luciferc137.cmp.database.model.PlaylistEntity {
+- Long id
+- String name
+- LocalDateTime createdAt
+- LocalDateTime updatedAt
++ Long getId()
++ void setId(Long)
++ String getName()
++ void setName(String)
++ LocalDateTime getCreatedAt()
++ void setCreatedAt(LocalDateTime)
++ LocalDateTime getUpdatedAt()
++ void setUpdatedAt(LocalDateTime)
++ String toString()
++ boolean equals(Object)
++ int hashCode()
+}
+
+
+class com.luciferc137.cmp.library.PlaybackQueue {
+- {static} PlaybackQueue instance
+- ObservableList<Music> queue
+- ObjectProperty<Music> currentTrack
+- IntegerProperty currentIndex
+- BooleanProperty shuffleEnabled
+- ObjectProperty<LoopMode> loopMode
+- StringProperty currentPlaylistName
+- LongProperty currentPlaylistId
+- List<Integer> shuffleOrder
+- int shufflePosition
+- Random random
++ {static} PlaybackQueue getInstance()
++ ObservableList<Music> getQueue()
++ ObjectProperty<Music> currentTrackProperty()
++ Music getCurrentTrack()
++ IntegerProperty currentIndexProperty()
++ int getCurrentIndex()
++ BooleanProperty shuffleEnabledProperty()
++ boolean isShuffleEnabled()
++ void setShuffleEnabled(boolean)
++ void toggleShuffle()
++ ObjectProperty<LoopMode> loopModeProperty()
++ LoopMode getLoopMode()
++ void setLoopMode(LoopMode)
++ LoopMode cycleLoopMode()
++ StringProperty currentPlaylistNameProperty()
++ String getCurrentPlaylistName()
++ LongProperty currentPlaylistIdProperty()
++ long getCurrentPlaylistId()
++ void setLocalQueue(List<Music>,Music)
++ void loadPlaylist(long,String,List<Music>)
++ void addToQueue(Music)
++ void removeFromQueue(int)
++ void clear()
++ void setCurrentIndex(int)
++ void playTrack(Music)
++ Music next()
++ Music nextAuto()
++ Music previous()
++ boolean hasNext()
++ boolean hasPrevious()
+- void generateShuffleOrder()
++ int size()
++ boolean isEmpty()
++ List<Integer> getShuffleOrder()
++ int getShufflePosition()
++ void restoreShuffleState(List<Integer>,int)
++ List<Long> getQueueTrackIds()
++ void restoreQueue(List<Music>,String,long)
++ void restoreCurrentIndex(int)
+}
+
+
+enum com.luciferc137.cmp.library.LoopMode {
++  NONE
++  PLAYLIST
++  SINGLE
+}
+
+class com.luciferc137.cmp.settings.Settings {
+- int lastVolume
+- String musicFolderPath
++ int getLastVolume()
++ void setLastVolume(int)
++ String getMusicFolderPath()
++ void setMusicFolderPath(String)
++ String toString()
+}
+
+
+class com.luciferc137.cmp.audio.VlcAudioPlayer {
+- int volume
+- AudioPlayerComponent audioPlayerComponent
+- MediaPlayer mediaPlayer
++ void play(Music)
++ void pause()
++ void resume()
++ void stop()
++ boolean isPlaying()
++ void release()
++ void setVolume(int)
++ int getVolume()
++ long getPosition()
++ long getDuration()
++ void seek(long)
+}
+
+
+class com.luciferc137.cmp.database.sync.AudioMetadataExtractor {
+- {static} int HASH_BUFFER_SIZE
+- {static} int HASH_MAX_BYTES
++ AudioMetadata extract(File)
+- String computeFileHash(File)
++ boolean isAudioFile(File)
+}
+
+
+class com.luciferc137.cmp.database.sync.AudioMetadataExtractor$AudioMetadata {
+- String title
+- String artist
+- String album
+- long duration
+- String hash
++ String getTitle()
++ void setTitle(String)
++ String getArtist()
++ void setArtist(String)
++ String getAlbum()
++ void setAlbum(String)
++ long getDuration()
++ void setDuration(long)
++ String getHash()
++ void setHash(String)
++ String toString()
+}
+
+
+class com.luciferc137.cmp.library.Music {
+- Long id
++ String title
++ String artist
++ String album
++ String filePath
++ long duration
+- int rating
+- List<String> tags
++ {static} Music fromEntity(MusicEntity)
++ Long getId()
++ void setId(Long)
++ int getRating()
++ void setRating(int)
++ List<String> getTags()
++ void setTags(List<String>)
++ void addTag(String)
++ void removeTag(String)
++ String getTagsAsString()
++ String getRatingAsStars()
++ String getFormattedDuration()
++ String toString()
++ boolean equals(Object)
++ int hashCode()
+}
+
+
+enum com.luciferc137.cmp.library.ColumnSortState {
++  NONE
++  ASCENDING
++  DESCENDING
++ ColumnSortState next()
++ String getSymbol()
+}
+
+
+class com.luciferc137.cmp.MainApp {
++ {static} void main(String[])
++ void start(Stage)
+}
+
+enum com.luciferc137.cmp.library.TagFilterState {
++  IRRELEVANT
++  INCLUDE
++  EXCLUDE
++ TagFilterState next()
++ String getSymbol()
+}
+
+
+
+
+com.luciferc137.cmp.database.sync.SyncProgressListener +.. com.luciferc137.cmp.database.sync.SyncProgressListener$Empty
+com.luciferc137.cmp.database.sync.SyncProgressListener <|.. com.luciferc137.cmp.database.sync.SyncProgressListener$Empty
+com.luciferc137.cmp.ui.handlers.ContextMenuHandler +.. com.luciferc137.cmp.ui.handlers.ContextMenuHandler$ContextMenuEventListener
+com.luciferc137.cmp.ui.handlers.SessionHandler +.. com.luciferc137.cmp.ui.handlers.SessionHandler$SessionRestoreListener
+com.luciferc137.cmp.ui.handlers.PlaylistPanelHandler +.. com.luciferc137.cmp.ui.handlers.PlaylistPanelHandler$PlaylistEventListener
+javafx.scene.layout.Pane <|-- com.luciferc137.cmp.ui.WaveformProgressBar
+com.luciferc137.cmp.ui.handlers.PlaybackHandler +.. com.luciferc137.cmp.ui.handlers.PlaybackHandler$PlaybackEventListener
+com.luciferc137.cmp.ui.handlers.TableHandler +.. com.luciferc137.cmp.ui.handlers.TableHandler$TableEventListener
+com.luciferc137.cmp.audio.AudioPlayer <|.. com.luciferc137.cmp.audio.VlcAudioPlayer
+com.luciferc137.cmp.audio.VolumeControl <|.. com.luciferc137.cmp.audio.VlcAudioPlayer
+com.luciferc137.cmp.database.sync.AudioMetadataExtractor +.. com.luciferc137.cmp.database.sync.AudioMetadataExtractor$AudioMetadata
+javafx.application.Application <|-- com.luciferc137.cmp.MainApp
+@enduml

@@ -189,13 +189,13 @@ public class SettingsController {
 
                     String message = String.format(
                             "Synchronization completed:\n• %d files added\n• %d files updated\n• %d files removed",
-                            result.getFilesAdded(),
-                            result.getFilesUpdated(),
-                            result.getFilesRemoved()
+                            result.filesAdded(),
+                            result.filesUpdated(),
+                            result.filesRemoved()
                     );
-                    syncStatusLabel.setText("Completed: " + result.getFilesAdded() + " added, " +
-                            result.getFilesUpdated() + " updated, " +
-                            result.getFilesRemoved() + " removed");
+                    syncStatusLabel.setText("Completed: " + result.filesAdded() + " added, " +
+                            result.filesUpdated() + " updated, " +
+                            result.filesRemoved() + " removed");
 
                     showAlert("Synchronization Complete", message);
                 });

@@ -33,6 +33,7 @@ public class SessionHandler {
         void onShuffleStateRestored(boolean enabled);
         void onLoopModeRestored(PlaybackQueue.LoopMode mode);
         void onCurrentTrackRestored(Music music);
+        void onPlaybackPositionRestored(long position);
         void onDisplayedPlaylistRestored(Long playlistId);
         void onSessionRestoreComplete();
     }
@@ -82,8 +83,11 @@ public class SessionHandler {
             session.setShuffleOrder(playbackQueue.getShuffleOrder());
             session.setShufflePosition(playbackQueue.getShufflePosition());
 
-            // Save queue track IDs
+            // Save queue track IDs (current playback queue)
             session.setQueueTrackIds(playbackQueue.getQueueTrackIds());
+
+            // Save Local playlist content separately (preserved even when playing other playlists)
+            session.setLocalPlaylistTrackIds(playbackQueue.getLocalPlaylistTrackIds());
 
             // Save displayed playlist
             session.setDisplayedPlaylistId(displayedPlaylistId != null ? displayedPlaylistId : -1);
@@ -91,7 +95,8 @@ public class SessionHandler {
             settingsManager.saveSession();
             System.out.println("Session saved: shuffle=" + session.isShuffleEnabled() +
                     ", loop=" + session.getLoopMode() +
-                    ", tracks=" + session.getQueueTrackIds().size());
+                    ", queue=" + session.getQueueTrackIds().size() +
+                    ", local=" + session.getLocalPlaylistTrackIds().size());
         } catch (Exception e) {
             System.err.println("Error saving session: " + e.getMessage());
             e.printStackTrace();
@@ -165,9 +170,33 @@ public class SessionHandler {
                         if (current != null && restoreListener != null) {
                             restoreListener.onCurrentTrackRestored(current);
                         }
+
+                        // Restore playback position
+                        long savedPosition = session.getPlaybackPosition();
+                        if (savedPosition > 0 && restoreListener != null) {
+                            restoreListener.onPlaybackPositionRestored(savedPosition);
+                        }
                     }
 
-                    System.out.println("Restored queue with " + tracks.size() + " tracks, current index: " + trackIndex);
+                    System.out.println("Restored queue with " + tracks.size() + " tracks, current index: " + trackIndex + ", position: " + session.getPlaybackPosition() + "ms");
+                }
+            }
+
+            // Restore Local playlist content (separate from playback queue)
+            List<Long> localTrackIds = session.getLocalPlaylistTrackIds();
+            if (!localTrackIds.isEmpty()) {
+                List<Music> localTracks = new ArrayList<>();
+                for (Long trackId : localTrackIds) {
+                    libraryService.getMusicById(trackId).ifPresent(entity -> {
+                        Music music = Music.fromEntity(entity);
+                        List<String> tagNames = libraryService.getMusicTagNames(trackId);
+                        music.setTags(tagNames);
+                        localTracks.add(music);
+                    });
+                }
+                if (!localTracks.isEmpty()) {
+                    playbackQueue.restoreLocalPlaylistContent(localTracks);
+                    System.out.println("Restored Local playlist with " + localTracks.size() + " tracks");
                 }
             }
 

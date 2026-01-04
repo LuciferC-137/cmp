@@ -46,7 +46,14 @@ public class PlaylistPanelHandler {
      * Listener interface for playlist panel events.
      */
     public interface PlaylistEventListener {
-        void onPlaylistTrackSelected(Music music, Long playlistId, List<Music> playlistContent);
+        /**
+         * Called when a track is selected from the playlist.
+         * @param music The selected music
+         * @param playlistId The playlist ID (null for Local)
+         * @param playlistContent The content of the playlist
+         * @param isFromSavedPlaylist true if the track was selected from a saved playlist (not Local)
+         */
+        void onPlaylistTrackSelected(Music music, Long playlistId, List<Music> playlistContent, boolean isFromSavedPlaylist);
         void onPlaylistTabsNeedRefresh();
     }
 
@@ -107,8 +114,10 @@ public class PlaylistPanelHandler {
             if (event.getClickCount() == 2 && event.getButton() == MouseButton.PRIMARY) {
                 Music selected = playlistView.getSelectionModel().getSelectedItem();
                 if (selected != null && eventListener != null) {
+                    // Pass true if this is from a saved playlist (not Local)
+                    boolean isFromSavedPlaylist = displayedPlaylistId != null;
                     eventListener.onPlaylistTrackSelected(selected, displayedPlaylistId,
-                            new ArrayList<>(displayedPlaylistContent));
+                            new ArrayList<>(displayedPlaylistContent), isFromSavedPlaylist);
                 }
             }
         });
@@ -121,10 +130,10 @@ public class PlaylistPanelHandler {
         // Update playlist info when content changes
         displayedPlaylistContent.addListener((ListChangeListener<Music>) c -> updatePlaylistInfo());
 
-        // Sync Local view with playback queue changes
-        playbackQueue.getQueue().addListener((ListChangeListener<Music>) c -> {
+        // Sync Local view with Local playlist content changes (not the playback queue)
+        playbackQueue.getLocalPlaylistContent().addListener((ListChangeListener<Music>) c -> {
             if (displayedPlaylistId == null) {
-                displayedPlaylistContent.setAll(playbackQueue.getQueue());
+                displayedPlaylistContent.setAll(playbackQueue.getLocalPlaylistContent());
             }
         });
 
@@ -213,8 +222,8 @@ public class PlaylistPanelHandler {
         displayedPlaylistContent.clear();
 
         if (playlistId == null) {
-            // "Local" playlist - show the current playback queue
-            displayedPlaylistContent.addAll(playbackQueue.getQueue());
+            // "Local" playlist - show the preserved Local content (not the current playback queue)
+            displayedPlaylistContent.addAll(playbackQueue.getLocalPlaylistContent());
         } else {
             // Saved playlist - load from database
             List<com.luciferc137.cmp.database.model.MusicEntity> playlistMusics =
@@ -237,7 +246,7 @@ public class PlaylistPanelHandler {
      */
     public void refreshDisplayedPlaylist() {
         if (displayedPlaylistId == null) {
-            displayedPlaylistContent.setAll(playbackQueue.getQueue());
+            displayedPlaylistContent.setAll(playbackQueue.getLocalPlaylistContent());
         } else {
             String name = currentPlaylistLabel != null ? currentPlaylistLabel.getText() : "Playlist";
             loadPlaylistIntoView(displayedPlaylistId, name);

@@ -43,6 +43,10 @@ public class PlaybackHandler {
     private AnimationTimer progressTimer;
     private Music currentMusic;
 
+    // Restored position from session (used for resuming at saved position)
+    private long restoredPosition = 0;
+    private boolean hasRestoredPosition = false;
+
     // Listener for playback events
     private PlaybackEventListener eventListener;
 
@@ -277,6 +281,137 @@ public class PlaybackHandler {
 
         notifyTrackChanged(music);
         notifySessionNeedsSave();
+    }
+
+    /**
+     * Resumes playback or plays the current track from the queue.
+     * Used when the Play button is pressed with no table selection.
+     * This starts playback from the beginning (ignoring restored position).
+     */
+    public void resumeOrPlayCurrent() {
+        if (audioPlayer.isPlaying()) {
+            // Already playing, do nothing
+            return;
+        }
+
+        // Try to resume if paused (player already has the track loaded)
+        if (currentMusic != null && audioPlayer.isPaused()) {
+            audioPlayer.resume();
+            return;
+        }
+
+        // If no current music, try to play from queue (from beginning)
+        Music queueCurrent = playbackQueue.getCurrentTrack();
+        if (queueCurrent != null) {
+            // Clear restored position since we're starting fresh
+            hasRestoredPosition = false;
+            restoredPosition = 0;
+            playTrack(queueCurrent);
+        }
+    }
+
+    /**
+     * Resumes playback at the restored position (from saved session).
+     * Used when the Pause button is pressed at startup to continue where left off.
+     */
+    public void resumeAtSavedPosition() {
+        if (audioPlayer.isPlaying()) {
+            // Already playing, just pause
+            audioPlayer.pause();
+            return;
+        }
+
+        // If paused, resume
+        if (currentMusic != null && audioPlayer.isPaused()) {
+            audioPlayer.resume();
+            return;
+        }
+
+        // If we have a restored position, start playing and seek to it
+        Music queueCurrent = playbackQueue.getCurrentTrack();
+        if (queueCurrent != null) {
+            if (hasRestoredPosition && restoredPosition > 0) {
+                // Play the track first
+                playTrack(queueCurrent);
+
+                // Schedule seeking after a short delay to allow the player to initialize
+                javafx.application.Platform.runLater(() -> {
+                    // Use a small delay to ensure the player is ready
+                    new Thread(() -> {
+                        try {
+                            Thread.sleep(500); // Wait for player to initialize
+                            javafx.application.Platform.runLater(() -> {
+                                audioPlayer.seek(restoredPosition);
+                                if (waveformProgressBar != null) {
+                                    long duration = audioPlayer.getDuration();
+                                    if (duration > 0) {
+                                        waveformProgressBar.setProgress((double) restoredPosition / duration);
+                                    }
+                                }
+                            });
+                        } catch (InterruptedException e) {
+                            Thread.currentThread().interrupt();
+                        }
+                    }).start();
+                });
+
+                // Clear the restored position after using it
+                hasRestoredPosition = false;
+            } else {
+                // No saved position, just play from beginning
+                playTrack(queueCurrent);
+            }
+        }
+    }
+
+    /**
+     * Sets the restored position from a saved session.
+     * Call this during session restoration.
+     * Also updates the visual progress bar and loads the waveform.
+     */
+    public void setRestoredPosition(long position) {
+        this.restoredPosition = position;
+        this.hasRestoredPosition = position > 0;
+
+        // Load waveform and display progress for the restored track
+        Music restoredTrack = playbackQueue.getCurrentTrack();
+        if (restoredTrack != null && position > 0) {
+            // Load the waveform
+            loadWaveform(restoredTrack);
+
+            // Update the progress bar once waveform is loaded
+            // We need to calculate progress based on track duration from metadata
+            long duration = restoredTrack.duration;
+            if (duration > 0) {
+                double progress = (double) position / duration;
+                Platform.runLater(() -> {
+                    if (waveformProgressBar != null) {
+                        waveformProgressBar.setProgress(progress);
+                    }
+                    // Also update elapsed time label
+                    if (elapsedTimeLabel != null) {
+                        elapsedTimeLabel.setText(formatTime(position));
+                    }
+                    if (totalTimeLabel != null) {
+                        totalTimeLabel.setText(formatTime(duration));
+                    }
+                });
+            }
+        }
+    }
+
+    /**
+     * Gets the restored position.
+     */
+    public long getRestoredPosition() {
+        return restoredPosition;
+    }
+
+    /**
+     * Checks if there's a restored position available.
+     */
+    public boolean hasRestoredPosition() {
+        return hasRestoredPosition;
     }
 
     public void pause() {

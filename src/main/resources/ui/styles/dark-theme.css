@@ -1,6 +1,5 @@
 /*
  * Dark Theme Stylesheet
- * Color palette based on WaveformProgressBar colors:
  * - Primary Blue: #1E90FF (DodgerBlue)
  * - Dark Background: #282828
  * - Medium Gray: #646464
@@ -189,11 +188,19 @@
 .table-view .column-header {
     -fx-background-color: #282828;
     -fx-border-color: transparent #3C3C3C transparent transparent;
+    -fx-cursor: hand;
+}
+
+.table-view .column-header:hover {
+    -fx-background-color: #3C3C3C;
 }
 
 .table-view .column-header .label {
     -fx-text-fill: #B0B0B0;
     -fx-font-weight: bold;
+    -fx-padding: 5 10 5 10;
+    -fx-max-width: 1.7976931348623157E308;
+    -fx-max-height: 1.7976931348623157E308;
 }
 
 .table-view .table-row-cell {

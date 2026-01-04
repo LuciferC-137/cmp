@@ -5,6 +5,7 @@ import com.luciferc137.cmp.database.dao.MusicDao;
 import com.luciferc137.cmp.database.dao.SyncLogDao;
 import com.luciferc137.cmp.database.model.MusicEntity;
 import com.luciferc137.cmp.database.model.SyncLogEntity;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
@@ -19,7 +20,6 @@ import java.util.concurrent.Executors;
 /**
  * Music library synchronization service.
  * Synchronizes files from a folder with the database.
- *
  * Synchronization is never automatic, it must be triggered
  * manually by the user to avoid overloading disk reads.
  */
@@ -128,9 +128,9 @@ public class LibrarySyncService {
                     try {
                         Optional<MusicEntity> existing = musicDao.findByPath(path);
 
+                        AudioMetadataExtractor.AudioMetadata metadata = metadataExtractor.extract(file);
                         if (existing.isPresent()) {
                             // File already exists, check if update needed
-                            AudioMetadataExtractor.AudioMetadata metadata = metadataExtractor.extract(file);
 
                             if (!existing.get().getHash().equals(metadata.getHash())) {
                                 // File has changed, update it
@@ -144,7 +144,6 @@ public class LibrarySyncService {
                             }
                         } else {
                             // New file, add it
-                            AudioMetadataExtractor.AudioMetadata metadata = metadataExtractor.extract(file);
                             MusicEntity entity = createEntityFromMetadata(path, metadata);
                             musicDao.insert(entity);
                             filesAdded++;
@@ -188,7 +187,6 @@ public class LibrarySyncService {
 
         } catch (Exception e) {
             System.err.println("Error during synchronization: " + e.getMessage());
-            e.printStackTrace();
             long duration = System.currentTimeMillis() - startTime;
             return new SyncResult(filesAdded, filesUpdated, filesRemoved,
                                   filesSkipped, errors + 1, duration, "error");
@@ -226,7 +224,7 @@ public class LibrarySyncService {
 
         Files.walkFileTree(folder, new SimpleFileVisitor<>() {
             @Override
-            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
+            public @NotNull FileVisitResult visitFile(@NotNull Path file, @NotNull BasicFileAttributes attrs) {
                 File f = file.toFile();
                 if (metadataExtractor.isAudioFile(f)) {
                     audioFiles.add(f);
@@ -235,7 +233,7 @@ public class LibrarySyncService {
             }
 
             @Override
-            public FileVisitResult visitFileFailed(Path file, IOException exc) {
+            public @NotNull FileVisitResult visitFileFailed(@NotNull Path file, @NotNull IOException exc) {
                 // Ignore inaccessible files
                 return FileVisitResult.CONTINUE;
             }

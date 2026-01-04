@@ -94,7 +94,7 @@ public class ContextMenuHandler {
         MenuItem playItem = new MenuItem(isMultiple ? "Play First" : "Play");
         playItem.setOnAction(e -> {
             if (eventListener != null) {
-                eventListener.onPlayRequested(selectedMusic.get(0));
+                eventListener.onPlayRequested(selectedMusic.getFirst());
             }
         });
         contextMenu.getItems().add(playItem);

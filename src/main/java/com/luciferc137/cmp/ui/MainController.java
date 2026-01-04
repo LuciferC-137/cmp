@@ -4,7 +4,6 @@ import com.luciferc137.cmp.audio.VlcAudioPlayer;
 import com.luciferc137.cmp.audio.WaveformExtractor;
 import com.luciferc137.cmp.database.model.PlaylistEntity;
 import com.luciferc137.cmp.library.*;
-import com.luciferc137.cmp.settings.SettingsManager;
 import com.luciferc137.cmp.ui.handlers.*;
 import com.luciferc137.cmp.ui.settings.SettingsWindow;
 import javafx.application.Platform;
@@ -104,6 +103,12 @@ public class MainController {
 
         // Setup window close handler
         setupWindowCloseHandler();
+
+        // Setup click handler to deselect when clicking outside table
+        setupDeselectOnClickOutside();
+
+        // Setup periodic session save (every 10 seconds when playing)
+        setupPeriodicSessionSave();
     }
 
     private void initializeHandlers() {
@@ -163,16 +168,17 @@ public class MainController {
         // Playlist panel events
         playlistPanelHandler.setEventListener(new PlaylistPanelHandler.PlaylistEventListener() {
             @Override
-            public void onPlaylistTrackSelected(Music music, Long playlistId, List<Music> playlistContent) {
+            public void onPlaylistTrackSelected(Music music, Long playlistId, List<Music> playlistContent, boolean isFromSavedPlaylist) {
                 if (playlistId == null) {
+                    // Playing from Local playlist
                     playbackQueue.setLocalQueue(playlistContent, music);
                 } else {
-                    PlaylistEntity playlist = playlistPanelHandler.getAvailablePlaylists().stream()
+                    // Playing from a saved playlist - don't modify Local
+                    playlistPanelHandler.getAvailablePlaylists().stream()
                             .filter(p -> p.getId().equals(playlistId))
-                            .findFirst().orElse(null);
-                    if (playlist != null) {
-                        playbackQueue.loadPlaylist(playlist.getId(), playlist.getName(), playlistContent);
-                    }
+                            .findFirst().ifPresent(playlist
+                                    -> playbackQueue.loadPlaylist(playlist.getId(),
+                                    playlist.getName(), playlistContent));
                     playbackQueue.playTrack(music);
                 }
                 playbackHandler.playTrack(music);
@@ -249,6 +255,11 @@ public class MainController {
             }
 
             @Override
+            public void onPlaybackPositionRestored(long position) {
+                playbackHandler.setRestoredPosition(position);
+            }
+
+            @Override
             public void onDisplayedPlaylistRestored(Long playlistId) {
                 playlistPanelHandler.setDisplayedPlaylistId(playlistId);
                 playlistPanelHandler.updatePlaylistTabStyles();
@@ -257,7 +268,8 @@ public class MainController {
                     if (currentPlaylistLabel != null) {
                         currentPlaylistLabel.setText("Local");
                     }
-                    playlistPanelHandler.getDisplayedPlaylistContent().setAll(playbackQueue.getQueue());
+                    // Use localPlaylistContent instead of queue for Local playlist display
+                    playlistPanelHandler.getDisplayedPlaylistContent().setAll(playbackQueue.getLocalPlaylistContent());
                 } else {
                     String playlistName = playlistPanelHandler.getAvailablePlaylists().stream()
                             .filter(p -> p.getId().equals(playlistId))
@@ -329,6 +341,45 @@ public class MainController {
         });
     }
 
+    private void setupDeselectOnClickOutside() {
+        Platform.runLater(() -> {
+            if (musicTable.getScene() != null) {
+                // Add a filter on the scene to detect clicks outside the table
+                musicTable.getScene().addEventFilter(javafx.scene.input.MouseEvent.MOUSE_CLICKED, event -> {
+                    // Check if the click is outside the music table
+                    if (!isClickInsideNode(event, musicTable)) {
+                        // Clear selection if clicking outside table
+                        musicTable.getSelectionModel().clearSelection();
+                    }
+                });
+            }
+        });
+    }
+
+    /**
+     * Checks if a mouse event occurred inside a given node.
+     */
+    private boolean isClickInsideNode(javafx.scene.input.MouseEvent event, javafx.scene.Node node) {
+        javafx.geometry.Bounds boundsInScene = node.localToScene(node.getBoundsInLocal());
+        return boundsInScene.contains(event.getSceneX(), event.getSceneY());
+    }
+
+    private void setupPeriodicSessionSave() {
+        // Save session every 10 seconds when playing to preserve playback position
+        javafx.animation.Timeline periodicSave = new javafx.animation.Timeline(
+                new javafx.animation.KeyFrame(
+                        javafx.util.Duration.seconds(10),
+                        event -> {
+                            if (audioPlayer.isPlaying()) {
+                                saveSession();
+                            }
+                        }
+                )
+        );
+        periodicSave.setCycleCount(javafx.animation.Animation.INDEFINITE);
+        periodicSave.play();
+    }
+
     private void saveSession() {
         sessionHandler.saveSession(
                 playlistPanelHandler.getDisplayedPlaylistId(),
@@ -353,13 +404,24 @@ public class MainController {
     @FXML
     private void onPlay() {
         Music selected = musicTable.getSelectionModel().getSelectedItem();
-        playbackHandler.playFromTable(selected, new ArrayList<>(musicLibrary.getMusicList()));
+        if (selected != null) {
+            // Play selected track from table
+            playbackHandler.playFromTable(selected, new ArrayList<>(musicLibrary.getMusicList()));
+        } else {
+            // No selection - resume current track or play from queue
+            playbackHandler.resumeOrPlayCurrent();
+        }
         playlistPanelHandler.updatePlaylistTabStyles();
     }
 
     @FXML
     private void onPause() {
-        playbackHandler.pause();
+        // If there's a restored position and nothing is playing yet, resume at that position
+        if (playbackHandler.hasRestoredPosition() && !playbackHandler.getAudioPlayer().isPlaying()) {
+            playbackHandler.resumeAtSavedPosition();
+        } else {
+            playbackHandler.pause();
+        }
     }
 
     @FXML
