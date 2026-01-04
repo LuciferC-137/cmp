@@ -506,6 +506,10 @@ public class MainController {
 
     @FXML
     private void onSettings() {
+        // Set callback to refresh playlist tabs when playlists change in settings
+        SettingsWindow.setOnPlaylistsChangedCallback(() -> {
+            Platform.runLater(() -> playlistPanelHandler.refreshPlaylistTabs());
+        });
         SettingsWindow.show(musicTable.getScene().getWindow());
     }
 }

@@ -143,6 +143,21 @@ public class LibraryService {
     }
 
     /**
+     * Searches for music by its file path.
+     *
+     * @param path The file path
+     * @return The music if found
+     */
+    public Optional<MusicEntity> getMusicByPath(String path) {
+        try {
+            return musicDao.findByPath(path);
+        } catch (SQLException e) {
+            System.err.println("Error searching for music by path: " + e.getMessage());
+            return Optional.empty();
+        }
+    }
+
+    /**
      * Searches for music by text (title, artist, album).
      *
      * @param query The text to search for

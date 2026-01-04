@@ -14,6 +14,14 @@ import java.io.IOException;
 public class SettingsWindow {
 
     private static Stage settingsStage = null;
+    private static Runnable onPlaylistsChangedCallback = null;
+
+    /**
+     * Sets the callback to be called when playlists change.
+     */
+    public static void setOnPlaylistsChangedCallback(Runnable callback) {
+        onPlaylistsChangedCallback = callback;
+    }
 
     /**
      * Opens the settings window.
@@ -38,6 +46,12 @@ public class SettingsWindow {
             stage.setTitle("Settings");
             Scene scene = new Scene(loader.load());
 
+            // Get the controller and set the callback
+            SettingsController controller = loader.getController();
+            if (controller != null && onPlaylistsChangedCallback != null) {
+                controller.setOnPlaylistsChangedCallback(onPlaylistsChangedCallback);
+            }
+
             // Apply dark theme stylesheet
             scene.getStylesheets().add(SettingsWindow.class.getResource("/ui/styles/dark-theme.css").toExternalForm());
 
@@ -45,8 +59,8 @@ public class SettingsWindow {
             stage.initModality(Modality.WINDOW_MODAL);
             stage.initOwner(owner);
             stage.setResizable(true);
-            stage.setMinWidth(500);
-            stage.setMinHeight(350);
+            stage.setMinWidth(700);
+            stage.setMinHeight(650);
 
             // Clean up reference when window is closed
             stage.setOnHidden(e -> settingsStage = null);
