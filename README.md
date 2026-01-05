@@ -222,6 +222,360 @@ sync_log (id, sync_date, folder_path, files_added, files_updated, files_removed,
 - [ ] Lyrics auto-fetching and better display
 - [ ] YouTube Music auto-downloader
 
+## Building & Packaging
+
+This section explains how to compile, package, and install CMP on Linux.
+
+### Prerequisites
+
+Before building, ensure you have:
+
+```bash
+# Check Java version (21+ required)
+java --version
+
+# Check jpackage is available (included in JDK 14+)
+which jpackage
+
+# Install VLC (required for audio playback)
+sudo apt install vlc  # Debian/Ubuntu
+```
+
+### Available Gradle Tasks
+
+| Task | Description |
+|------|-------------|
+| `./gradlew run` | Run the application directly (development mode) |
+| `./gradlew build` | Compile and run tests |
+| `./gradlew fatJar` | Create a fat JAR with all dependencies (`build/libs/cmp-1.0.0-all.jar`) |
+| `./gradlew jpackageImage` | Create a standalone Linux application image |
+| `./gradlew jpackage` | Create a `.deb` package (use `-PinstallerType=rpm` for RPM) |
+| `./gradlew installDesktop` | Create app image + install `.desktop` file for launcher integration |
+| `./gradlew clean` | Delete the build directory |
+
+### Quick Start (Development)
+
+```bash
+# Clone and run immediately
+git clone https://github.com/LuciferC-137/cmp.git
+cd cmp
+./gradlew run
+```
+
+### Creating a Standalone Application
+
+#### Option 1: Application Image (Recommended)
+
+Creates a self-contained application folder with embedded JRE:
+
+```bash
+./gradlew jpackageImage
+```
+
+Output: `build/jpackage/CMP/`
+
+To run the application:
+```bash
+./build/jpackage/CMP/bin/CMP
+```
+
+#### Option 2: With Desktop Integration
+
+Creates the application image and registers it in your Linux desktop:
+
+```bash
+./gradlew installDesktop
+```
+
+This creates:
+- Application at `build/jpackage/CMP/`
+- Desktop entry at `~/.local/share/applications/cmp.desktop`
+
+The application will appear in your application menu.
+
+#### Option 3: DEB/RPM Package (System-wide Installation)
+
+Use the provided packaging script:
+
+```bash
+# Create a .deb package (Debian/Ubuntu)
+./packaging/linux/build-linux-package.sh deb
+
+# Create a .rpm package (Fedora/RHEL)
+./packaging/linux/build-linux-package.sh rpm
+
+# Create both
+./packaging/linux/build-linux-package.sh all
+```
+
+Install the generated package:
+```bash
+# For DEB
+sudo dpkg -i build/jpackage/cmp_1.0.0_amd64.deb
+# If there are missing dependencies:
+sudo apt-get install -f
+
+# For RPM
+sudo rpm -i build/jpackage/cmp-1.0.0-1.x86_64.rpm
+```
+
+### Reinstalling After Code Changes
+
+```bash
+# Quick reinstall (development)
+./gradlew clean run
+
+# Rebuild application image
+./gradlew clean jpackageImage
+
+# Full reinstall with desktop integration
+./gradlew clean installDesktop
+```
+
+### Adding New Dependencies
+
+1. **Edit `build.gradle.kts`** and add your dependency in the `dependencies` block:
+
+```kotlin
+dependencies {
+    // ...existing dependencies...
+    
+    // Add your new dependency
+    implementation("group.id:artifact-id:version")
+}
+```
+
+2. **Sync Gradle** (in IDE) or run:
+```bash
+./gradlew --refresh-dependencies
+```
+
+3. **Rebuild** the project:
+```bash
+./gradlew build
+```
+
+#### Example: Adding a new library
+
+```kotlin
+// Example: Adding Apache Commons IO
+implementation("commons-io:commons-io:2.15.1")
+
+// Example: Adding a test dependency
+testImplementation("org.mockito:mockito-core:5.8.0")
+```
+
+### Project Build Structure
+
+After building, key outputs are:
+
+```
+build/
+├── classes/java/main/          # Compiled .class files
+├── libs/
+│   └── cmp-1.0.0-all.jar       # Fat JAR (after ./gradlew fatJar)
+├── jpackage/
+│   ├── cmp_1.0.0_amd64.deb     # DEB package (after ./gradlew jpackage)
+│   └── CMP/                    # Standalone application (after jpackageImage)
+│       ├── bin/CMP             # Executable launcher
+│       └── lib/
+│           ├── app/cmp-1.0.0-all.jar
+│           └── runtime/        # Embedded JRE
+└── resources/main/             # Copied resources (FXML, CSS, icons)
+```
+
+### Troubleshooting
+
+| Problem | Solution |
+|---------|----------|
+| `jpackage not found` | Ensure JDK 21+ is installed and `JAVA_HOME` is set |
+| `VLC not found` at runtime | Install VLC: `sudo apt install vlc` |
+| Icon missing in jpackage | Ensure `packaging/linux/cmp.png` exists |
+| Desktop entry not showing | Run `update-desktop-database ~/.local/share/applications` |
+| Permission denied on scripts | Run `chmod +x packaging/linux/*.sh gradlew` |
+
+### Useful Commands Reference
+
+```bash
+# List all available Gradle tasks
+./gradlew tasks --all
+
+# Check dependencies
+./gradlew dependencies
+
+# Run with debug output
+./gradlew run --debug
+
+# Build without tests
+./gradlew build -x test
+
+# Force refresh dependencies
+./gradlew build --refresh-dependencies
+```
+
+---
+
+## Complete Build & Packaging Guide
+
+This section provides a comprehensive guide for building, packaging, and maintaining the CMP application.
+
+### Build Process Overview
+
+```
+Source Code → Compile → Fat JAR → jpackage → .deb/.rpm
+     ↓           ↓          ↓          ↓
+  src/main   build/classes  build/libs  build/jpackage
+```
+
+### Step-by-Step: Creating a .deb Package
+
+```bash
+# 1. Clean previous builds
+./gradlew clean
+
+# 2. Create the fat JAR (all dependencies bundled)
+./gradlew fatJar
+
+# 3. Verify the JAR was created
+ls -la build/libs/cmp-1.0.0-all.jar
+
+# 4. Create the .deb package
+./gradlew jpackage
+
+# 5. Verify the .deb was created
+ls -la build/jpackage/cmp_1.0.0_amd64.deb
+
+# 6. Install the package
+sudo dpkg -i build/jpackage/cmp_1.0.0_amd64.deb
+
+# 7. If missing dependencies, fix with:
+sudo apt-get install -f
+```
+
+### Uninstalling
+
+```bash
+# Remove the installed package
+sudo dpkg -r cmp
+
+# Or with apt
+sudo apt remove cmp
+```
+
+### Verify Package Contents
+
+Before installing, you can inspect the .deb contents:
+
+```bash
+# List all files in the package
+dpkg-deb --contents build/jpackage/cmp_1.0.0_amd64.deb
+
+# Check for the executable
+dpkg-deb --contents build/jpackage/cmp_1.0.0_amd64.deb | grep -E "bin/|\.jar"
+
+# Extract package info
+dpkg-deb --info build/jpackage/cmp_1.0.0_amd64.deb
+```
+
+A valid package should contain:
+- `/opt/cmp/bin/CMP` - The executable launcher
+- `/opt/cmp/lib/app/cmp-1.0.0-all.jar` - The application JAR
+- `/opt/cmp/lib/runtime/` - Embedded Java runtime
+- `/opt/cmp/lib/CMP.png` - Application icon
+- `/usr/share/applications/cmp-CMP.desktop` - Desktop entry
+
+### Debugging Launch Issues
+
+If the application doesn't start after installation:
+
+```bash
+# 1. Try launching from terminal to see errors
+/opt/cmp/bin/CMP
+
+# 2. Check if the executable exists and is runnable
+ls -la /opt/cmp/bin/
+file /opt/cmp/bin/CMP
+
+# 3. Check for missing libraries
+ldd /opt/cmp/bin/CMP 2>&1 | grep "not found"
+
+# 4. Verify VLC is installed (required dependency)
+which vlc
+vlc --version
+
+# 5. Check application logs (if any)
+cat ~/.cmp/logs/*.log 2>/dev/null
+```
+
+### Common Build Issues & Solutions
+
+| Issue | Cause | Solution |
+|-------|-------|----------|
+| Empty/broken .deb | Fat JAR not created | Run `./gradlew fatJar` before `jpackage` |
+| "Fat JAR not found" error | Clean removed the JAR | Run `./gradlew fatJar jpackage` together |
+| App icon not showing | Missing cmp.png | Ensure `packaging/linux/cmp.png` exists |
+| App won't start (silent fail) | Missing VLC | Install VLC: `sudo apt install vlc` |
+| Desktop entry missing | jpackage issue | Check `/usr/share/applications/` |
+| Java errors at runtime | Wrong Java version | Ensure JDK 21+ is used for building |
+
+### Development Workflow
+
+```bash
+# Quick development cycle
+./gradlew run                    # Run directly without packaging
+
+# Test changes in packaged form
+./gradlew clean fatJar jpackageImage
+./build/jpackage/CMP/bin/CMP     # Run the packaged app
+
+# Full release build
+./gradlew clean fatJar jpackage
+```
+
+### Version Update Checklist
+
+When updating the version number:
+
+1. Edit `build.gradle.kts`:
+   ```kotlin
+   version = "1.1.0"  // Update version here
+   ```
+
+2. Rebuild everything:
+   ```bash
+   ./gradlew clean fatJar jpackage
+   ```
+
+3. The new package will be: `build/jpackage/cmp_1.1.0_amd64.deb`
+
+### Files & Directories Reference
+
+| Path | Description |
+|------|-------------|
+| `build.gradle.kts` | Build configuration, dependencies, tasks |
+| `src/main/java/` | Java source code |
+| `src/main/resources/` | FXML, CSS, icons |
+| `packaging/linux/` | Linux packaging files (icon, scripts) |
+| `build/libs/` | Output: Fat JAR |
+| `build/jpackage/` | Output: .deb, .rpm, app image |
+| `~/.cmp/` | User data: settings.json, library.db |
+
+### Gradle Task Dependencies
+
+```
+jpackage ──depends──► fatJar ──depends──► compileJava
+    │
+    └──creates──► build/jpackage/cmp_*.deb
+
+jpackageImage ──depends──► fatJar
+    │
+    └──creates──► build/jpackage/CMP/
+
+installDesktop ──depends──► jpackageImage
+    │
+    └──creates──► ~/.local/share/applications/cmp.desktop
+```
+
 ## License
 
 This project is under GPL-3.0 License

@@ -1,0 +1,11 @@
+[Desktop Entry]
+StartupWMClass=com-luciferc137-cmp-MainApp
+Keywords=music;player;audio;mp3;flac;ogg;
+Categories=AudioVideo;Audio;Player;
+Type=Application
+Terminal=false
+Icon=cmp
+Exec=cmp
+Comment=Custom Music Player - A modern music player for your local library
+Name=CMP
+
