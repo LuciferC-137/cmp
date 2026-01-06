@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.image.ImageView?>
+
+<?import javafx.scene.image.Image?>
+<DialogPane xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.luciferc137.cmp.ui.MetadataEditorController"
+            prefWidth="700" prefHeight="650">
+
+    <content>
+        <TabPane fx:id="tabPane" tabClosingPolicy="UNAVAILABLE" prefWidth="620" prefHeight="500">
+
+            <!-- Info Tab -->
+            <Tab text="Info">
+                <ScrollPane fitToWidth="true" fitToHeight="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED">
+                    <HBox spacing="20" alignment="TOP_LEFT">
+                        <padding>
+                            <Insets top="20" right="20" bottom="20" left="20" />
+                        </padding>
+
+                        <!-- Cover art container -->
+                        <VBox spacing="10" alignment="TOP_CENTER">
+                            <StackPane fx:id="imageWrapper" alignment="CENTER"
+                                  style="-fx-border-color: #444; -fx-border-width: 1; -fx-border-radius: 4; -fx-background-color: #2a2a2a; -fx-background-radius: 4; -fx-cursor: hand;"
+                                  minWidth="110" minHeight="110" maxWidth="110" maxHeight="110">
+                                <padding>
+                                    <Insets top="5" right="5" bottom="5" left="5"/>
+                                </padding>
+                                <ImageView fx:id="coverArtView" fitWidth="100" fitHeight="100" preserveRatio="true"/>
+                            </StackPane>
+                            <Label text="Click to change" style="-fx-font-size: 11px; -fx-text-fill: #888;"/>
+                        </VBox>
+
+                        <!-- Fields grid -->
+                        <GridPane hgap="10" vgap="8" HBox.hgrow="ALWAYS">
+                            <!-- Title -->
+                            <Label text="Title:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                            <TextField fx:id="titleField" prefWidth="300" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+
+                            <!-- Artist -->
+                            <Label text="Artist:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                            <TextField fx:id="artistField" prefWidth="300" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+
+                            <!-- Album -->
+                            <Label text="Album:" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                            <TextField fx:id="albumField" prefWidth="300" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+
+                            <!-- Album Artist -->
+                            <Label text="Album Artist:" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+                            <TextField fx:id="albumArtistField" prefWidth="300" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+
+                            <!-- Year -->
+                            <Label text="Year:" GridPane.columnIndex="0" GridPane.rowIndex="4"/>
+                            <TextField fx:id="yearField" prefWidth="100" GridPane.columnIndex="1" GridPane.rowIndex="4"/>
+
+                            <!-- Track Number -->
+                            <Label text="Track Number:" GridPane.columnIndex="0" GridPane.rowIndex="5"/>
+                            <TextField fx:id="trackNumberField" prefWidth="100" GridPane.columnIndex="1" GridPane.rowIndex="5"/>
+
+                            <!-- Disc Number -->
+                            <Label text="Disc Number:" GridPane.columnIndex="0" GridPane.rowIndex="6"/>
+                            <TextField fx:id="discNumberField" prefWidth="100" GridPane.columnIndex="1" GridPane.rowIndex="6"/>
+
+                            <!-- Genre -->
+                            <Label text="Genre:" GridPane.columnIndex="0" GridPane.rowIndex="7"/>
+                            <TextField fx:id="genreField" prefWidth="200" GridPane.columnIndex="1" GridPane.rowIndex="7"/>
+
+                            <!-- Composer -->
+                            <Label text="Composer:" GridPane.columnIndex="0" GridPane.rowIndex="8"/>
+                            <TextField fx:id="composerField" prefWidth="300" GridPane.columnIndex="1" GridPane.rowIndex="8"/>
+                        </GridPane>
+                    </HBox>
+                </ScrollPane>
+            </Tab>
+
+            <!-- Lyrics Tab -->
+            <Tab text="Lyrics">
+                <ScrollPane fitToWidth="true" fitToHeight="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED">
+                    <VBox spacing="10">
+                        <padding>
+                            <Insets top="20" right="20" bottom="20" left="20" />
+                        </padding>
+
+                        <!-- Header with label and fetch button -->
+                        <HBox spacing="10" alignment="CENTER_LEFT">
+                            <Label text="Lyrics:"/>
+                            <Region HBox.hgrow="ALWAYS"/>
+                            <ProgressIndicator fx:id="lyricsProgressIndicator" prefWidth="16" prefHeight="16" visible="false"/>
+                            <Label fx:id="lyricsStatusLabel" style="-fx-font-size: 11px; -fx-text-fill: #888888;"/>
+                            <Region HBox.hgrow="ALWAYS"/>
+                            <Button fx:id="fetchLyricsButton" onAction="#onFetchLyrics" styleClass="fetch-button"
+                                    prefWidth="34" prefHeight="34">
+                                <graphic>
+                                    <ImageView fitWidth="20" fitHeight="20" preserveRatio="true">
+                                        <image>
+                                            <Image url="@/icons/fetch.png"/>
+                                        </image>
+                                    </ImageView>
+                                </graphic>
+                                <tooltip>
+                                    <Tooltip text="Fetch lyrics from internet" />
+                                </tooltip>
+                            </Button>
+                        </HBox>
+
+                        <TextArea fx:id="lyricsArea" wrapText="true" prefRowCount="15" VBox.vgrow="ALWAYS"/>
+                    </VBox>
+                </ScrollPane>
+            </Tab>
+
+            <!-- Technical Tab -->
+            <Tab text="Technical">
+                <ScrollPane fitToWidth="true" fitToHeight="true">
+                    <GridPane hgap="10" vgap="10">
+                        <padding>
+                            <Insets top="20" right="20" bottom="20" left="20" />
+                        </padding>
+
+                        <!-- File path -->
+                        <Label text="File:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                        <TextField fx:id="filePathField" prefWidth="350" editable="false"
+                                   style="-fx-opacity: 0.7;" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+
+                        <!-- Duration -->
+                        <Label text="Duration:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                        <TextField fx:id="durationField" prefWidth="350" editable="false"
+                                   style="-fx-opacity: 0.7;" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+
+                        <!-- Format -->
+                        <Label text="Format:" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                        <TextField fx:id="formatField" prefWidth="350" editable="false"
+                                   style="-fx-opacity: 0.7;" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+
+                        <!-- Bitrate -->
+                        <Label text="Bitrate:" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+                        <TextField fx:id="bitrateField" prefWidth="350" editable="false"
+                                   style="-fx-opacity: 0.7;" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+
+                        <!-- Sample Rate -->
+                        <Label text="Sample Rate:" GridPane.columnIndex="0" GridPane.rowIndex="4"/>
+                        <TextField fx:id="sampleRateField" prefWidth="350" editable="false"
+                                   style="-fx-opacity: 0.7;" GridPane.columnIndex="1" GridPane.rowIndex="4"/>
+                    </GridPane>
+                </ScrollPane>
+            </Tab>
+
+        </TabPane>
+    </content>
+
+</DialogPane>
+

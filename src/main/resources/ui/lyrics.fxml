@@ -4,6 +4,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.image.ImageView?>
+<?import javafx.scene.image.Image?>
 
 <VBox xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.luciferc137.cmp.ui.LyricsController"
@@ -28,12 +29,33 @@
             <Label fx:id="albumLabel" styleClass="lyrics-album" text="" />
         </VBox>
 
+        <!-- Fetch lyrics button -->
+        <Button fx:id="fetchButton" onAction="#onFetchLyrics" styleClass="fetch-button"
+                prefWidth="34" prefHeight="34">
+            <graphic>
+                <ImageView fitWidth="20" fitHeight="20" preserveRatio="true">
+                    <image>
+                        <Image url="@/icons/fetch.png"/>
+                    </image>
+                </ImageView>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Fetch lyrics from internet" />
+            </tooltip>
+        </Button>
+
         <!-- Edit button -->
         <Button fx:id="editButton" text="✏ Edit" onAction="#onEditMetadata" styleClass="edit-button" />
     </HBox>
 
     <!-- Separator -->
     <Separator />
+
+    <!-- Loading indicator -->
+    <HBox fx:id="loadingBox" alignment="CENTER" spacing="10" visible="false" managed="false">
+        <ProgressIndicator prefWidth="20" prefHeight="20" />
+        <Label fx:id="loadingLabel" text="Fetching lyrics..." styleClass="loading-text" />
+    </HBox>
 
     <!-- Lyrics content in a ScrollPane -->
     <ScrollPane fx:id="lyricsScrollPane" fitToWidth="true" VBox.vgrow="ALWAYS"

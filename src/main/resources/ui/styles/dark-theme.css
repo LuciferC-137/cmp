@@ -602,3 +602,32 @@
     -fx-border-color: #1E90FF;
 }
 
+.fetch-button {
+    -fx-background-color: #3C3C3C;
+    -fx-background-radius: 4;
+    -fx-border-radius: 4;
+    -fx-border-color: #505050;
+    -fx-border-width: 1;
+    -fx-cursor: hand;
+    -fx-padding: 4;
+}
+
+.fetch-button:hover {
+    -fx-background-color: #4A4A4A;
+    -fx-border-color: #1E90FF;
+}
+
+.fetch-button:pressed {
+    -fx-background-color: #1E90FF;
+}
+
+.fetch-button:disabled {
+    -fx-opacity: 0.5;
+}
+
+.loading-text {
+    -fx-font-size: 13px;
+    -fx-text-fill: #1E90FF;
+    -fx-font-style: italic;
+}
+
