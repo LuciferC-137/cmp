@@ -5,9 +5,9 @@ plugins {
 }
 
 group = "com.luciferc137.cmp"
-version = "0.0.1"
+version = "0.1.0"
 
-val appName = "CMP"
+val appName = "cmp"
 val appDescription = "Custom Music Player - A modern music player for your local library"
 val appVendor = "LuciferC137"
 
@@ -29,7 +29,8 @@ javafx {
 application {
     mainClass.set("com.luciferc137.cmp.MainApp")
     applicationDefaultJvmArgs = listOf(
-        "--add-modules=javafx.controls,javafx.fxml,javafx.media"
+        "--add-modules=javafx.controls,javafx.fxml,javafx.media",
+        "-Djdk.gtk.version=3"
     )
 }
 
@@ -132,7 +133,8 @@ tasks.register<Exec>("jpackageImage") {
         "--module-path", javafxModulePath,
         "--add-modules", "javafx.controls,javafx.fxml,javafx.media,javafx.graphics,javafx.base,java.logging,java.sql,java.naming,jdk.unsupported",
         "--java-options", "--add-opens=javafx.graphics/javafx.scene=ALL-UNNAMED",
-        "--java-options", "--add-opens=javafx.base/com.sun.javafx.runtime=ALL-UNNAMED"
+        "--java-options", "--add-opens=javafx.base/com.sun.javafx.runtime=ALL-UNNAMED",
+        "--java-options", "-Djdk.gtk.version=3"
     )
 }
 
@@ -144,6 +146,7 @@ tasks.register<Exec>("jpackage") {
 
     val outputDir = layout.buildDirectory.dir("jpackage").get().asFile
     val iconFile = file("packaging/linux/cmp.png")
+    val resourceDir = file("packaging/linux/resources")
     val installerType = project.findProperty("installerType")?.toString() ?: "deb"
     val inputDir = layout.buildDirectory.dir("libs").get().asFile
     val jarName = "cmp-${version}-all.jar"
@@ -175,14 +178,17 @@ tasks.register<Exec>("jpackage") {
         "--main-class", "com.luciferc137.cmp.MainApp",
         "--dest", outputDir.absolutePath,
         "--icon", iconFile.absolutePath,
+        "--resource-dir", resourceDir.absolutePath,
         "--linux-shortcut",
         "--linux-menu-group", "AudioVideo;Audio;Player",
         "--linux-app-category", "audio",
+        "--linux-package-name", "cmp",
         // Use module-path to include JavaFX modules
         "--module-path", javafxModulePath,
         "--add-modules", "javafx.controls,javafx.fxml,javafx.media,javafx.graphics,javafx.base,java.logging,java.sql,java.naming,jdk.unsupported",
         "--java-options", "--add-opens=javafx.graphics/javafx.scene=ALL-UNNAMED",
-        "--java-options", "--add-opens=javafx.base/com.sun.javafx.runtime=ALL-UNNAMED"
+        "--java-options", "--add-opens=javafx.base/com.sun.javafx.runtime=ALL-UNNAMED",
+        "--java-options", "-Djdk.gtk.version=3"
     )
 }
 
@@ -206,6 +212,7 @@ tasks.register("installDesktop") {
             Type=Application
             Categories=AudioVideo;Audio;Player;
             Keywords=music;player;audio;mp3;flac;ogg;
+            StartupWMClass=cmp
         """.trimIndent())
 
         println("Desktop file created at: ${desktopFile.absolutePath}")

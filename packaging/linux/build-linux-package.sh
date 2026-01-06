@@ -1,5 +1,4 @@
 #!/bin/bash
-# Script pour créer le package Linux de CMP
 # Usage: ./build-linux-package.sh [deb|rpm|all]
 
 set -e
@@ -9,69 +8,69 @@ PROJECT_DIR="$SCRIPT_DIR/../.."
 
 cd "$PROJECT_DIR"
 
-# Vérifier les prérequis
-echo "=== Vérification des prérequis ==="
+# Prerequisites check
+echo "=== Checking prerequisites ==="
 
 # Java 21+
 if ! command -v java &> /dev/null; then
-    echo "❌ Java n'est pas installé. Installez Java 21+."
+    echo "❌ Java 21 not installed. Please install Java 21+."
     exit 1
 fi
 
 JAVA_VERSION=$(java -version 2>&1 | head -n1 | cut -d'"' -f2 | cut -d'.' -f1)
 if [ "$JAVA_VERSION" -lt 21 ]; then
-    echo "❌ Java 21+ requis, version actuelle: $JAVA_VERSION"
+    echo "❌ Java 21+ required, current version: $JAVA_VERSION"
     exit 1
 fi
 echo "✓ Java $JAVA_VERSION"
 
-# jpackage (inclus dans JDK 14+)
+# jpackage (include in JDK 14+)
 if ! command -v jpackage &> /dev/null; then
-    echo "❌ jpackage non trouvé. Assurez-vous que le JDK 21+ est correctement installé."
+    echo "❌ jpackage not found. Ensure JDK is installed."
     exit 1
 fi
-echo "✓ jpackage disponible"
+echo "✓ jpackage available"
 
 # Vérifier l'icône
 if [ ! -f "$PROJECT_DIR/packaging/linux/cmp.png" ]; then
-    echo "⚠ Icône non trouvée. Création depuis track.png..."
+    echo "⚠ Icon not found, creating from track.png..."
     cp "$PROJECT_DIR/src/main/resources/icons/track.png" "$PROJECT_DIR/packaging/linux/cmp.png" 2>/dev/null || {
-        echo "❌ Impossible de créer l'icône. Créez manuellement packaging/linux/cmp.png"
+        echo "❌ Impossible to create icon. Manually add packaging/linux/cmp.png"
         exit 1
     }
 fi
-echo "✓ Icône présente"
+echo "✓ Icon found"
 
-# Choix du type de package
+# Choice of package type
 PACKAGE_TYPE="${1:-deb}"
 
 echo ""
-echo "=== Construction du package $PACKAGE_TYPE ==="
+echo "=== Building package $PACKAGE_TYPE ==="
 
-# Nettoyer et construire
+# Clean previous builds
 ./gradlew clean
 
 case "$PACKAGE_TYPE" in
     deb)
-        # Vérifier dpkg pour DEB
+        # Check dpkg for DEB
         if ! command -v dpkg &> /dev/null; then
-            echo "❌ dpkg non trouvé. Installez les outils Debian ou utilisez 'rpm'."
+            echo "❌ dpkg not found. Install Debian tools or ou use 'rpm'."
             exit 1
         fi
         ./gradlew jpackage
         ;;
     rpm)
-        # Vérifier rpm pour RPM
+        # Check rpm for RPM
         if ! command -v rpmbuild &> /dev/null; then
-            echo "❌ rpmbuild non trouvé. Installez rpm-build."
+            echo "❌ rpmbuild not found. Install rpm-build."
             exit 1
         fi
         ./gradlew jpackage -PinstallerType=rpm
         ;;
     all)
-        echo "Construction DEB..."
+        echo "Building DEB..."
         ./gradlew jpackage
-        echo "Construction RPM..."
+        echo "Building RPM..."
         ./gradlew jpackage -PinstallerType=rpm
         ;;
     *)
@@ -81,7 +80,7 @@ case "$PACKAGE_TYPE" in
 esac
 
 echo ""
-echo "=== Package créé avec succès ==="
-echo "Le package se trouve dans: $PROJECT_DIR/build/jpackage/"
-ls -la "$PROJECT_DIR/build/jpackage/" 2>/dev/null || echo "(répertoire de sortie non trouvé)"
+echo "=== Package created successfully ==="
+echo "The new package is located in: $PROJECT_DIR/build/jpackage/"
+ls -la "$PROJECT_DIR/build/jpackage/" 2>/dev/null || echo "(output directory not found)"
 

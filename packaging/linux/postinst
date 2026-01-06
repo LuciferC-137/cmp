@@ -1,6 +1,28 @@
 #!/bin/bash
 # Post-installation script for CMP
 
+# Function to fix StartupWMClass in a .desktop file
+# JavaFX uses the full class name as WM_CLASS
+fix_desktop_file() {
+    local file="$1"
+    if [ -f "$file" ]; then
+        # Remove any existing StartupWMClass line and add the correct one
+        sed -i '/^StartupWMClass=/d' "$file"
+        sed -i '/^\[Desktop Entry\]/a StartupWMClass=com.luciferc137.cmp.MainApp' "$file"
+    fi
+}
+
+# Fix all possible .desktop file locations created by jpackage
+fix_desktop_file "/opt/cmp/lib/cmp.desktop"
+fix_desktop_file "/opt/cmp/lib/cmp-cmp.desktop"
+
+# Fix system-wide desktop files
+for desktop_file in /usr/share/applications/*cmp*.desktop /usr/share/applications/*CMP*.desktop; do
+    if [ -f "$desktop_file" ]; then
+        fix_desktop_file "$desktop_file"
+    fi
+done
+
 # Update desktop database
 if command -v update-desktop-database &> /dev/null; then
     update-desktop-database /usr/share/applications 2>/dev/null || true
