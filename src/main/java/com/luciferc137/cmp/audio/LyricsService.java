@@ -1,12 +1,12 @@
 package com.luciferc137.cmp.audio;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
 import java.net.URI;
-import java.net.URL;
 import java.net.URLEncoder;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -16,7 +16,18 @@ import java.util.concurrent.CompletableFuture;
 public class LyricsService {
 
     private static final String API_URL = "https://lrclib.net/api/search";
-    private static final int TIMEOUT_MS = 15000;
+    private static final int TIMEOUT_SECONDS = 15;
+
+    // Shared HttpClient instance (thread-safe, reusable)
+    private static final HttpClient httpClient;
+
+    static {
+        httpClient = HttpClient.newBuilder()
+                .version(HttpClient.Version.HTTP_1_1)
+                .connectTimeout(Duration.ofSeconds(TIMEOUT_SECONDS))
+                .followRedirects(HttpClient.Redirect.NORMAL)
+                .build();
+    }
 
     /**
      * Result of a lyrics fetch operation.
@@ -85,29 +96,19 @@ public class LyricsService {
                     + "&track_name=" + URLEncoder.encode(title.trim(), StandardCharsets.UTF_8);
             String urlString = API_URL + query;
 
-            URI uri = URI.create(urlString);
-            URL url = uri.toURL();
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestMethod("GET");
-            connection.setConnectTimeout(TIMEOUT_MS);
-            connection.setReadTimeout(TIMEOUT_MS);
-            connection.setRequestProperty("User-Agent", "CMP-MusicPlayer/1.0 (https://github.com/music-player)");
-            connection.setRequestProperty("Accept", "application/json");
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(urlString))
+                    .timeout(Duration.ofSeconds(TIMEOUT_SECONDS))
+                    .header("User-Agent", "CMP-MusicPlayer/1.0 (https://github.com/music-player)")
+                    .header("Accept", "application/json")
+                    .GET()
+                    .build();
 
-            int responseCode = connection.getResponseCode();
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            int responseCode = response.statusCode();
 
             if (responseCode == 200) {
-                BufferedReader reader = new BufferedReader(
-                        new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8));
-                StringBuilder response = new StringBuilder();
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    response.append(line);
-                }
-                reader.close();
-
-                // Parse JSON array response to extract lyrics
-                String jsonResponse = response.toString();
+                String jsonResponse = response.body();
                 String lyrics = extractLyricsFromLrclib(jsonResponse);
 
                 if (lyrics != null && !lyrics.trim().isEmpty()) {
@@ -121,11 +122,24 @@ public class LyricsService {
                 return LyricsResult.error("Server error (HTTP " + responseCode + ")");
             }
 
-        } catch (java.net.SocketTimeoutException e) {
+        } catch (java.net.http.HttpTimeoutException e) {
             return LyricsResult.error("Request timed out. Please try again.");
-        } catch (java.net.UnknownHostException e) {
+        } catch (java.net.ConnectException e) {
             return LyricsResult.error("No internet connection");
+        } catch (javax.net.ssl.SSLHandshakeException e) {
+            System.err.println("SSL Handshake failed: " + e.getMessage());
+            return LyricsResult.error("SSL connection error: " + e.getMessage());
+        } catch (javax.net.ssl.SSLException e) {
+            System.err.println("SSL error: " + e.getMessage());
+            return LyricsResult.error("Secure connection failed: " + e.getMessage());
+        } catch (java.io.IOException e) {
+            System.err.println("IO error: " + e.getMessage());
+            return LyricsResult.error("Connection error: " + e.getMessage());
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return LyricsResult.error("Request was interrupted");
         } catch (Exception e) {
+            System.err.println("Unexpected error: " + e.getClass().getName() + ": " + e.getMessage());
             return LyricsResult.error("Error: " + e.getMessage());
         }
     }

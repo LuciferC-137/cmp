@@ -5,11 +5,27 @@ plugins {
 }
 
 group = "com.luciferc137.cmp"
-version = "0.1.0"
+version = "0.2.0"
 
 val appName = "cmp"
 val appDescription = "Custom Music Player - A modern music player for your local library"
 val appVendor = "LuciferC137"
+
+// Modules required for jpackage runtime
+val jpackageModules = listOf(
+    "javafx.controls",
+    "javafx.fxml",
+    "javafx.media",
+    "javafx.graphics",
+    "javafx.base",
+    "java.logging",
+    "java.sql",
+    "java.naming",
+    "java.net.http",
+    "jdk.crypto.ec",        // Required for TLS/SSL with elliptic curve algorithms
+    "jdk.crypto.cryptoki",  // Additional crypto support
+    "jdk.unsupported"
+).joinToString(",")
 
 java {
     toolchain {
@@ -32,10 +48,6 @@ application {
         "--add-modules=javafx.controls,javafx.fxml,javafx.media",
         "-Djdk.gtk.version=3"
     )
-}
-
-tasks.named<JavaExec>("run") {
-
 }
 
 repositories {
@@ -103,7 +115,6 @@ tasks.register<Exec>("jpackageImage") {
     val inputDir = layout.buildDirectory.dir("libs").get().asFile
     val jarName = "cmp-${version}-all.jar"
 
-    // Get JavaFX JARs from Gradle cache for module-path
     val javafxModulePath = configurations.runtimeClasspath.get()
         .filter { it.name.contains("javafx") && it.name.endsWith(".jar") }
         .joinToString(File.pathSeparator) { it.absolutePath }
@@ -114,7 +125,6 @@ tasks.register<Exec>("jpackageImage") {
         if (!jarFile.exists()) {
             throw GradleException("Fat JAR not found at ${jarFile.absolutePath}. Run './gradlew fatJar' first.")
         }
-        println("Using JavaFX module path: $javafxModulePath")
     }
 
     commandLine(
@@ -129,9 +139,8 @@ tasks.register<Exec>("jpackageImage") {
         "--main-class", "com.luciferc137.cmp.MainApp",
         "--dest", outputDir.absolutePath,
         "--icon", iconFile.absolutePath,
-        // Use module-path to include JavaFX modules
         "--module-path", javafxModulePath,
-        "--add-modules", "javafx.controls,javafx.fxml,javafx.media,javafx.graphics,javafx.base,java.logging,java.sql,java.naming,jdk.unsupported",
+        "--add-modules", jpackageModules,
         "--java-options", "--add-opens=javafx.graphics/javafx.scene=ALL-UNNAMED",
         "--java-options", "--add-opens=javafx.base/com.sun.javafx.runtime=ALL-UNNAMED",
         "--java-options", "-Djdk.gtk.version=3"
@@ -151,19 +160,16 @@ tasks.register<Exec>("jpackage") {
     val inputDir = layout.buildDirectory.dir("libs").get().asFile
     val jarName = "cmp-${version}-all.jar"
 
-    // Get JavaFX JARs from Gradle cache for module-path
     val javafxModulePath = configurations.runtimeClasspath.get()
         .filter { it.name.contains("javafx") && it.name.endsWith(".jar") }
         .joinToString(File.pathSeparator) { it.absolutePath }
 
     doFirst {
         outputDir.mkdirs()
-        // Verify the JAR exists
         val jarFile = file("${inputDir.absolutePath}/$jarName")
         if (!jarFile.exists()) {
             throw GradleException("Fat JAR not found at ${jarFile.absolutePath}. Run './gradlew fatJar' first.")
         }
-        println("Using JavaFX module path: $javafxModulePath")
     }
 
     commandLine(
@@ -183,39 +189,11 @@ tasks.register<Exec>("jpackage") {
         "--linux-menu-group", "AudioVideo;Audio;Player",
         "--linux-app-category", "audio",
         "--linux-package-name", "cmp",
-        // Use module-path to include JavaFX modules
         "--module-path", javafxModulePath,
-        "--add-modules", "javafx.controls,javafx.fxml,javafx.media,javafx.graphics,javafx.base,java.logging,java.sql,java.naming,jdk.unsupported",
+        "--add-modules", jpackageModules,
         "--java-options", "--add-opens=javafx.graphics/javafx.scene=ALL-UNNAMED",
         "--java-options", "--add-opens=javafx.base/com.sun.javafx.runtime=ALL-UNNAMED",
         "--java-options", "-Djdk.gtk.version=3"
     )
 }
 
-// Task to create a .desktop file for Linux integration
-tasks.register("installDesktop") {
-    group = "distribution"
-    description = "Creates desktop integration files"
-    dependsOn("jpackageImage")
-
-    doLast {
-        val desktopFile = file("${System.getProperty("user.home")}/.local/share/applications/cmp.desktop")
-        val appImageDir = layout.buildDirectory.dir("jpackage/$appName").get().asFile
-
-        desktopFile.writeText("""
-            [Desktop Entry]
-            Name=CMP
-            Comment=$appDescription
-            Exec=${appImageDir.absolutePath}/bin/$appName
-            Icon=${appImageDir.absolutePath}/lib/cmp.png
-            Terminal=false
-            Type=Application
-            Categories=AudioVideo;Audio;Player;
-            Keywords=music;player;audio;mp3;flac;ogg;
-            StartupWMClass=cmp
-        """.trimIndent())
-
-        println("Desktop file created at: ${desktopFile.absolutePath}")
-        println("Application installed at: ${appImageDir.absolutePath}")
-    }
-}

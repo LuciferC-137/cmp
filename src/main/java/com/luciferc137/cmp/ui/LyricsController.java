@@ -244,15 +244,23 @@ public class LyricsController {
         content.getChildren().addAll(infoLabel, lyricsArea, hintLabel);
 
         dialog.getDialogPane().setContent(content);
-        dialog.getDialogPane().setPrefSize(550, 500);
 
         // Add buttons
         ButtonType saveButton = new ButtonType("Save to File", ButtonBar.ButtonData.OK_DONE);
         ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
         dialog.getDialogPane().getButtonTypes().addAll(saveButton, cancelButton);
 
-        // Center on screen
-        dialog.setOnShown(e -> dialog.getDialogPane().getScene().getWindow().centerOnScreen());
+        // Set size and center on screen
+        dialog.setOnShown(e -> {
+            var window = dialog.getDialogPane().getScene().getWindow();
+            if (window instanceof javafx.stage.Stage stage) {
+                stage.setMinWidth(600);
+                stage.setMinHeight(550);
+                stage.setWidth(600);
+                stage.setHeight(550);
+                stage.centerOnScreen();
+            }
+        });
 
         Optional<ButtonType> result = dialog.showAndWait();
 
