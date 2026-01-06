@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.image.ImageView?>
+
+<VBox xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.luciferc137.cmp.ui.LyricsController"
+      spacing="10" prefWidth="600" prefHeight="700">
+    <padding>
+        <Insets top="20" right="20" bottom="20" left="20" />
+    </padding>
+
+    <!-- Header: Current track info -->
+    <HBox alignment="CENTER_LEFT" spacing="15" styleClass="lyrics-header">
+        <padding>
+            <Insets bottom="15" />
+        </padding>
+
+        <!-- Cover art -->
+        <ImageView fx:id="coverArtView" fitWidth="80" fitHeight="80" preserveRatio="true" smooth="true"/>
+
+        <!-- Track info -->
+        <VBox alignment="CENTER_LEFT" spacing="3" HBox.hgrow="ALWAYS">
+            <Label fx:id="titleLabel" styleClass="lyrics-title" text="No track playing" />
+            <Label fx:id="artistLabel" styleClass="lyrics-artist" text="" />
+            <Label fx:id="albumLabel" styleClass="lyrics-album" text="" />
+        </VBox>
+
+        <!-- Edit button -->
+        <Button fx:id="editButton" text="✏ Edit" onAction="#onEditMetadata" styleClass="edit-button" />
+    </HBox>
+
+    <!-- Separator -->
+    <Separator />
+
+    <!-- Lyrics content in a ScrollPane -->
+    <ScrollPane fx:id="lyricsScrollPane" fitToWidth="true" VBox.vgrow="ALWAYS"
+                styleClass="lyrics-scroll-pane" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED">
+        <VBox alignment="TOP_CENTER" spacing="10">
+            <padding>
+                <Insets top="20" right="30" bottom="20" left="30" />
+            </padding>
+            <Label fx:id="lyricsLabel" styleClass="lyrics-content" wrapText="true"
+                   text="No lyrics available" alignment="TOP_CENTER"/>
+        </VBox>
+    </ScrollPane>
+
+    <!-- Footer with status -->
+    <HBox alignment="CENTER" spacing="10">
+        <padding>
+            <Insets top="10" />
+        </padding>
+        <Label fx:id="statusLabel" styleClass="lyrics-status" text="" />
+    </HBox>
+</VBox>
+

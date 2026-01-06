@@ -6,6 +6,7 @@
 <?import javafx.scene.layout.*?>
 
 <?import javafx.scene.image.ImageView?>
+<?import javafx.scene.image.Image?>
 <BorderPane xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.luciferc137.cmp.ui.MainController">
 
     <top>
@@ -43,9 +44,22 @@
                         <Button fx:id="loopButton" onAction="#onToggleLoop" prefWidth="60" prefHeight="24" style="-fx-font-size: 11px;" text="Loop" />
                     </HBox>
                 </VBox>
-
+                <!-- Lyrics button -->
+                <HBox alignment="CENTER" spacing="10" minWidth="100" maxWidth="100">
+                    <Button fx:id="lyricsButton" onAction="#onShowLyrics" prefWidth="69" prefHeight="34"
+                            styleClass="lyrics-button">
+                        <graphic>
+                            <ImageView fitWidth="69" fitHeight="34" preserveRatio="true">
+                                <image>
+                                    <javafx.scene.image.Image url="@/icons/lyrics.png"/>
+                                </image>
+                            </ImageView>
+                        </graphic>
+                    </Button>
+                </HBox>
                 <!-- Volume control (right) -->
-                <HBox alignment="CENTER_RIGHT" spacing="5" minWidth="300" maxWidth="300">
+                <HBox alignment="CENTER_RIGHT" spacing="10" minWidth="190" maxWidth="190">
+                    <!-- Lyrics button -->
                     <Label style="-fx-font-size: 14px;" text="🔊" />
                     <Slider fx:id="volumeSlider" max="100" min="0" prefWidth="100" value="50" />
                 </HBox>

@@ -160,6 +160,8 @@ public class MainController {
             @Override
             public void onTrackChanged(Music music) {
                 playlistPanelHandler.updatePlaylistTabStyles();
+                // Update lyrics window if it's open
+                LyricsWindow.updateCurrentTrack(music);
             }
 
             @Override
@@ -530,6 +532,16 @@ public class MainController {
             Platform.runLater(() -> playlistPanelHandler.refreshPlaylistTabs());
         });
         SettingsWindow.show(musicTable.getScene().getWindow());
+    }
+
+    @FXML
+    private void onShowLyrics() {
+        Music currentMusic = playbackHandler.getCurrentMusic();
+        LyricsWindow.show(
+                musicTable.getScene().getWindow(),
+                currentMusic,
+                this::refreshAllViews
+        );
     }
 }
 

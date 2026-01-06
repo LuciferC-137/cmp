@@ -1,5 +1,6 @@
 package com.luciferc137.cmp.ui.settings;
 
+import com.luciferc137.cmp.ui.ThemeManager;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.stage.Modality;
@@ -74,8 +75,7 @@ public class SettingsWindow {
             }
 
             // Apply dark theme stylesheet
-            scene.getStylesheets().add(SettingsWindow.class.getResource("/ui/styles/dark-theme.css").toExternalForm());
-
+            scene.getStylesheets().add(ThemeManager.getDarkThemeUrl());
             stage.setScene(scene);
             stage.initModality(Modality.WINDOW_MODAL);
             stage.initOwner(owner);
