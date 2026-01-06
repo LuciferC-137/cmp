@@ -27,6 +27,7 @@ public class MainApp extends Application {
 
         stage.setTitle("Custom Music Player");
         stage.setScene(scene);
+        stage.setMaximized(true);
         stage.show();
     }
 }
