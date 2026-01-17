@@ -42,7 +42,9 @@ public class MainController {
     @FXML private Label totalTimeLabel;
     @FXML private ImageView currentCoverArt;
 
-    @FXML private ListView<Music> playlistView;
+    @FXML private TableView<Music> playlistTable;
+    @FXML private TableColumn<Music, String> playlistTitleColumn;
+    @FXML private TableColumn<Music, String> playlistRatingColumn;
     @FXML private HBox playlistTabsContainer;
     @FXML private ScrollPane playlistTabsScrollPane;
     @FXML private Label currentPlaylistLabel;
@@ -111,6 +113,11 @@ public class MainController {
 
         // Setup periodic session save (every 10 seconds when playing)
         setupPeriodicSessionSave();
+
+        musicLibrary.setOnRatingChanged(() -> {
+            musicTable.refresh();
+            playlistTable.refresh();
+        });
     }
 
     private void initializeHandlers() {
@@ -135,7 +142,9 @@ public class MainController {
         );
 
         playlistPanelHandler.bindUIComponents(
-                playlistView,
+                playlistTable,
+                playlistTitleColumn,
+                playlistRatingColumn,
                 playlistTabsContainer,
                 currentPlaylistLabel,
                 playlistInfoLabel
@@ -201,9 +210,15 @@ public class MainController {
                         selectedMusic,
                         screenX,
                         screenY,
-                        playlistView,
+                        playlistTable,
                         playlistId
                 );
+            }
+
+            @Override
+            public void onRatingChanged() {
+                // Sync main table when rating is changed in playlist view
+                musicTable.refresh();
             }
         });
 
@@ -225,6 +240,12 @@ public class MainController {
                         musicTable.getScene().getWindow().getX(),
                         musicTable.getScene().getWindow().getY()
                 );
+            }
+
+            @Override
+            public void onRatingChanged() {
+                // Sync playlist view when rating is changed in main table
+                playlistTable.refresh();
             }
         });
 
@@ -441,11 +462,12 @@ public class MainController {
      * This includes the music table, playlist view, and current track display.
      */
     private void refreshAllViews() {
-        // Refresh table
+        // Refresh main table
         musicTable.refresh();
 
-        // Refresh playlist view
-        playlistView.refresh();
+        // Refresh playlist content (reload from database if needed) and refresh the table
+        playlistPanelHandler.refreshDisplayedPlaylist();
+        playlistTable.refresh();
 
         // Refresh current track display if the current track was affected
         Music currentTrack = playbackHandler.getCurrentMusic();

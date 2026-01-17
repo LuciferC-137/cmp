@@ -3,12 +3,15 @@ package com.luciferc137.cmp.ui.handlers;
 import com.luciferc137.cmp.database.LibraryService;
 import com.luciferc137.cmp.database.model.PlaylistEntity;
 import com.luciferc137.cmp.library.Music;
+import com.luciferc137.cmp.library.MusicLibrary;
 import com.luciferc137.cmp.library.PlaybackQueue;
 import com.luciferc137.cmp.ui.PlaylistManagerDialog;
 import com.luciferc137.cmp.ui.ThemeManager;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
+import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.HBox;
@@ -19,17 +22,20 @@ import java.util.List;
 /**
  * Handles the playlist panel functionality including:
  * - Playlist tabs management
- * - Playlist view display
+ * - Playlist view display (as TableView with rating column)
  * - Loading and switching between playlists
  * - Playlist CRUD operations
  */
 public class PlaylistPanelHandler {
 
     private final LibraryService libraryService;
+    private final MusicLibrary musicLibrary;
     private final PlaybackQueue playbackQueue;
 
     // UI Components
-    private ListView<Music> playlistView;
+    private TableView<Music> playlistTable;
+    private TableColumn<Music, String> playlistTitleColumn;
+    private TableColumn<Music, String> playlistRatingColumn;
     private HBox playlistTabsContainer;
     private Label currentPlaylistLabel;
     private Label playlistInfoLabel;
@@ -63,10 +69,15 @@ public class PlaylistPanelHandler {
          * @param playlistId The playlist ID (null for Local)
          */
         void onPlaylistContextMenuRequested(List<Music> selectedMusic, double screenX, double screenY, Long playlistId);
+        /**
+         * Called when a rating is changed in the playlist view.
+         */
+        void onRatingChanged();
     }
 
     public PlaylistPanelHandler() {
         this.libraryService = LibraryService.getInstance();
+        this.musicLibrary = MusicLibrary.getInstance();
         this.playbackQueue = PlaybackQueue.getInstance();
     }
 
@@ -74,12 +85,16 @@ public class PlaylistPanelHandler {
      * Binds UI components to this handler.
      */
     public void bindUIComponents(
-            ListView<Music> playlistView,
+            TableView<Music> playlistTable,
+            TableColumn<Music, String> playlistTitleColumn,
+            TableColumn<Music, String> playlistRatingColumn,
             HBox playlistTabsContainer,
             Label currentPlaylistLabel,
             Label playlistInfoLabel
     ) {
-        this.playlistView = playlistView;
+        this.playlistTable = playlistTable;
+        this.playlistTitleColumn = playlistTitleColumn;
+        this.playlistRatingColumn = playlistRatingColumn;
         this.playlistTabsContainer = playlistTabsContainer;
         this.currentPlaylistLabel = currentPlaylistLabel;
         this.playlistInfoLabel = playlistInfoLabel;
@@ -93,37 +108,42 @@ public class PlaylistPanelHandler {
      * Initializes the playlist panel.
      */
     public void initialize() {
-        if (playlistView == null) return;
+        if (playlistTable == null) return;
 
         // Enable multiple selection
-        playlistView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+        playlistTable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
-        // Bind playlist view to displayed content
-        playlistView.setItems(displayedPlaylistContent);
+        // Bind playlist table to displayed content
+        playlistTable.setItems(displayedPlaylistContent);
 
-        // Custom cell factory to highlight current track
-        playlistView.setCellFactory(lv -> new ListCell<>() {
+        // Setup columns
+        setupTableColumns();
+
+        // Custom row factory to highlight current track
+        playlistTable.setRowFactory(tv -> new TableRow<>() {
             @Override
             protected void updateItem(Music item, boolean empty) {
                 super.updateItem(item, empty);
                 if (empty || item == null) {
-                    setText(null);
-                    setStyle("");
+                    getStyleClass().removeAll("playlist-current-track", "playlist-selected-track");
                 } else {
-                    setText(item.title + " - " + (item.artist != null ? item.artist : "Unknown"));
-                    if (item.equals(playbackQueue.getCurrentTrack())) {
-                        setStyle("-fx-font-weight: bold; -fx-background-color: #1E90FF; -fx-text-fill: white;");
+                    boolean isCurrentTrack = item.equals(playbackQueue.getCurrentTrack());
+                    if (isCurrentTrack) {
+                        if (!getStyleClass().contains("playlist-current-track")) {
+                            getStyleClass().add("playlist-current-track");
+                        }
+                        getStyleClass().remove("playlist-selected-track");
                     } else {
-                        setStyle("");
+                        getStyleClass().remove("playlist-current-track");
                     }
                 }
             }
         });
 
         // Double-click to play from playlist
-        playlistView.setOnMouseClicked(event -> {
+        playlistTable.setOnMouseClicked(event -> {
             if (event.getClickCount() == 2 && event.getButton() == MouseButton.PRIMARY) {
-                Music selected = playlistView.getSelectionModel().getSelectedItem();
+                Music selected = playlistTable.getSelectionModel().getSelectedItem();
                 if (selected != null && eventListener != null) {
                     // Pass true if this is from a saved playlist (not Local)
                     boolean isFromSavedPlaylist = displayedPlaylistId != null;
@@ -134,8 +154,8 @@ public class PlaylistPanelHandler {
         });
 
         // Right-click context menu on playlist items
-        playlistView.setOnContextMenuRequested(event -> {
-            List<Music> selectedItems = new ArrayList<>(playlistView.getSelectionModel().getSelectedItems());
+        playlistTable.setOnContextMenuRequested(event -> {
+            List<Music> selectedItems = new ArrayList<>(playlistTable.getSelectionModel().getSelectedItems());
             if (!selectedItems.isEmpty() && eventListener != null) {
                 eventListener.onPlaylistContextMenuRequested(
                         selectedItems,
@@ -148,7 +168,7 @@ public class PlaylistPanelHandler {
 
         // Update current track highlighting
         playbackQueue.currentTrackProperty().addListener((obs, old, newTrack) -> {
-            playlistView.refresh();
+            playlistTable.refresh();
         });
 
         // Update playlist info when content changes
@@ -163,6 +183,72 @@ public class PlaylistPanelHandler {
 
         // Load tabs
         refreshPlaylistTabs();
+    }
+
+    /**
+     * Sets up the table columns for title and rating.
+     */
+    private void setupTableColumns() {
+        // Title column - displays title and artist
+        playlistTitleColumn.setCellValueFactory(data -> {
+            Music music = data.getValue();
+            String display = music.title + " - " + (music.artist != null ? music.artist : "Unknown");
+            return new SimpleStringProperty(display);
+        });
+
+        // Rating column with interactive stars
+        playlistRatingColumn.setCellValueFactory(data ->
+                new SimpleStringProperty(data.getValue().getRatingAsStars()));
+        playlistRatingColumn.setCellFactory(col -> new TableCell<>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty) {
+                    setText(null);
+                    setGraphic(null);
+                } else {
+                    Music music = getTableView().getItems().get(getIndex());
+                    HBox stars = createRatingStars(music);
+                    setGraphic(stars);
+                    setText(null);
+                }
+            }
+        });
+
+        // Disable default sorting behavior
+        playlistTable.setSortPolicy(table -> false);
+        playlistTitleColumn.setSortable(false);
+        playlistRatingColumn.setSortable(false);
+    }
+
+    /**
+     * Creates interactive rating stars for a music item.
+     * Rating changes are synchronized with the main table.
+     */
+    private HBox createRatingStars(Music music) {
+        HBox stars = new HBox(2);
+        stars.setAlignment(Pos.CENTER_LEFT);
+
+        for (int i = 1; i <= 5; i++) {
+            final int rating = i;
+            Label star = new Label(i <= music.getRating() ? "★" : "☆");
+            star.setStyle("-fx-cursor: hand; -fx-font-size: 12px;");
+            star.setOnMouseClicked(e -> {
+                e.consume();
+                int newRating = (music.getRating() == rating) ? 0 : rating;
+                // Use MusicLibrary to update rating - this syncs with main table
+                musicLibrary.updateRating(music, newRating);
+                // Refresh playlist view
+                playlistTable.refresh();
+                // Notify listener to sync other views (main table)
+                if (eventListener != null) {
+                    eventListener.onRatingChanged();
+                }
+            });
+            stars.getChildren().add(star);
+        }
+
+        return stars;
     }
 
     /**
@@ -235,6 +321,7 @@ public class PlaylistPanelHandler {
 
     /**
      * Loads a playlist into the view.
+     * Uses Music objects from the central MusicLibrary cache to ensure synchronization.
      */
     public void loadPlaylistIntoView(Long playlistId, String name) {
         displayedPlaylistId = playlistId;
@@ -249,14 +336,19 @@ public class PlaylistPanelHandler {
             // "Local" playlist - show the preserved Local content (not the current playback queue)
             displayedPlaylistContent.addAll(playbackQueue.getLocalPlaylistContent());
         } else {
-            // Saved playlist - load from database
+            // Saved playlist - load from database using cached Music objects
             List<com.luciferc137.cmp.database.model.MusicEntity> playlistMusics =
                     libraryService.getPlaylistMusics(playlistId);
 
             for (var entity : playlistMusics) {
-                Music music = Music.fromEntity(entity);
-                List<String> tagNames = libraryService.getMusicTagNames(entity.getId());
-                music.setTags(tagNames);
+                // Try to get the Music from the central cache first
+                Music music = musicLibrary.getMusicById(entity.getId());
+                if (music == null) {
+                    // If not in cache, create new instance (fallback)
+                    music = Music.fromEntity(entity);
+                    List<String> tagNames = libraryService.getMusicTagNames(entity.getId());
+                    music.setTags(tagNames);
+                }
                 displayedPlaylistContent.add(music);
             }
         }
@@ -344,4 +436,3 @@ public class PlaylistPanelHandler {
         }
     }
 }
-

@@ -36,6 +36,7 @@ public class TableHandler {
     public interface TableEventListener {
         void onShowTagFilterPopup();
         void onShowRatingFilterPopup();
+        void onRatingChanged();
     }
 
     public TableHandler() {
@@ -225,6 +226,10 @@ public class TableHandler {
                 int newRating = (music.getRating() == rating) ? 0 : rating;
                 musicLibrary.updateRating(music, newRating);
                 musicTable.refresh();
+                // Notify listener to sync other views
+                if (eventListener != null) {
+                    eventListener.onRatingChanged();
+                }
             });
             stars.getChildren().add(star);
         }

@@ -631,3 +631,39 @@
     -fx-font-style: italic;
 }
 
+/* === Playlist Table Styles === */
+
+/* Currently playing track - distinct outline style */
+.table-row-cell.playlist-current-track {
+    -fx-border-color: #1E90FF !important;
+    -fx-border-width: 1 !important;
+}
+
+.table-row-cell.playlist-current-track .table-cell {
+    -fx-text-fill: #FFFFFF !important;
+    -fx-font-weight: bold;
+}
+
+.table-row-cell.playlist-current-track:selected {
+    -fx-background-color: #E90FF !important;
+}
+
+.table-row-cell.playlist-current-track:selected .table-cell {
+    -fx-text-fill: #FFFFFF !important;
+}
+
+/* Selected track (not playing) - blue style (same as main table) */
+.table-row-cell:selected {
+    -fx-background-color: #1E90FF;
+}
+
+.table-row-cell:selected .table-cell {
+    -fx-text-fill: #FFFFFF;
+}
+
+/* Hover effect for playlist table */
+.table-row-cell.playlist-current-track:hover {
+
+}
+
+

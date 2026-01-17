@@ -108,7 +108,12 @@
                 <Label fx:id="currentPlaylistLabel" text="Local" style="-fx-font-weight: bold; -fx-font-size: 13px;" />
 
                 <!-- Playlist content -->
-                <ListView fx:id="playlistView" VBox.vgrow="ALWAYS" />
+                <TableView fx:id="playlistTable" VBox.vgrow="ALWAYS">
+                    <columns>
+                        <TableColumn fx:id="playlistTitleColumn" prefWidth="410" text="Title" />
+                        <TableColumn fx:id="playlistRatingColumn" prefWidth="90" text="Rating" />
+                    </columns>
+                </TableView>
 
                 <!-- Playlist info -->
                 <Label fx:id="playlistInfoLabel" text="0 tracks" style="-fx-font-size: 11px; -fx-text-fill: #666;" />

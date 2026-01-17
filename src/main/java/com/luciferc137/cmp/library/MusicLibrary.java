@@ -35,8 +35,14 @@ public class MusicLibrary {
     // Cache for music tag associations
     private final Map<Long, Set<Long>> musicTagCache;
 
+    // Central cache of Music objects by ID - single source of truth
+    private final Map<Long, Music> musicCache;
+
     // Listeners for library changes
     private Runnable onLibraryChangedListener;
+
+    // Listener for rating changes - will be called whenever a rating is updated
+    private Runnable onRatingChangedListener;
 
     private MusicLibrary() {
         this.libraryService = LibraryService.getInstance();
@@ -45,6 +51,7 @@ public class MusicLibrary {
         this.totalCount = new ReadOnlyIntegerWrapper(0);
         this.advancedFilter = new SimpleObjectProperty<>(new AdvancedFilter());
         this.musicTagCache = new HashMap<>();
+        this.musicCache = new HashMap<>();
     }
 
     /**
@@ -99,6 +106,39 @@ public class MusicLibrary {
         this.onLibraryChangedListener = listener;
     }
 
+    /**
+     * Sets a listener to be called when any rating is changed.
+     * This allows UI components to refresh when ratings are updated from any source.
+     */
+    public void setOnRatingChanged(Runnable listener) {
+        this.onRatingChangedListener = listener;
+    }
+
+    /**
+     * Gets a Music object by ID from the central cache.
+     * Returns null if not found in cache.
+     * @param musicId The ID of the music to get
+     * @return The cached Music object, or null if not found
+     */
+    public Music getMusicById(Long musicId) {
+        if (musicId == null) return null;
+        return musicCache.get(musicId);
+    }
+
+    /**
+     * Gets Music objects by IDs from the central cache.
+     * Only returns objects that are found in the cache.
+     * @param musicIds The IDs of the music to get
+     * @return List of cached Music objects
+     */
+    public List<Music> getMusicsByIds(List<Long> musicIds) {
+        if (musicIds == null) return new ArrayList<>();
+        return musicIds.stream()
+                .map(this::getMusicById)
+                .filter(java.util.Objects::nonNull)
+                .collect(Collectors.toList());
+    }
+
     // ==================== Refresh & Load ====================
 
     /**
@@ -119,13 +159,28 @@ public class MusicLibrary {
 
     /**
      * Loads all music from database into memory.
+     * Uses the central cache to ensure single instances per music ID.
      */
     private void loadAllMusic() {
         List<MusicEntity> entities = libraryService.getAllMusics();
 
         List<Music> musics = entities.stream()
                 .map(entity -> {
-                    Music music = Music.fromEntity(entity);
+                    // Get or create Music object from cache
+                    Music music = musicCache.get(entity.getId());
+                    if (music == null) {
+                        music = Music.fromEntity(entity);
+                        musicCache.put(entity.getId(), music);
+                    } else {
+                        // Update existing object with latest data from DB
+                        music.title = entity.getTitle();
+                        music.artist = entity.getArtist();
+                        music.album = entity.getAlbum();
+                        music.filePath = entity.getPath();
+                        music.duration = entity.getDuration();
+                        music.setRating(entity.getRating());
+                    }
+
                     // Load tags for this music
                     List<String> tagNames = libraryService.getMusicTagNames(entity.getId());
                     music.setTags(tagNames);
@@ -164,6 +219,7 @@ public class MusicLibrary {
 
     /**
      * Applies the current filter and sort to the music list.
+     * Uses the central cache to ensure consistent Music instances.
      */
     public void applyFilterAndSort() {
         AdvancedFilter filter = advancedFilter.get();
@@ -171,10 +227,23 @@ public class MusicLibrary {
         // Get all music from database
         List<MusicEntity> allEntities = libraryService.getAllMusics();
 
-        // Convert to Music objects with tags
+        // Convert to Music objects using the cache
         List<Music> allMusic = allEntities.stream()
                 .map(entity -> {
-                    Music music = Music.fromEntity(entity);
+                    // Get or create Music object from cache
+                    Music music = musicCache.get(entity.getId());
+                    if (music == null) {
+                        music = Music.fromEntity(entity);
+                        musicCache.put(entity.getId(), music);
+                    } else {
+                        // Update existing object with latest data from DB
+                        music.title = entity.getTitle();
+                        music.artist = entity.getArtist();
+                        music.album = entity.getAlbum();
+                        music.filePath = entity.getPath();
+                        music.duration = entity.getDuration();
+                        music.setRating(entity.getRating());
+                    }
                     List<String> tagNames = libraryService.getMusicTagNames(entity.getId());
                     music.setTags(tagNames);
                     return music;
@@ -282,12 +351,24 @@ public class MusicLibrary {
 
     /**
      * Updates the rating for a music track.
+     * Also updates the cached Music object to ensure all views stay synchronized.
      */
     public void updateRating(Music music, int rating) {
         if (music.getId() == null) return;
 
         libraryService.updateMusicRating(music.getId(), rating);
         music.setRating(rating);
+
+        // Also update the cached instance if it's a different object
+        Music cachedMusic = musicCache.get(music.getId());
+        if (cachedMusic != null && cachedMusic != music) {
+            cachedMusic.setRating(rating);
+        }
+
+        // Notify all listeners that a rating has changed (for UI sync)
+        if (onRatingChangedListener != null) {
+            onRatingChangedListener.run();
+        }
 
         // Refresh to apply rating filters
         if (advancedFilter.get().hasActiveRatingFilters()) {
@@ -348,106 +429,65 @@ public class MusicLibrary {
      */
     public void deleteTag(TagEntity tag) {
         if (tag.getId() == null) return;
+
         libraryService.deleteTag(tag.getId());
+
+        // Remove from available tags
         availableTags.remove(tag);
 
-        // Remove from cache
+        // Remove from all music (in cache)
+        for (Music music : musicCache.values()) {
+            music.removeTag(tag.getName());
+        }
+
+        // Remove from music tag cache
         musicTagCache.values().forEach(tagIds -> tagIds.remove(tag.getId()));
 
-        // Refresh
-        refresh();
-    }
-
-    // ==================== Sync ====================
-
-    /**
-     * Synchronizes the library with a folder.
-     */
-    public CompletableFuture<SyncResult> syncFolder(String folderPath, SyncProgressListener listener) {
-        return libraryService.syncFolderAsync(folderPath, new SyncProgressListener() {
-            @Override
-            public void onSyncStarted(int totalFiles) {
-                listener.onSyncStarted(totalFiles);
-            }
-
-            @Override
-            public void onFileProcessed(int currentFile, int totalFiles, String fileName) {
-                listener.onFileProcessed(currentFile, totalFiles, fileName);
-            }
-
-            @Override
-            public void onFileAdded(String path) {
-                listener.onFileAdded(path);
-            }
-
-            @Override
-            public void onFileUpdated(String path) {
-                listener.onFileUpdated(path);
-            }
-
-            @Override
-            public void onFileRemoved(String path) {
-                listener.onFileRemoved(path);
-            }
-
-            @Override
-            public void onError(String path, String error) {
-                listener.onError(path, error);
-            }
-
-            @Override
-            public void onSyncCompleted(SyncResult result) {
-                listener.onSyncCompleted(result);
-                Platform.runLater(() -> refresh());
-            }
-        });
-    }
-
-    // ==================== Helpers ====================
-
-    /**
-     * Returns a comparator for the given column and sort state.
-     */
-    private Comparator<Music> getComparator(SortableColumn column, ColumnSortState state) {
-        if (column == null || state == ColumnSortState.NONE) {
-            return Comparator.comparing(m -> 0); // No-op comparator
+        // Refresh music list if tag filters are active
+        if (advancedFilter.get().hasActiveTagFilters()) {
+            applyFilterAndSort();
         }
-
-        Comparator<Music> comparator = switch (column) {
-            case TITLE -> Comparator.comparing(m -> m.title != null ? m.title.toLowerCase() : "");
-            case ARTIST -> Comparator.comparing(m -> m.artist != null ? m.artist.toLowerCase() : "");
-            case ALBUM -> Comparator.comparing(m -> m.album != null ? m.album.toLowerCase() : "");
-            case DURATION -> Comparator.comparingLong(m -> m.duration);
-        };
-
-        if (state == ColumnSortState.DESCENDING) {
-            comparator = comparator.reversed();
-        }
-
-        return comparator;
     }
 
     /**
-     * Returns the list of all artists.
-     */
-    public List<String> getAllArtists() {
-        return libraryService.getAllArtists();
-    }
-
-    /**
-     * Returns the list of all albums.
-     */
-    public List<String> getAllAlbums() {
-        return libraryService.getAllAlbums();
-    }
-
-    /**
-     * Notifies the listener that the library has changed.
+     * Notifie les listeners que la bibliothèque a changé.
      */
     private void notifyLibraryChanged() {
         if (onLibraryChangedListener != null) {
             onLibraryChangedListener.run();
         }
     }
-}
 
+    /**
+     * Retourne le comparateur pour le tri des musiques selon la colonne et l'état.
+     */
+    private Comparator<Music> getComparator(SortableColumn column, ColumnSortState state) {
+        Comparator<Music> comparator;
+        switch (column) {
+            case TITLE -> comparator = Comparator.comparing(m -> m.title, Comparator.nullsLast(String::compareToIgnoreCase));
+            case ARTIST -> comparator = Comparator.comparing(m -> m.artist, Comparator.nullsLast(String::compareToIgnoreCase));
+            case ALBUM -> comparator = Comparator.comparing(m -> m.album, Comparator.nullsLast(String::compareToIgnoreCase));
+            case DURATION -> comparator = Comparator.comparingLong(m -> m.duration);
+            default -> comparator = Comparator.comparing(m -> m.title, Comparator.nullsLast(String::compareToIgnoreCase));
+        }
+        if (state == ColumnSortState.DESCENDING) {
+            comparator = comparator.reversed();
+        }
+        return comparator;
+    }
+
+    /**
+     * Synchronise le dossier musical avec la bibliothèque et notifie la progression.
+     * Lance la synchronisation en tâche de fond et rafraîchit la bibliothèque à la fin.
+     * @param folderPath Chemin du dossier à synchroniser
+     * @param listener Listener de progression pour le suivi
+     */
+    public void syncFolder(String folderPath, com.luciferc137.cmp.database.sync.SyncProgressListener listener) {
+        new Thread(() -> {
+            // Délègue la synchronisation à LibraryService
+            com.luciferc137.cmp.database.sync.SyncResult result = libraryService.syncFolder(folderPath, listener);
+            // Rafraîchit la bibliothèque après la synchro
+            Platform.runLater(this::refresh);
+        }).start();
+    }
+}

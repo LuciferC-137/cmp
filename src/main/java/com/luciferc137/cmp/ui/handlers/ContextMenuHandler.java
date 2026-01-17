@@ -85,13 +85,13 @@ public class ContextMenuHandler {
     }
 
     /**
-     * Shows the context menu for one or more music items from a ListView.
+     * Shows the context menu for one or more music items from a playlist view (TableView or ListView).
      */
     public void showMusicContextMenuForPlaylist(
             List<Music> selectedMusic,
             double screenX,
             double screenY,
-            ListView<Music> playlistView,
+            Control playlistView,
             Long displayedPlaylistId
     ) {
         showMusicContextMenuInternal(selectedMusic, screenX, screenY, playlistView, displayedPlaylistId, true);
