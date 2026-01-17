@@ -62,6 +62,7 @@
                     <!-- Lyrics button -->
                     <Label style="-fx-font-size: 14px;" text="🔊" />
                     <Slider fx:id="volumeSlider" max="100" min="0" prefWidth="100" value="50" />
+                    <Label fx:id="volumePercentLabel" style="-fx-font-size: 13px; -fx-text-fill: #E0E0E0; -fx-min-width: 35px; -fx-alignment: CENTER_RIGHT;" text=" 50%" />
                 </HBox>
             </HBox>
 

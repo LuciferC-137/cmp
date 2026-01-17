@@ -56,6 +56,8 @@ public class MainController {
     @FXML private Button nextButton;
     @FXML private Button managePlaylistsButton;
 
+    @FXML private Label volumePercentLabel;
+
     // ==================== Core Services ====================
 
     private final VlcAudioPlayer audioPlayer = new VlcAudioPlayer();
@@ -118,6 +120,14 @@ public class MainController {
             musicTable.refresh();
             playlistTable.refresh();
         });
+
+        // Link volume slider to label
+        if (volumeSlider != null && volumePercentLabel != null) {
+            updateVolumePercentLabel((int) volumeSlider.getValue());
+            volumeSlider.valueProperty().addListener((obs, oldVal, newVal) -> {
+                updateVolumePercentLabel(newVal.intValue());
+            });
+        }
     }
 
     private void initializeHandlers() {
@@ -565,5 +575,15 @@ public class MainController {
                 this::refreshAllViews
         );
     }
-}
 
+    private void updateVolumePercentLabel(int value) {
+        // Add spaces for alignment
+        if (value < 10) {
+            volumePercentLabel.setText("  " + value + "%");
+        } else if (value < 100) {
+            volumePercentLabel.setText(" " + value + "%");
+        } else {
+            volumePercentLabel.setText(value + "%");
+        }
+    }
+}

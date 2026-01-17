@@ -154,10 +154,6 @@
     -fx-background-color: #3AA0FF;
 }
 
-.slider .colored-track {
-    -fx-background-color: #1E90FF;
-}
-
 /* === Progress Bar === */
 .progress-bar {
     -fx-background-color: #404040;
@@ -199,8 +195,8 @@
     -fx-text-fill: #B0B0B0;
     -fx-font-weight: bold;
     -fx-padding: 5 10 5 10;
-    -fx-max-width: 1.7976931348623157E308;
-    -fx-max-height: 1.7976931348623157E308;
+    -fx-max-width: 10000;
+    -fx-max-height: 10000;
 }
 
 .table-view .table-row-cell {
@@ -645,7 +641,7 @@
 }
 
 .table-row-cell.playlist-current-track:selected {
-    -fx-background-color: #E90FF !important;
+    -fx-background-color: #1E90FF !important;
 }
 
 .table-row-cell.playlist-current-track:selected .table-cell {
@@ -665,5 +661,4 @@
 .table-row-cell.playlist-current-track:hover {
 
 }
-
 
