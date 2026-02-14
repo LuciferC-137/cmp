@@ -9,8 +9,10 @@ import com.luciferc137.cmp.ui.CoverArtLoader;
 import com.luciferc137.cmp.ui.WaveformProgressBar;
 import javafx.animation.AnimationTimer;
 import javafx.application.Platform;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 
@@ -87,7 +89,7 @@ public class PlaybackHandler {
 
         // Set default cover art initially (100x100 to match FXML)
         if (coverArtView != null) {
-            coverArtView.setImage(CoverArtLoader.getDefaultCover(CoverArtLoader.DEFAULT_SIZE));
+            setCoverArtWithCenterCrop(CoverArtLoader.getDefaultCover(CoverArtLoader.DEFAULT_SIZE));
         }
     }
 
@@ -481,10 +483,39 @@ public class PlaybackHandler {
             elapsedTimeLabel.setText("0:00");
         }
 
-        // Load cover art (100x100 to match FXML)
+        // Load cover art (100x100 to match FXML) with center crop
         if (coverArtView != null) {
-            coverArtView.setImage(CoverArtLoader.loadCoverArt(music.filePath, CoverArtLoader.DEFAULT_SIZE));
+            Image image = CoverArtLoader.loadCoverArt(music.filePath, CoverArtLoader.DEFAULT_SIZE);
+            setCoverArtWithCenterCrop(image);
         }
+    }
+
+    /**
+     * Sets the cover art image with center crop to make it square.
+     * If the image is not square, it will be cropped from the center.
+     *
+     * @param image The image to display
+     */
+    private void setCoverArtWithCenterCrop(Image image) {
+        if (coverArtView == null || image == null) return;
+
+        double width = image.getWidth();
+        double height = image.getHeight();
+
+        if (width > 0 && height > 0) {
+            // Calculate the square crop region from the center
+            double size = Math.min(width, height);
+            double x = (width - size) / 2;
+            double y = (height - size) / 2;
+
+            // Apply viewport for center crop
+            coverArtView.setViewport(new Rectangle2D(x, y, size, size));
+        } else {
+            // No viewport needed for default/invalid images
+            coverArtView.setViewport(null);
+        }
+
+        coverArtView.setImage(image);
     }
 
     /**

@@ -363,7 +363,8 @@ public class MainController {
 
             @Override
             public void onSessionRestoreComplete() {
-                // Nothing additional needed
+                // Refresh the displayed playlist to show tracks in playback order
+                playlistPanelHandler.refreshDisplayedPlaylist();
             }
         });
     }

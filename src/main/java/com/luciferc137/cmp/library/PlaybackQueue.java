@@ -48,6 +48,9 @@ public class PlaybackQueue {
     // -1 represents "Local", positive numbers are playlist IDs
     private final List<Long> playlistPlayOrder = new ArrayList<>();
 
+    // Version counter to notify listeners when playback order changes (shuffle regenerated, etc.)
+    private final IntegerProperty playbackOrderVersion = new SimpleIntegerProperty(0);
+
     private PlaybackQueue() {
         this.queue = FXCollections.observableArrayList();
         this.localPlaylistContent = FXCollections.observableArrayList();
@@ -123,6 +126,14 @@ public class PlaybackQueue {
 
     public boolean isShuffleEnabled() {
         return shuffleEnabled.get();
+    }
+
+    /**
+     * Property that changes whenever the playback order changes (shuffle regenerated, etc.).
+     * Listeners can use this to refresh displays that depend on playback order.
+     */
+    public IntegerProperty playbackOrderVersionProperty() {
+        return playbackOrderVersion;
     }
 
     public void setShuffleEnabled(boolean enabled) {
@@ -523,6 +534,17 @@ public class PlaybackQueue {
         shuffleOrder.addAll(indices);
 
         shufflePosition = 0;
+
+        // Notify listeners that playback order has changed
+        notifyPlaybackOrderChanged();
+    }
+
+    /**
+     * Notifies listeners that the playback order has changed.
+     * Call this after restoring queue and shuffle state to refresh displays.
+     */
+    public void notifyPlaybackOrderChanged() {
+        playbackOrderVersion.set(playbackOrderVersion.get() + 1);
     }
 
     /**
@@ -557,6 +579,7 @@ public class PlaybackQueue {
 
     /**
      * Restores shuffle state from saved session.
+     * Note: Does not notify listeners - caller should call notifyPlaybackOrderChanged() when done.
      */
     public void restoreShuffleState(List<Integer> order, int position) {
         if (order != null && !order.isEmpty()) {

@@ -205,6 +205,19 @@ public class PlaylistPanelHandler {
             refreshDisplayedPlaylist();
         });
 
+        // Refresh displayed playlist when playback order changes (shuffle regenerated, session restored, etc.)
+        // This is the main listener for keeping the playlist view in sync with playback order
+        playbackQueue.playbackOrderVersionProperty().addListener((obs, oldVersion, newVersion) -> {
+            // Only refresh if we're displaying the currently playing playlist
+            long currentlyPlayingId = playbackQueue.getCurrentPlaylistId();
+            boolean isCurrentlyPlayingPlaylist = (displayedPlaylistId == null && currentlyPlayingId == -1) ||
+                    (displayedPlaylistId != null && displayedPlaylistId == currentlyPlayingId);
+
+            if (isCurrentlyPlayingPlaylist) {
+                refreshDisplayedPlaylist();
+            }
+        });
+
         // Setup sync scroll button
         setupSyncScrollButton();
 

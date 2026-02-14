@@ -163,6 +163,9 @@ public class SessionHandler {
                                 session.getShufflePosition());
                     }
 
+                    // Notify that playback order is now fully restored
+                    playbackQueue.notifyPlaybackOrderChanged();
+
                     // Restore current track
                     int trackIndex = session.getCurrentTrackIndex();
                     if (trackIndex >= 0 && trackIndex < tracks.size()) {

@@ -4,6 +4,7 @@
 <?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.shape.Rectangle?>
 
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.image.Image?>
@@ -19,8 +20,8 @@
             <HBox alignment="CENTER" spacing="20">
                 <!-- Current song info with cover art (left) -->
                 <HBox alignment="CENTER_LEFT" spacing="10" minWidth="300" maxWidth="300">
-                    <!-- Cover art -->
-                    <ImageView fx:id="currentCoverArt" fitWidth="100" fitHeight="100" smooth="false"/>
+                    <!-- Cover art (cropped to square via viewport in code) -->
+                    <ImageView fx:id="currentCoverArt" fitWidth="100" fitHeight="100" preserveRatio="false" smooth="true"/>
                     <!-- Song info -->
                     <VBox alignment="CENTER_LEFT">
                         <Label fx:id="currentTitleLabel" style="-fx-font-size: 14px; -fx-font-weight: bold;" styleClass="song-title"/>
