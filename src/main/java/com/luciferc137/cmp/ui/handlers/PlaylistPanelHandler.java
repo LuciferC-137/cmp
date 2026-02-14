@@ -17,6 +17,7 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.layout.HBox;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -181,6 +182,19 @@ public class PlaylistPanelHandler {
             }
         });
 
+        // Refresh playlist tabs order when the playing playlist changes
+        playbackQueue.currentPlaylistIdProperty().addListener((obs, oldId, newId) -> {
+            refreshPlaylistTabs();
+            // Also refresh displayed playlist order if we're viewing the new playing playlist
+            refreshDisplayedPlaylist();
+        });
+
+        // Refresh displayed playlist order when shuffle is toggled
+        playbackQueue.shuffleEnabledProperty().addListener((obs, wasEnabled, isEnabled) -> {
+            // Refresh to show tracks in new order (shuffled or unshuffled)
+            refreshDisplayedPlaylist();
+        });
+
         // Load tabs
         refreshPlaylistTabs();
     }
@@ -253,6 +267,7 @@ public class PlaylistPanelHandler {
 
     /**
      * Refreshes the playlist tabs.
+     * Playlists are sorted alphabetically.
      */
     public void refreshPlaylistTabs() {
         if (playlistTabsContainer == null) return;
@@ -264,8 +279,15 @@ public class PlaylistPanelHandler {
         Button localTab = createPlaylistTab("Local", null);
         playlistTabsContainer.getChildren().add(localTab);
 
-        // Add tabs for each playlist
-        for (PlaylistEntity playlist : availablePlaylists) {
+        // Sort playlists alphabetically (case-insensitive)
+        List<PlaylistEntity> sortedPlaylists = new ArrayList<>(availablePlaylists);
+        sortedPlaylists.sort(Comparator.comparing(p -> p.getName().toLowerCase()));
+
+        // Update availablePlaylists to match the sorted order (for updatePlaylistTabStyles)
+        availablePlaylists = sortedPlaylists;
+
+        // Add tabs for each playlist in sorted order
+        for (PlaylistEntity playlist : sortedPlaylists) {
             Button tab = createPlaylistTab(playlist.getName(), playlist.getId());
             playlistTabsContainer.getChildren().add(tab);
         }
@@ -321,7 +343,9 @@ public class PlaylistPanelHandler {
 
     /**
      * Loads a playlist into the view.
-     * Uses Music objects from the central MusicLibrary cache to ensure synchronization.
+     * If the playlist being displayed is the currently playing playlist,
+     * tracks are shown in playback order (respecting shuffle if enabled).
+     * Otherwise, tracks are shown in their stored order.
      */
     public void loadPlaylistIntoView(Long playlistId, String name) {
         displayedPlaylistId = playlistId;
@@ -332,11 +356,19 @@ public class PlaylistPanelHandler {
 
         displayedPlaylistContent.clear();
 
-        if (playlistId == null) {
-            // "Local" playlist - show the preserved Local content (not the current playback queue)
+        // Check if this playlist is currently playing
+        long currentlyPlayingId = playbackQueue.getCurrentPlaylistId();
+        boolean isCurrentlyPlayingPlaylist = (playlistId == null && currentlyPlayingId == -1) ||
+                (playlistId != null && playlistId == currentlyPlayingId);
+
+        if (isCurrentlyPlayingPlaylist && !playbackQueue.getQueue().isEmpty()) {
+            // Display tracks in playback order (respects shuffle)
+            displayedPlaylistContent.addAll(playbackQueue.getTracksInPlaybackOrder());
+        } else if (playlistId == null) {
+            // "Local" playlist not currently playing - show stored Local content
             displayedPlaylistContent.addAll(playbackQueue.getLocalPlaylistContent());
         } else {
-            // Saved playlist - load from database using cached Music objects
+            // Saved playlist not currently playing - load from database in stored order
             List<com.luciferc137.cmp.database.model.MusicEntity> playlistMusics =
                     libraryService.getPlaylistMusics(playlistId);
 
@@ -359,11 +391,23 @@ public class PlaylistPanelHandler {
 
     /**
      * Refreshes the currently displayed playlist.
+     * If the displayed playlist is the currently playing one,
+     * tracks are shown in playback order (respecting shuffle).
      */
     public void refreshDisplayedPlaylist() {
-        if (displayedPlaylistId == null) {
+        // Check if the displayed playlist is currently playing
+        long currentlyPlayingId = playbackQueue.getCurrentPlaylistId();
+        boolean isCurrentlyPlayingPlaylist = (displayedPlaylistId == null && currentlyPlayingId == -1) ||
+                (displayedPlaylistId != null && displayedPlaylistId == currentlyPlayingId);
+
+        if (isCurrentlyPlayingPlaylist && !playbackQueue.getQueue().isEmpty()) {
+            // Display tracks in playback order (respects shuffle)
+            displayedPlaylistContent.setAll(playbackQueue.getTracksInPlaybackOrder());
+        } else if (displayedPlaylistId == null) {
+            // Local playlist not currently playing
             displayedPlaylistContent.setAll(playbackQueue.getLocalPlaylistContent());
         } else {
+            // Saved playlist - reload from database
             String name = currentPlaylistLabel != null ? currentPlaylistLabel.getText() : "Playlist";
             loadPlaylistIntoView(displayedPlaylistId, name);
         }

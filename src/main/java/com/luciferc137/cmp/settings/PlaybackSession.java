@@ -74,6 +74,12 @@ public class PlaybackSession {
      */
     private long displayedPlaylistId = -1;
 
+    /**
+     * Order in which playlists were played (most recent first).
+     * Used to display playlist tabs in playback order.
+     */
+    private List<Long> playlistPlayOrder = new ArrayList<>();
+
     public PlaybackSession() {
         // Default constructor for deserialization
     }
@@ -182,6 +188,14 @@ public class PlaybackSession {
 
     public void setDisplayedPlaylistId(long displayedPlaylistId) {
         this.displayedPlaylistId = displayedPlaylistId;
+    }
+
+    public List<Long> getPlaylistPlayOrder() {
+        return playlistPlayOrder;
+    }
+
+    public void setPlaylistPlayOrder(List<Long> playlistPlayOrder) {
+        this.playlistPlayOrder = playlistPlayOrder != null ? playlistPlayOrder : new ArrayList<>();
     }
 
     /**

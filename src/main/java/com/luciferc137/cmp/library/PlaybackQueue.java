@@ -44,6 +44,10 @@ public class PlaybackQueue {
     private int shufflePosition;
     private final Random random = new Random();
 
+    // History of recently played playlists (most recent first)
+    // -1 represents "Local", positive numbers are playlist IDs
+    private final List<Long> playlistPlayOrder = new ArrayList<>();
+
     private PlaybackQueue() {
         this.queue = FXCollections.observableArrayList();
         this.localPlaylistContent = FXCollections.observableArrayList();
@@ -68,6 +72,33 @@ public class PlaybackQueue {
 
     public ObservableList<Music> getQueue() {
         return queue;
+    }
+
+    /**
+     * Returns the tracks in playback order.
+     * If shuffle is enabled, returns tracks in shuffle order.
+     * Otherwise, returns tracks in their natural queue order.
+     *
+     * @return List of tracks in playback order
+     */
+    public List<Music> getTracksInPlaybackOrder() {
+        if (queue.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        if (isShuffleEnabled() && !shuffleOrder.isEmpty()) {
+            // Return tracks in shuffle order
+            List<Music> orderedTracks = new ArrayList<>();
+            for (int index : shuffleOrder) {
+                if (index >= 0 && index < queue.size()) {
+                    orderedTracks.add(queue.get(index));
+                }
+            }
+            return orderedTracks;
+        } else {
+            // Return tracks in natural order
+            return new ArrayList<>(queue);
+        }
     }
 
     public ObjectProperty<Music> currentTrackProperty() {
@@ -159,6 +190,9 @@ public class PlaybackQueue {
         currentPlaylistName.set("Local");
         currentPlaylistId.set(-1);
         
+        // Update playlist play order history
+        updatePlaylistPlayOrder(-1L);
+
         if (startTrack != null) {
             int index = queue.indexOf(startTrack);
             if (index >= 0) {
@@ -197,6 +231,9 @@ public class PlaybackQueue {
         currentPlaylistName.set(playlistName);
         currentPlaylistId.set(playlistId);
         
+        // Update playlist play order history
+        updatePlaylistPlayOrder(playlistId);
+
         if (!queue.isEmpty()) {
             setCurrentIndex(0);
         } else {
@@ -206,6 +243,55 @@ public class PlaybackQueue {
         if (isShuffleEnabled()) {
             generateShuffleOrder();
         }
+    }
+
+    // ==================== Playlist Play Order ====================
+
+    /**
+     * Updates the playlist play order when a playlist starts playing.
+     * Moves the playlist to the front of the order (most recently played).
+     *
+     * @param playlistId The playlist ID (-1 for Local)
+     */
+    private void updatePlaylistPlayOrder(long playlistId) {
+        // Remove if already exists
+        playlistPlayOrder.remove(Long.valueOf(playlistId));
+        // Add to the front (most recent)
+        playlistPlayOrder.add(0, playlistId);
+    }
+
+    /**
+     * Gets the order in which playlists were played (most recent first).
+     * This is used to display playlist tabs in playback order.
+     *
+     * @return List of playlist IDs in play order (-1 represents Local)
+     */
+    public List<Long> getPlaylistPlayOrder() {
+        return new ArrayList<>(playlistPlayOrder);
+    }
+
+    /**
+     * Sets the playlist play order (used for session restore).
+     *
+     * @param order The list of playlist IDs in play order
+     */
+    public void setPlaylistPlayOrder(List<Long> order) {
+        playlistPlayOrder.clear();
+        if (order != null) {
+            playlistPlayOrder.addAll(order);
+        }
+    }
+
+    /**
+     * Gets the position of a playlist in the play order.
+     * Lower number means more recently played.
+     *
+     * @param playlistId The playlist ID (-1 for Local)
+     * @return The position (0 = most recent), or Integer.MAX_VALUE if never played
+     */
+    public int getPlaylistPlayOrderPosition(long playlistId) {
+        int index = playlistPlayOrder.indexOf(playlistId);
+        return index >= 0 ? index : Integer.MAX_VALUE;
     }
 
     /**

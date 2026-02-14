@@ -506,7 +506,7 @@ public class PlaybackHandler {
      * @param updatedMusic The Music object with updated metadata
      */
     public void refreshCurrentTrackIfMatches(Music updatedMusic) {
-        if (currentMusic != null && updatedMusic != null && currentMusic.equals(updatedMusic)) {
+        if (currentMusic != null && currentMusic.equals(updatedMusic)) {
             // Copy the updated metadata to our currentMusic instance
             currentMusic.copyMetadataFrom(updatedMusic);
             // Refresh the display

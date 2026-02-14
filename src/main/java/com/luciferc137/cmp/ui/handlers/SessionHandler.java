@@ -92,6 +92,9 @@ public class SessionHandler {
             // Save displayed playlist
             session.setDisplayedPlaylistId(displayedPlaylistId != null ? displayedPlaylistId : -1);
 
+            // Save playlist play order (for tab ordering)
+            session.setPlaylistPlayOrder(playbackQueue.getPlaylistPlayOrder());
+
             settingsManager.saveSession();
             System.out.println("Session saved: shuffle=" + session.isShuffleEnabled() +
                     ", loop=" + session.getLoopMode() +
@@ -205,6 +208,13 @@ public class SessionHandler {
             Long displayedPlaylistId = displayedId == -1 ? null : displayedId;
             if (restoreListener != null) {
                 restoreListener.onDisplayedPlaylistRestored(displayedPlaylistId);
+            }
+
+            // Restore playlist play order (for tab ordering)
+            List<Long> playOrder = session.getPlaylistPlayOrder();
+            if (playOrder != null && !playOrder.isEmpty()) {
+                playbackQueue.setPlaylistPlayOrder(playOrder);
+                System.out.println("Restored playlist play order with " + playOrder.size() + " entries");
             }
 
         } catch (Exception e) {
