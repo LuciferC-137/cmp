@@ -266,10 +266,10 @@ public class PlaylistPanelHandler {
 
         if (scrollSyncEnabled) {
             syncScrollButton.setStyle("-fx-font-size: 12px; -fx-padding: 2; -fx-background-color: #1E90FF; -fx-text-fill: white;");
-            syncScrollButton.setText("⟳");
+            syncScrollButton.setText("⇅");
         } else {
             syncScrollButton.setStyle("-fx-font-size: 12px; -fx-padding: 2; -fx-background-color: #3C3C3C; -fx-text-fill: #808080;");
-            syncScrollButton.setText("⟳");
+            syncScrollButton.setText("⇅");
         }
     }
 

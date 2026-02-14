@@ -44,6 +44,14 @@
             </tooltip>
         </Button>
 
+        <!-- Sync scroll button -->
+        <Button fx:id="syncScrollButton" text="⇅" prefWidth="34" prefHeight="34"
+                styleClass="sync-button">
+            <tooltip>
+                <Tooltip text="Sync lyrics scroll with playback" />
+            </tooltip>
+        </Button>
+
         <!-- Edit button -->
         <Button fx:id="editButton" text="✏ Edit" onAction="#onEditMetadata" styleClass="edit-button" />
     </HBox>

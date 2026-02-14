@@ -10,6 +10,7 @@ import javafx.stage.Window;
 import java.io.IOException;
 import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.function.LongSupplier;
 
 /**
  * Manages the lyrics display window.
@@ -26,8 +27,11 @@ public class LyricsWindow {
      * @param ownerWindow The owner window (for positioning)
      * @param currentMusic The currently playing music track
      * @param onMetadataChanged Callback when metadata is changed via the edit button
+     * @param positionSupplier Supplier for current playback position in milliseconds
+     * @param durationSupplier Supplier for total track duration in milliseconds
      */
-    public static void show(Window ownerWindow, Music currentMusic, Consumer<Music> onMetadataChanged) {
+    public static void show(Window ownerWindow, Music currentMusic, Consumer<Music> onMetadataChanged,
+                            LongSupplier positionSupplier, LongSupplier durationSupplier) {
 
         if (lyricsStage != null && lyricsStage.isShowing()) {
             // Window already open, just update content and bring to front
@@ -54,7 +58,8 @@ public class LyricsWindow {
             controller = loader.getController();
             controller.setMusic(currentMusic);
             controller.setOnMetadataChanged(onMetadataChanged);
-            
+            controller.setPlaybackSuppliers(positionSupplier, durationSupplier);
+
             lyricsStage.setTitle("Lyrics");
             lyricsStage.setScene(scene);
             lyricsStage.setMinWidth(700);
@@ -72,6 +77,9 @@ public class LyricsWindow {
             
             // Clear references when window is closed
             lyricsStage.setOnHidden(event -> {
+                if (controller != null) {
+                    controller.cleanup();
+                }
                 lyricsStage = null;
                 controller = null;
             });

@@ -582,7 +582,9 @@ public class MainController {
         LyricsWindow.show(
                 musicTable.getScene().getWindow(),
                 currentMusic,
-                this::refreshAllViews
+                this::refreshAllViews,
+                () -> audioPlayer.getPosition(),
+                () -> audioPlayer.getDuration()
         );
     }
 

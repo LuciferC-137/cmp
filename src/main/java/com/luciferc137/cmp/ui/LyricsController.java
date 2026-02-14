@@ -3,6 +3,7 @@ package com.luciferc137.cmp.ui;
 import com.luciferc137.cmp.audio.AudioMetadata;
 import com.luciferc137.cmp.audio.LyricsService;
 import com.luciferc137.cmp.library.Music;
+import javafx.animation.AnimationTimer;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
@@ -16,6 +17,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.function.LongSupplier;
 
 /**
  * Controller for the lyrics window FXML.
@@ -32,6 +34,7 @@ public class LyricsController {
     @FXML private Label loadingLabel;
     @FXML private Button editButton;
     @FXML private Button fetchButton;
+    @FXML private Button syncScrollButton;
     @FXML private ScrollPane lyricsScrollPane;
     @FXML private HBox loadingBox;
 
@@ -39,12 +42,200 @@ public class LyricsController {
     private Consumer<Music> onMetadataChanged;
     private boolean isFetching = false;
 
+    // Scroll sync state
+    private boolean scrollSyncEnabled = false;
+    private LongSupplier positionSupplier;
+    private LongSupplier durationSupplier;
+    private AnimationTimer scrollSyncTimer;
+
+    // Smooth scrolling interpolation
+    private double currentScrollValue = 0;
+    private static final double SCROLL_SMOOTHING = 0.08; // Lower = smoother but slower response
+
     @FXML
     public void initialize() {
         // Set default cover art
         if (coverArtView != null) {
             coverArtView.setImage(CoverArtLoader.getDefaultCover(80));
         }
+
+        // Setup sync scroll button
+        setupSyncScrollButton();
+    }
+
+    /**
+     * Sets up the sync scroll button and scroll listeners.
+     */
+    private void setupSyncScrollButton() {
+        if (syncScrollButton == null) return;
+
+        // Initial style (disabled)
+        updateSyncButtonStyle();
+
+        // Toggle sync on button click
+        syncScrollButton.setOnAction(e -> {
+            scrollSyncEnabled = !scrollSyncEnabled;
+            updateSyncButtonStyle();
+            if (scrollSyncEnabled) {
+                startScrollSync();
+            } else {
+                stopScrollSync();
+            }
+        });
+
+        // Disable sync when user manually scrolls with mouse wheel
+        if (lyricsScrollPane != null) {
+            lyricsScrollPane.setOnScroll(event -> {
+                if (scrollSyncEnabled) {
+                    scrollSyncEnabled = false;
+                    updateSyncButtonStyle();
+                    stopScrollSync();
+                }
+            });
+
+            // Disable sync when user interacts with the scrollbar
+            lyricsScrollPane.skinProperty().addListener((obs, oldSkin, newSkin) -> {
+                if (newSkin != null) {
+                    lyricsScrollPane.lookupAll(".scroll-bar").forEach(node -> {
+                        if (node instanceof ScrollBar scrollBar &&
+                            scrollBar.getOrientation() == javafx.geometry.Orientation.VERTICAL) {
+                            scrollBar.addEventFilter(javafx.scene.input.MouseEvent.MOUSE_PRESSED, event -> {
+                                if (scrollSyncEnabled) {
+                                    scrollSyncEnabled = false;
+                                    updateSyncButtonStyle();
+                                    stopScrollSync();
+                                }
+                            });
+                        }
+                    });
+                }
+            });
+        }
+    }
+
+    /**
+     * Updates the sync button style based on current state.
+     */
+    private void updateSyncButtonStyle() {
+        if (syncScrollButton == null) return;
+
+        if (scrollSyncEnabled) {
+            syncScrollButton.setStyle("-fx-font-size: 14px; -fx-background-color: #1E90FF; -fx-text-fill: white;");
+            syncScrollButton.setText("⇅");
+        } else {
+            syncScrollButton.setStyle("-fx-font-size: 14px; -fx-background-color: #3C3C3C; -fx-text-fill: #808080;");
+            syncScrollButton.setText("⇅");
+        }
+    }
+
+    /**
+     * Sets the playback position and duration suppliers for scroll synchronization.
+     *
+     * @param positionSupplier Supplier for current playback position in milliseconds
+     * @param durationSupplier Supplier for total track duration in milliseconds
+     */
+    public void setPlaybackSuppliers(LongSupplier positionSupplier, LongSupplier durationSupplier) {
+        this.positionSupplier = positionSupplier;
+        this.durationSupplier = durationSupplier;
+    }
+
+    /**
+     * Starts the scroll synchronization timer.
+     */
+    private void startScrollSync() {
+        if (scrollSyncTimer != null) {
+            scrollSyncTimer.stop();
+        }
+
+        // Initialize current scroll value to current position
+        if (lyricsScrollPane != null) {
+            currentScrollValue = lyricsScrollPane.getVvalue();
+        }
+
+        scrollSyncTimer = new AnimationTimer() {
+            @Override
+            public void handle(long now) {
+                updateScrollPosition();
+            }
+        };
+        scrollSyncTimer.start();
+    }
+
+    /**
+     * Stops the scroll synchronization timer.
+     */
+    private void stopScrollSync() {
+        if (scrollSyncTimer != null) {
+            scrollSyncTimer.stop();
+            scrollSyncTimer = null;
+        }
+    }
+
+    /**
+     * Updates the scroll position based on playback progress.
+     * The lyrics scroll so that the current position is always in the middle of the viewport.
+     * Uses smooth interpolation for fluid scrolling.
+     *
+     * - At the start (0%), scroll is at top (vvalue = 0)
+     * - At 50% of the song, scroll reaches middle position
+     * - At 100% of the song, scroll reaches the bottom (vvalue = 1)
+     *
+     * The formula ensures that the "current lyrics" appear in the middle of the viewport
+     * by offsetting the scroll position.
+     */
+    private void updateScrollPosition() {
+        if (lyricsScrollPane == null || positionSupplier == null || durationSupplier == null) {
+            return;
+        }
+
+        long position = positionSupplier.getAsLong();
+        long duration = durationSupplier.getAsLong();
+
+        if (duration <= 0) {
+            return;
+        }
+
+        // Calculate progress (0.0 to 1.0)
+        double progress = (double) position / duration;
+        progress = Math.max(0, Math.min(1, progress));
+
+        // Get viewport height ratio (how much of the content is visible)
+        double viewportHeight = lyricsScrollPane.getViewportBounds().getHeight();
+        double contentHeight = lyricsScrollPane.getContent().getBoundsInLocal().getHeight();
+
+        if (contentHeight <= viewportHeight) {
+            // Content fits in viewport, no need to scroll
+            return;
+        }
+
+        // Calculate target scroll position
+        // At any progress point, the "current lyrics position" in the content is:
+        // currentContentPos = progress * contentHeight
+        // We want this position to be at the center of the viewport:
+        // viewportTopPos = currentContentPos - viewportHeight/2
+        double currentContentPos = progress * contentHeight;
+        double viewportTopPos = currentContentPos - (viewportHeight / 2);
+
+        // Clamp to valid range [0, contentHeight - viewportHeight]
+        double maxScroll = contentHeight - viewportHeight;
+        viewportTopPos = Math.max(0, Math.min(maxScroll, viewportTopPos));
+
+        // Convert to vvalue (0 to 1)
+        double targetScrollValue = viewportTopPos / maxScroll;
+
+        // Apply smooth interpolation (lerp)
+        // Move currentScrollValue towards targetScrollValue by a fraction each frame
+        currentScrollValue = currentScrollValue + (targetScrollValue - currentScrollValue) * SCROLL_SMOOTHING;
+
+        // Apply the smoothed scroll value
+        lyricsScrollPane.setVvalue(currentScrollValue);
+    }
+
+    /**
+     * Cleans up resources when the controller is no longer needed.
+     */
+    public void cleanup() {
+        stopScrollSync();
     }
 
     /**
