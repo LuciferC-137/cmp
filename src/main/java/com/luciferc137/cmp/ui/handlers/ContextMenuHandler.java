@@ -42,10 +42,12 @@ public class ContextMenuHandler {
         void onEditMetadataRequested(Music music);
         void onBatchChangeCoverArtRequested(List<Music> musicList);
         /**
-         * Called when metadata has been changed for any music.
+         * Called when metadata has been changed for a music track.
          * Should trigger a refresh of all views (table, playlist, current track display).
+         *
+         * @param editedMusic The music that was edited (can be null for batch operations)
          */
-        void onMetadataChanged();
+        void onMetadataChanged(Music editedMusic);
         /**
          * Called when tracks should be removed from the current playlist.
          */

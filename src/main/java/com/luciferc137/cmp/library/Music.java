@@ -123,6 +123,20 @@ public class Music {
         }
     }
 
+    /**
+     * Copies metadata (title, artist, album) from another Music object.
+     * Used to synchronize metadata across different instances representing the same track.
+     *
+     * @param source The source Music object to copy from
+     */
+    public void copyMetadataFrom(Music source) {
+        if (source != null) {
+            this.title = source.title;
+            this.artist = source.artist;
+            this.album = source.album;
+        }
+    }
+
     @Override
     public String toString() {
         return title + " - " + artist + " (" + album + ")";

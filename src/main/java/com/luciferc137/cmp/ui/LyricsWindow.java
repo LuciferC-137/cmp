@@ -9,6 +9,7 @@ import javafx.stage.Window;
 
 import java.io.IOException;
 import java.util.Objects;
+import java.util.function.Consumer;
 
 /**
  * Manages the lyrics display window.
@@ -26,7 +27,7 @@ public class LyricsWindow {
      * @param currentMusic The currently playing music track
      * @param onMetadataChanged Callback when metadata is changed via the edit button
      */
-    public static void show(Window ownerWindow, Music currentMusic, Runnable onMetadataChanged) {
+    public static void show(Window ownerWindow, Music currentMusic, Consumer<Music> onMetadataChanged) {
 
         if (lyricsStage != null && lyricsStage.isShowing()) {
             // Window already open, just update content and bring to front
@@ -93,6 +94,16 @@ public class LyricsWindow {
     public static void updateCurrentTrack(Music music) {
         if (lyricsStage != null && lyricsStage.isShowing() && controller != null) {
             controller.setMusic(music);
+        }
+    }
+
+    /**
+     * Refreshes the display of the current track (if window is open).
+     * Used after metadata has been edited to update the displayed information.
+     */
+    public static void refreshCurrentTrack() {
+        if (lyricsStage != null && lyricsStage.isShowing() && controller != null) {
+            controller.refreshDisplay();
         }
     }
 

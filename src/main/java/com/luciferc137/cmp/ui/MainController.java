@@ -287,18 +287,18 @@ public class MainController {
             public void onEditMetadataRequested(Music music) {
                 boolean saved = MetadataEditorDialog.show(music);
                 if (saved) {
-                    onMetadataChanged();
+                    onMetadataChanged(music);
                 }
             }
 
             @Override
             public void onBatchChangeCoverArtRequested(List<Music> musicList) {
-                BatchCoverArtDialog.show(musicList, this::onMetadataChanged);
+                BatchCoverArtDialog.show(musicList, () -> onMetadataChanged(null));
             }
 
             @Override
-            public void onMetadataChanged() {
-                refreshAllViews();
+            public void onMetadataChanged(Music editedMusic) {
+                refreshAllViews(editedMusic);
             }
 
             @Override
@@ -469,9 +469,11 @@ public class MainController {
 
     /**
      * Refreshes all views after metadata changes.
-     * This includes the music table, playlist view, and current track display.
+     * This includes the music table, playlist view, current track display, and lyrics window.
+     *
+     * @param editedMusic The music that was edited (can be null for batch operations)
      */
-    private void refreshAllViews() {
+    private void refreshAllViews(Music editedMusic) {
         // Refresh main table
         musicTable.refresh();
 
@@ -480,10 +482,16 @@ public class MainController {
         playlistTable.refresh();
 
         // Refresh current track display if the current track was affected
-        Music currentTrack = playbackHandler.getCurrentMusic();
-        if (currentTrack != null) {
-            playbackHandler.displayTrackInfo(currentTrack);
+        if (editedMusic != null) {
+            // Synchronize metadata if the edited music matches the current track
+            playbackHandler.refreshCurrentTrackIfMatches(editedMusic);
+        } else {
+            // Batch operation or unknown - just refresh the display
+            playbackHandler.refreshCurrentTrackDisplay();
         }
+
+        // Refresh lyrics window if it's open
+        LyricsWindow.refreshCurrentTrack();
     }
 
     // ==================== FXML Action Handlers ====================

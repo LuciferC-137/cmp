@@ -15,6 +15,7 @@ import javafx.scene.layout.VBox;
 import java.io.File;
 import java.io.IOException;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 /**
  * Controller for the lyrics window FXML.
@@ -35,7 +36,7 @@ public class LyricsController {
     @FXML private HBox loadingBox;
 
     private Music currentMusic;
-    private Runnable onMetadataChanged;
+    private Consumer<Music> onMetadataChanged;
     private boolean isFetching = false;
 
     @FXML
@@ -73,6 +74,25 @@ public class LyricsController {
         // Enable buttons
         editButton.setDisable(false);
         fetchButton.setDisable(false);
+    }
+
+    /**
+     * Refreshes the display of the current music track.
+     * Updates title, artist, album, and cover art without reloading lyrics.
+     * Used after metadata has been edited.
+     */
+    public void refreshDisplay() {
+        if (currentMusic == null) {
+            return;
+        }
+
+        // Update track info labels
+        titleLabel.setText(currentMusic.title != null ? currentMusic.title : "Unknown Title");
+        artistLabel.setText(currentMusic.artist != null ? currentMusic.artist : "Unknown Artist");
+        albumLabel.setText(currentMusic.album != null ? currentMusic.album : "");
+
+        // Reload cover art (in case it was changed)
+        loadCoverArt(currentMusic);
     }
 
     private void clearDisplay() {
@@ -127,9 +147,9 @@ public class LyricsController {
     /**
      * Sets a callback to be invoked when metadata is changed.
      *
-     * @param callback The callback to run
+     * @param callback The callback to run with the edited music
      */
-    public void setOnMetadataChanged(Runnable callback) {
+    public void setOnMetadataChanged(Consumer<Music> callback) {
         this.onMetadataChanged = callback;
     }
 
@@ -141,12 +161,15 @@ public class LyricsController {
         
         boolean saved = MetadataEditorDialog.show(currentMusic);
         if (saved) {
+            // Refresh the track info display (title, artist, album, cover art)
+            refreshDisplay();
+
             // Refresh the lyrics display
             loadLyrics(currentMusic);
             
             // Notify parent controller of changes
             if (onMetadataChanged != null) {
-                onMetadataChanged.run();
+                onMetadataChanged.accept(currentMusic);
             }
         }
     }
@@ -287,7 +310,7 @@ public class LyricsController {
 
             // Notify parent controller
             if (onMetadataChanged != null) {
-                onMetadataChanged.run();
+                onMetadataChanged.accept(currentMusic);
             }
 
             statusLabel.setText("Lyrics saved successfully!");

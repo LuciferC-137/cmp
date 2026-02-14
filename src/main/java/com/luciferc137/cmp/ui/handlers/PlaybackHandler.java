@@ -498,6 +498,32 @@ public class PlaybackHandler {
         }
     }
 
+    /**
+     * Refreshes the current track display after metadata has been edited.
+     * If the provided music matches the current track (same ID), copies the updated
+     * metadata and refreshes the display.
+     *
+     * @param updatedMusic The Music object with updated metadata
+     */
+    public void refreshCurrentTrackIfMatches(Music updatedMusic) {
+        if (currentMusic != null && updatedMusic != null && currentMusic.equals(updatedMusic)) {
+            // Copy the updated metadata to our currentMusic instance
+            currentMusic.copyMetadataFrom(updatedMusic);
+            // Refresh the display
+            updateCurrentSongLabels(currentMusic);
+        }
+    }
+
+    /**
+     * Simply refreshes the current track display labels.
+     * Used when the currentMusic object itself has been updated.
+     */
+    public void refreshCurrentTrackDisplay() {
+        if (currentMusic != null) {
+            updateCurrentSongLabels(currentMusic);
+        }
+    }
+
     // ==================== Utilities ====================
 
     private String formatTime(long millis) {
