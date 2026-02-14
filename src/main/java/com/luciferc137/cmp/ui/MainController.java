@@ -49,6 +49,7 @@ public class MainController {
     @FXML private ScrollPane playlistTabsScrollPane;
     @FXML private Label currentPlaylistLabel;
     @FXML private Label playlistInfoLabel;
+    @FXML private Button syncScrollButton;
 
     @FXML private Button shuffleButton;
     @FXML private Button loopButton;
@@ -157,7 +158,8 @@ public class MainController {
                 playlistRatingColumn,
                 playlistTabsContainer,
                 currentPlaylistLabel,
-                playlistInfoLabel
+                playlistInfoLabel,
+                syncScrollButton
         );
 
         tableHandler.bindUIComponents(

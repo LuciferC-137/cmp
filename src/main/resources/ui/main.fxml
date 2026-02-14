@@ -105,8 +105,12 @@
                             style="-fx-font-size: 16px;" />
                 </HBox>
 
-                <!-- Current playlist name -->
-                <Label fx:id="currentPlaylistLabel" text="Local" style="-fx-font-weight: bold; -fx-font-size: 13px;" />
+                <!-- Current playlist name with sync button -->
+                <HBox alignment="CENTER_LEFT" spacing="5">
+                    <Button fx:id="syncScrollButton" text="⟳" prefWidth="24" prefHeight="24"
+                            style="-fx-font-size: 12px; -fx-padding: 2;" />
+                    <Label fx:id="currentPlaylistLabel" text="Local" style="-fx-font-weight: bold; -fx-font-size: 13px;" />
+                </HBox>
 
                 <!-- Playlist content -->
                 <TableView fx:id="playlistTable" VBox.vgrow="ALWAYS">

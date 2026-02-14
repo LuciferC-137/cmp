@@ -40,11 +40,15 @@ public class PlaylistPanelHandler {
     private HBox playlistTabsContainer;
     private Label currentPlaylistLabel;
     private Label playlistInfoLabel;
+    private Button syncScrollButton;
 
     // State
     private Long displayedPlaylistId = null; // null = Local, otherwise playlist ID
     private List<PlaylistEntity> availablePlaylists = new ArrayList<>();
     private final ObservableList<Music> displayedPlaylistContent = FXCollections.observableArrayList();
+
+    // Scroll sync state
+    private boolean scrollSyncEnabled = false;
 
     // Event listener
     private PlaylistEventListener eventListener;
@@ -91,7 +95,8 @@ public class PlaylistPanelHandler {
             TableColumn<Music, String> playlistRatingColumn,
             HBox playlistTabsContainer,
             Label currentPlaylistLabel,
-            Label playlistInfoLabel
+            Label playlistInfoLabel,
+            Button syncScrollButton
     ) {
         this.playlistTable = playlistTable;
         this.playlistTitleColumn = playlistTitleColumn;
@@ -99,6 +104,7 @@ public class PlaylistPanelHandler {
         this.playlistTabsContainer = playlistTabsContainer;
         this.currentPlaylistLabel = currentPlaylistLabel;
         this.playlistInfoLabel = playlistInfoLabel;
+        this.syncScrollButton = syncScrollButton;
     }
 
     public void setEventListener(PlaylistEventListener listener) {
@@ -167,9 +173,13 @@ public class PlaylistPanelHandler {
             }
         });
 
-        // Update current track highlighting
+        // Update current track highlighting and scroll sync
         playbackQueue.currentTrackProperty().addListener((obs, old, newTrack) -> {
             playlistTable.refresh();
+            // Scroll to current track if sync is enabled
+            if (scrollSyncEnabled && newTrack != null) {
+                scrollToCurrentTrack();
+            }
         });
 
         // Update playlist info when content changes
@@ -195,8 +205,85 @@ public class PlaylistPanelHandler {
             refreshDisplayedPlaylist();
         });
 
+        // Setup sync scroll button
+        setupSyncScrollButton();
+
         // Load tabs
         refreshPlaylistTabs();
+    }
+
+    /**
+     * Sets up the sync scroll button and scroll listeners.
+     */
+    private void setupSyncScrollButton() {
+        if (syncScrollButton == null) return;
+
+        // Initial style (disabled)
+        updateSyncButtonStyle();
+
+        // Toggle sync on button click
+        syncScrollButton.setOnAction(e -> {
+            scrollSyncEnabled = !scrollSyncEnabled;
+            updateSyncButtonStyle();
+            if (scrollSyncEnabled) {
+                scrollToCurrentTrack();
+            }
+        });
+
+        // Disable sync when user manually scrolls with mouse wheel
+        playlistTable.setOnScroll(event -> {
+            if (scrollSyncEnabled) {
+                scrollSyncEnabled = false;
+                updateSyncButtonStyle();
+            }
+        });
+
+        // Disable sync when user interacts with the scrollbar
+        // We need to find the vertical scrollbar and add a listener
+        playlistTable.skinProperty().addListener((obs, oldSkin, newSkin) -> {
+            if (newSkin != null) {
+                // Find the vertical scrollbar
+                playlistTable.lookupAll(".scroll-bar").forEach(node -> {
+                    if (node instanceof ScrollBar scrollBar && scrollBar.getOrientation() == javafx.geometry.Orientation.VERTICAL) {
+                        // Disable sync when user drags the scrollbar
+                        scrollBar.addEventFilter(javafx.scene.input.MouseEvent.MOUSE_PRESSED, event -> {
+                            if (scrollSyncEnabled) {
+                                scrollSyncEnabled = false;
+                                updateSyncButtonStyle();
+                            }
+                        });
+                    }
+                });
+            }
+        });
+    }
+
+    /**
+     * Updates the sync button style based on current state.
+     */
+    private void updateSyncButtonStyle() {
+        if (syncScrollButton == null) return;
+
+        if (scrollSyncEnabled) {
+            syncScrollButton.setStyle("-fx-font-size: 12px; -fx-padding: 2; -fx-background-color: #1E90FF; -fx-text-fill: white;");
+            syncScrollButton.setText("⟳");
+        } else {
+            syncScrollButton.setStyle("-fx-font-size: 12px; -fx-padding: 2; -fx-background-color: #3C3C3C; -fx-text-fill: #808080;");
+            syncScrollButton.setText("⟳");
+        }
+    }
+
+    /**
+     * Scrolls the playlist table to show the current track at the top.
+     */
+    private void scrollToCurrentTrack() {
+        Music currentTrack = playbackQueue.getCurrentTrack();
+        if (currentTrack == null || playlistTable == null) return;
+
+        int index = displayedPlaylistContent.indexOf(currentTrack);
+        if (index >= 0) {
+            playlistTable.scrollTo(index);
+        }
     }
 
     /**
