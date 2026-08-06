@@ -225,10 +225,10 @@ public class LyricsController {
      * Removes LRC timestamps from synced lyrics.
      * Timestamps look like [00:15.50]
      */
-    private static String removeLrcTimestamps(String syncedLyrics) {
-        if (syncedLyrics == null) return null;
+    private static String removeLrcTimestamps(String synchedLyrics) {
+        if (synchedLyrics == null) return null;
         // Remove patterns like [00:00.00] or [0:00.00]
-        return syncedLyrics.replaceAll("\\[\\d{1,2}:\\d{2}\\.\\d{2}]\\s*", "");
+        return synchedLyrics.replaceAll("\\[\\d{1,2}:\\d{2}\\.\\d{2}]\\s*", "");
     }
 
     /**
@@ -279,12 +279,10 @@ public class LyricsController {
             return;
         }
 
-        // Show loading state
         showLoading("Searching lyrics for \"" + title + "\" by " + artist + "...");
         isFetching = true;
         fetchButton.setDisable(true);
 
-        // Fetch lyrics asynchronously
         LyricsService.fetchLyricsAsync(artist, title)
                 .thenAccept(result -> Platform.runLater(() -> {
                     hideLoading();
@@ -292,7 +290,8 @@ public class LyricsController {
                     fetchButton.setDisable(false);
 
                     if (result.isSuccess()) {
-                        showLyricsConfirmationDialog(result.getLyrics());
+                        LyricsConfirmationDialog.show(title, artist, result.getLyrics())
+                                .ifPresent(this::saveLyricsToFile);
                     } else {
                         showErrorAlert("Lyrics Not Found", result.getErrorMessage());
                     }
@@ -323,61 +322,6 @@ public class LyricsController {
             loadingBox.setManaged(false);
         }
         statusLabel.setText("");
-    }
-
-    private void showLyricsConfirmationDialog(String fetchedLyrics) {
-        Dialog<ButtonType> dialog = new Dialog<>();
-        dialog.setTitle("Lyrics Found");
-        dialog.setHeaderText("Review the fetched lyrics before saving");
-        dialog.setResizable(true);
-
-        // Apply dark theme
-        ThemeManager.applyDarkTheme(dialog);
-
-        // Create content
-        VBox content = new VBox(10);
-        content.setPadding(new Insets(10));
-
-        Label infoLabel = new Label("Lyrics for \"" + currentMusic.title + "\" by " + currentMusic.artist + ":");
-        infoLabel.setStyle("-fx-font-weight: bold;");
-
-        TextArea lyricsArea = new TextArea(fetchedLyrics);
-        lyricsArea.setWrapText(true);
-        lyricsArea.setEditable(true);
-        lyricsArea.setPrefRowCount(20);
-        lyricsArea.setPrefColumnCount(50);
-        VBox.setVgrow(lyricsArea, Priority.ALWAYS);
-
-        Label hintLabel = new Label("You can edit the lyrics before saving.");
-        hintLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #888888;");
-
-        content.getChildren().addAll(infoLabel, lyricsArea, hintLabel);
-
-        dialog.getDialogPane().setContent(content);
-
-        // Add buttons
-        ButtonType saveButton = new ButtonType("Save to File", ButtonBar.ButtonData.OK_DONE);
-        ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
-        dialog.getDialogPane().getButtonTypes().addAll(saveButton, cancelButton);
-
-        // Set size and center on screen
-        dialog.setOnShown(e -> {
-            var window = dialog.getDialogPane().getScene().getWindow();
-            if (window instanceof javafx.stage.Stage stage) {
-                stage.setMinWidth(600);
-                stage.setMinHeight(550);
-                stage.setWidth(600);
-                stage.setHeight(550);
-                stage.centerOnScreen();
-            }
-        });
-
-        Optional<ButtonType> result = dialog.showAndWait();
-
-        if (result.isPresent() && result.get() == saveButton) {
-            String editedLyrics = lyricsArea.getText();
-            saveLyricsToFile(editedLyrics);
-        }
     }
 
     private void saveLyricsToFile(String lyrics) {
