@@ -159,9 +159,6 @@ public class LyricsService {
         if (lyrics == null || lyrics.trim().isEmpty()) {
             // Fallback to synced lyrics and remove timestamps
             lyrics = extractJsonStringField(json, "syncedLyrics");
-            if (lyrics != null) {
-                lyrics = removeLrcTimestamps(lyrics);
-            }
         }
 
         return lyrics;
@@ -219,16 +216,6 @@ public class LyricsService {
         }
 
         return value.toString();
-    }
-
-    /**
-     * Removes LRC timestamps from synced lyrics.
-     * Timestamps look like [00:15.50]
-     */
-    private static String removeLrcTimestamps(String syncedLyrics) {
-        if (syncedLyrics == null) return null;
-        // Remove patterns like [00:00.00] or [0:00.00]
-        return syncedLyrics.replaceAll("\\[\\d{1,2}:\\d{2}\\.\\d{2}\\]\\s*", "");
     }
 }
 

@@ -70,7 +70,7 @@ public class Music {
     }
 
     public void setRating(int rating) {
-        this.rating = Math.max(0, Math.min(5, rating));
+        this.rating = Math.clamp(rating, 0, 5);
     }
 
     public List<String> getTags() {

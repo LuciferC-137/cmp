@@ -1,6 +1,7 @@
-package com.luciferc137.cmp.ui;
+package com.luciferc137.cmp.ui.lyrics;
 
 import com.luciferc137.cmp.library.Music;
+import com.luciferc137.cmp.ui.ThemeManager;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
@@ -91,6 +92,7 @@ public class LyricsWindow {
             
         } catch (IOException e) {
             System.err.println("Error loading lyrics window: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 

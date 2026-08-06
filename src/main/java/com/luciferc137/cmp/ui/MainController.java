@@ -5,6 +5,7 @@ import com.luciferc137.cmp.audio.WaveformExtractor;
 import com.luciferc137.cmp.database.model.PlaylistEntity;
 import com.luciferc137.cmp.library.*;
 import com.luciferc137.cmp.ui.handlers.*;
+import com.luciferc137.cmp.ui.lyrics.LyricsWindow;
 import com.luciferc137.cmp.ui.settings.SettingsWindow;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -584,8 +585,8 @@ public class MainController {
                 musicTable.getScene().getWindow(),
                 currentMusic,
                 this::refreshAllViews,
-                () -> audioPlayer.getPosition(),
-                () -> audioPlayer.getDuration()
+                audioPlayer::getPosition,
+                audioPlayer::getDuration
         );
     }
 

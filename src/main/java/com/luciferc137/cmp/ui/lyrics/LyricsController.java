@@ -1,9 +1,11 @@
-package com.luciferc137.cmp.ui;
+package com.luciferc137.cmp.ui.lyrics;
 
 import com.luciferc137.cmp.audio.AudioMetadata;
 import com.luciferc137.cmp.audio.LyricsService;
 import com.luciferc137.cmp.library.Music;
-import javafx.animation.AnimationTimer;
+import com.luciferc137.cmp.ui.CoverArtLoader;
+import com.luciferc137.cmp.ui.MetadataEditorDialog;
+import com.luciferc137.cmp.ui.ThemeManager;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
@@ -41,19 +43,13 @@ public class LyricsController {
     private Music currentMusic;
     private Consumer<Music> onMetadataChanged;
     private boolean isFetching = false;
+    @FXML private ScrollSynchronizer scrollSynchronizer;
 
-    // Scroll sync state
-    private boolean scrollSyncEnabled = false;
-    private LongSupplier positionSupplier;
-    private LongSupplier durationSupplier;
-    private AnimationTimer scrollSyncTimer;
-
-    // Smooth scrolling interpolation
-    private double currentScrollValue = 0;
-    private static final double SCROLL_SMOOTHING = 0.08; // Lower = smoother but slower response
 
     @FXML
     public void initialize() {
+        scrollSynchronizer = new ScrollSynchronizer(lyricsScrollPane);
+
         // Set default cover art
         if (coverArtView != null) {
             coverArtView.setImage(CoverArtLoader.getDefaultCover(80));
@@ -74,23 +70,15 @@ public class LyricsController {
 
         // Toggle sync on button click
         syncScrollButton.setOnAction(e -> {
-            scrollSyncEnabled = !scrollSyncEnabled;
+            scrollSynchronizer.toggle();
             updateSyncButtonStyle();
-            if (scrollSyncEnabled) {
-                startScrollSync();
-            } else {
-                stopScrollSync();
-            }
         });
 
         // Disable sync when user manually scrolls with mouse wheel
         if (lyricsScrollPane != null) {
             lyricsScrollPane.setOnScroll(event -> {
-                if (scrollSyncEnabled) {
-                    scrollSyncEnabled = false;
-                    updateSyncButtonStyle();
-                    stopScrollSync();
-                }
+                scrollSynchronizer.disable();
+                updateSyncButtonStyle();
             });
 
             // Disable sync when user interacts with the scrollbar
@@ -100,11 +88,8 @@ public class LyricsController {
                         if (node instanceof ScrollBar scrollBar &&
                             scrollBar.getOrientation() == javafx.geometry.Orientation.VERTICAL) {
                             scrollBar.addEventFilter(javafx.scene.input.MouseEvent.MOUSE_PRESSED, event -> {
-                                if (scrollSyncEnabled) {
-                                    scrollSyncEnabled = false;
-                                    updateSyncButtonStyle();
-                                    stopScrollSync();
-                                }
+                                scrollSynchronizer.disable();
+                                updateSyncButtonStyle();
                             });
                         }
                     });
@@ -119,7 +104,7 @@ public class LyricsController {
     private void updateSyncButtonStyle() {
         if (syncScrollButton == null) return;
 
-        if (scrollSyncEnabled) {
+        if (scrollSynchronizer.isEnabled()) {
             syncScrollButton.setStyle("-fx-font-size: 14px; -fx-background-color: #1E90FF; -fx-text-fill: white;");
             syncScrollButton.setText("⇅");
         } else {
@@ -129,113 +114,10 @@ public class LyricsController {
     }
 
     /**
-     * Sets the playback position and duration suppliers for scroll synchronization.
-     *
-     * @param positionSupplier Supplier for current playback position in milliseconds
-     * @param durationSupplier Supplier for total track duration in milliseconds
-     */
-    public void setPlaybackSuppliers(LongSupplier positionSupplier, LongSupplier durationSupplier) {
-        this.positionSupplier = positionSupplier;
-        this.durationSupplier = durationSupplier;
-    }
-
-    /**
-     * Starts the scroll synchronization timer.
-     */
-    private void startScrollSync() {
-        if (scrollSyncTimer != null) {
-            scrollSyncTimer.stop();
-        }
-
-        // Initialize current scroll value to current position
-        if (lyricsScrollPane != null) {
-            currentScrollValue = lyricsScrollPane.getVvalue();
-        }
-
-        scrollSyncTimer = new AnimationTimer() {
-            @Override
-            public void handle(long now) {
-                updateScrollPosition();
-            }
-        };
-        scrollSyncTimer.start();
-    }
-
-    /**
-     * Stops the scroll synchronization timer.
-     */
-    private void stopScrollSync() {
-        if (scrollSyncTimer != null) {
-            scrollSyncTimer.stop();
-            scrollSyncTimer = null;
-        }
-    }
-
-    /**
-     * Updates the scroll position based on playback progress.
-     * The lyrics scroll so that the current position is always in the middle of the viewport.
-     * Uses smooth interpolation for fluid scrolling.
-     *
-     * - At the start (0%), scroll is at top (vvalue = 0)
-     * - At 50% of the song, scroll reaches middle position
-     * - At 100% of the song, scroll reaches the bottom (vvalue = 1)
-     *
-     * The formula ensures that the "current lyrics" appear in the middle of the viewport
-     * by offsetting the scroll position.
-     */
-    private void updateScrollPosition() {
-        if (lyricsScrollPane == null || positionSupplier == null || durationSupplier == null) {
-            return;
-        }
-
-        long position = positionSupplier.getAsLong();
-        long duration = durationSupplier.getAsLong();
-
-        if (duration <= 0) {
-            return;
-        }
-
-        // Calculate progress (0.0 to 1.0)
-        double progress = (double) position / duration;
-        progress = Math.max(0, Math.min(1, progress));
-
-        // Get viewport height ratio (how much of the content is visible)
-        double viewportHeight = lyricsScrollPane.getViewportBounds().getHeight();
-        double contentHeight = lyricsScrollPane.getContent().getBoundsInLocal().getHeight();
-
-        if (contentHeight <= viewportHeight) {
-            // Content fits in viewport, no need to scroll
-            return;
-        }
-
-        // Calculate target scroll position
-        // At any progress point, the "current lyrics position" in the content is:
-        // currentContentPos = progress * contentHeight
-        // We want this position to be at the center of the viewport:
-        // viewportTopPos = currentContentPos - viewportHeight/2
-        double currentContentPos = progress * contentHeight;
-        double viewportTopPos = currentContentPos - (viewportHeight / 2);
-
-        // Clamp to valid range [0, contentHeight - viewportHeight]
-        double maxScroll = contentHeight - viewportHeight;
-        viewportTopPos = Math.max(0, Math.min(maxScroll, viewportTopPos));
-
-        // Convert to vvalue (0 to 1)
-        double targetScrollValue = viewportTopPos / maxScroll;
-
-        // Apply smooth interpolation (lerp)
-        // Move currentScrollValue towards targetScrollValue by a fraction each frame
-        currentScrollValue = currentScrollValue + (targetScrollValue - currentScrollValue) * SCROLL_SMOOTHING;
-
-        // Apply the smoothed scroll value
-        lyricsScrollPane.setVvalue(currentScrollValue);
-    }
-
-    /**
      * Cleans up resources when the controller is no longer needed.
      */
     public void cleanup() {
-        stopScrollSync();
+        scrollSynchronizer.disable();
     }
 
     /**
@@ -318,7 +200,7 @@ public class LyricsController {
         try {
             File audioFile = new File(music.filePath);
             AudioMetadata metadata = AudioMetadata.fromFile(audioFile);
-            String lyrics = metadata.getLyrics();
+            String lyrics = removeLrcTimestamps(metadata.getLyrics());
             
             if (lyrics != null && !lyrics.trim().isEmpty()) {
                 lyricsLabel.setText(lyrics);
@@ -333,6 +215,20 @@ public class LyricsController {
             lyricsLabel.setText("Unable to load lyrics.");
             statusLabel.setText("Error: " + e.getMessage());
         }
+    }
+
+    public void setPlaybackSuppliers(LongSupplier positionSupplier, LongSupplier durationSupplier) {
+        this.scrollSynchronizer.setPlaybackSuppliers(positionSupplier, durationSupplier);
+    }
+
+    /**
+     * Removes LRC timestamps from synced lyrics.
+     * Timestamps look like [00:15.50]
+     */
+    private static String removeLrcTimestamps(String syncedLyrics) {
+        if (syncedLyrics == null) return null;
+        // Remove patterns like [00:00.00] or [0:00.00]
+        return syncedLyrics.replaceAll("\\[\\d{1,2}:\\d{2}\\.\\d{2}]\\s*", "");
     }
 
     /**
