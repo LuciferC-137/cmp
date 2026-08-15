@@ -29,7 +29,7 @@ public final class LyricsConfirmationDialog {
      * @param trackArtist   artist of the track the lyrics belong to
      * @param fetchedLyrics the lyrics text to review, pre-filled in the editor
      * @return the (possibly edited) lyrics if the user chose to save,
-     *         or an empty Optional if the dialog was cancelled
+     *         or an empty Optional if the dialog was canceled
      */
     public static Optional<String> show(String trackTitle, String trackArtist, String fetchedLyrics) {
         Dialog<ButtonType> dialog = new Dialog<>();

@@ -1,4 +1,4 @@
-package com.luciferc137.cmp.audio;
+package com.luciferc137.cmp.fetch;
 
 import java.net.URI;
 import java.net.URLEncoder;
@@ -99,7 +99,7 @@ public class LyricsService {
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(urlString))
                     .timeout(Duration.ofSeconds(TIMEOUT_SECONDS))
-                    .header("User-Agent", "CMP-MusicPlayer/1.0 (https://github.com/music-player)")
+                    .header("User-Agent", "CMP (https://github.com/LuciferC-137/cmp)")
                     .header("Accept", "application/json")
                     .GET()
                     .build();

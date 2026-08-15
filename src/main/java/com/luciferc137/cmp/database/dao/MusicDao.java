@@ -13,6 +13,8 @@ import java.util.Optional;
  * DAO (Data Access Object) for music management in database.
  */
 public class MusicDao {
+    public static final int MIN_RATING = 0;
+    public static final int MAX_RATING = 5;
 
     private final DatabaseManager dbManager;
 
@@ -32,7 +34,8 @@ public class MusicDao {
             VALUES (?, ?, ?, ?, ?, ?)
         """;
 
-        try (PreparedStatement stmt = dbManager.getConnection().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        try (PreparedStatement stmt = dbManager.getConnection()
+                .prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setString(1, music.getPath());
             stmt.setString(2, music.getTitle());
             stmt.setString(3, music.getArtist());
@@ -50,7 +53,7 @@ public class MusicDao {
                 }
             }
         }
-        return -1;
+        throw new SQLException("Insert succeeded but no generated key was returned for path: " + music.getPath());
     }
 
     /**
@@ -337,6 +340,11 @@ public class MusicDao {
         return result;
     }
 
+    private static LocalDateTime parseTimestamp(ResultSet rs, String column) throws SQLException {
+        String value = rs.getString(column);
+        return value != null ? LocalDateTime.parse(value.replace(" ", "T")) : null;
+    }
+
     /**
      * Converts a ResultSet to a MusicEntity.
      */
@@ -353,12 +361,12 @@ public class MusicDao {
 
         String createdAt = rs.getString("created_at");
         if (createdAt != null) {
-            music.setCreatedAt(LocalDateTime.parse(createdAt.replace(" ", "T")));
+            music.setCreatedAt(parseTimestamp(rs, "created_at"));
         }
 
         String updatedAt = rs.getString("updated_at");
         if (updatedAt != null) {
-            music.setUpdatedAt(LocalDateTime.parse(updatedAt.replace(" ", "T")));
+            music.setUpdatedAt(parseTimestamp(rs, "updated_at"));
         }
 
         return music;
@@ -374,7 +382,7 @@ public class MusicDao {
         String sql = "UPDATE music SET rating = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?";
 
         try (PreparedStatement stmt = dbManager.getConnection().prepareStatement(sql)) {
-            stmt.setInt(1, Math.max(0, Math.min(5, rating)));
+            stmt.setInt(1, Math.clamp(rating, MIN_RATING, MAX_RATING));
             stmt.setLong(2, musicId);
             stmt.executeUpdate();
         }

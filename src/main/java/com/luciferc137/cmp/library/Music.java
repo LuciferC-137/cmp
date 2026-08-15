@@ -1,5 +1,7 @@
 package com.luciferc137.cmp.library;
 
+import com.luciferc137.cmp.database.MusicPathResolver;
+import com.luciferc137.cmp.database.dao.MusicDao;
 import com.luciferc137.cmp.database.model.MusicEntity;
 
 import java.util.ArrayList;
@@ -15,20 +17,13 @@ public class Music {
     public String title;
     public String artist;
     public String album;
-    public String filePath;
+    private String filePath; // **Relative** path to the music file
     public long duration; // in milliseconds
     private int rating; // 0-5
     private List<String> tags; // Tag names for display
 
-    public Music(String title, String artist, String album, String filePath) {
-        this.title = title;
-        this.artist = artist;
-        this.album = album;
-        this.filePath = filePath;
-        this.tags = new ArrayList<>();
-    }
-
-    public Music(Long id, String title, String artist, String album, String filePath, long duration) {
+    public Music(Long id, String title, String artist, String album,
+                 String filePath, long duration) {
         this.id = id;
         this.title = title;
         this.artist = artist;
@@ -57,6 +52,19 @@ public class Music {
         return music;
     }
 
+    public void updateFromEntity(MusicEntity entity) {
+        this.title = entity.getTitle();
+        this.artist = entity.getArtist();
+        this.album = entity.getAlbum();
+        this.duration = entity.getDuration();
+        this.filePath = entity.getPath();
+        this.setRating(entity.getRating());
+    }
+
+    public String absPath() {
+        return MusicPathResolver.toAbsolute(filePath).toString();
+    }
+
     public Long getId() {
         return id;
     }
@@ -70,7 +78,7 @@ public class Music {
     }
 
     public void setRating(int rating) {
-        this.rating = Math.clamp(rating, 0, 5);
+        this.rating = Math.clamp(rating, MusicDao.MIN_RATING, MusicDao.MAX_RATING);
     }
 
     public List<String> getTags() {
@@ -150,11 +158,11 @@ public class Music {
         if (id != null && music.id != null) {
             return id.equals(music.id);
         }
-        return filePath != null && filePath.equals(music.filePath);
+        return absPath() != null && absPath().equals(music.absPath());
     }
 
     @Override
     public int hashCode() {
-        return id != null ? id.hashCode() : (filePath != null ? filePath.hashCode() : 0);
+        return id != null ? id.hashCode() : (absPath() != null ? absPath().hashCode() : 0);
     }
 }

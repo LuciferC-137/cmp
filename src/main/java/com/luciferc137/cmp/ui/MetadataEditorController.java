@@ -1,7 +1,7 @@
 package com.luciferc137.cmp.ui;
 
 import com.luciferc137.cmp.audio.AudioMetadata;
-import com.luciferc137.cmp.audio.LyricsService;
+import com.luciferc137.cmp.fetch.LyricsService;
 import com.luciferc137.cmp.library.Music;
 import com.luciferc137.cmp.library.MusicLibrary;
 import javafx.application.Platform;
@@ -10,7 +10,6 @@ import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
 
 import java.io.File;
 import java.io.IOException;
@@ -79,7 +78,7 @@ public class MetadataEditorController {
      */
     public void setMusic(Music music) {
         this.music = music;
-        this.audioFile = new File(music.filePath);
+        this.audioFile = new File(music.absPath());
         loadMetadata();
     }
 
@@ -111,7 +110,7 @@ public class MetadataEditorController {
             lyricsArea.setText(nvl(metadata.getLyrics()));
 
             // Technical info
-            filePathField.setText(music.filePath);
+            filePathField.setText(music.absPath());
             durationField.setText(music.getFormattedDuration());
 
             if (metadata.getFormat() != null) {
@@ -129,7 +128,7 @@ public class MetadataEditorController {
             titleField.setText(music.title);
             artistField.setText(nvl(music.artist));
             albumField.setText(nvl(music.album));
-            filePathField.setText(music.filePath);
+            filePathField.setText(music.absPath());
             durationField.setText(music.getFormattedDuration());
 
             showError("Could not read metadata from file: " + e.getMessage());

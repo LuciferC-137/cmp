@@ -191,7 +191,7 @@ public class BatchCoverArtDialog {
         // Apply synchronously (no popups)
         for (Music music : musicList) {
             try {
-                File audioFile = new File(music.filePath);
+                File audioFile = new File(music.absPath());
                 if (audioFile.exists()) {
                     AudioMetadata metadata = AudioMetadata.fromFile(audioFile);
                     metadata.setCoverArt(selectedImageData);

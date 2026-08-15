@@ -245,7 +245,7 @@ public class PlaybackHandler {
         waveformProgressBar.clear();
         int numSamples = WaveformExtractor.DEFAULT_NUM_BINS;
 
-        waveformExtractor.extractAsync(music.filePath, numSamples)
+        waveformExtractor.extractAsync(music.absPath(), numSamples)
                 .thenAccept(data -> Platform.runLater(() ->
                         waveformProgressBar.setWaveformData(data)));
     }
@@ -485,7 +485,7 @@ public class PlaybackHandler {
 
         // Load cover art (100x100 to match FXML) with center crop
         if (coverArtView != null) {
-            Image image = CoverArtLoader.loadCoverArt(music.filePath, CoverArtLoader.DEFAULT_SIZE);
+            Image image = CoverArtLoader.loadCoverArt(music.absPath(), CoverArtLoader.DEFAULT_SIZE);
             setCoverArtWithCenterCrop(image);
         }
     }

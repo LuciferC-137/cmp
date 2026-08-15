@@ -25,7 +25,7 @@ public class Settings {
     }
 
     public void setLastVolume(int lastVolume) {
-        this.lastVolume = Math.max(0, Math.min(100, lastVolume));
+        this.lastVolume = Math.clamp(lastVolume, 0, 100);
     }
 
     public String getMusicFolderPath() {

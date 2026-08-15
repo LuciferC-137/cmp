@@ -1,6 +1,7 @@
 package com.luciferc137.cmp.database.sync;
 
 import com.luciferc137.cmp.database.DatabaseManager;
+import com.luciferc137.cmp.database.MusicPathResolver;
 import com.luciferc137.cmp.database.dao.MusicDao;
 import com.luciferc137.cmp.database.dao.SyncLogDao;
 import com.luciferc137.cmp.database.model.MusicEntity;
@@ -91,7 +92,7 @@ public class LibrarySyncService {
         int errors = 0;
 
         try {
-            Path folder = Paths.get(folderPath);
+            Path folder = Paths.get(folderPath).toAbsolutePath().normalize();
             if (!Files.exists(folder) || !Files.isDirectory(folder)) {
                 return new SyncResult(0, 0, 0, 0, 1, 0, "folder_not_found");
             }
@@ -100,7 +101,7 @@ public class LibrarySyncService {
             List<File> audioFiles = scanAudioFiles(folder);
             listener.onSyncStarted(audioFiles.size());
 
-            // 2. Get all existing paths in database
+            // 2. Get all existing paths in database (already relative to `folder`)
             Set<String> existingPaths = new HashSet<>(musicDao.findAllPaths());
             Set<String> processedPaths = new HashSet<>();
 
@@ -116,49 +117,47 @@ public class LibrarySyncService {
                     if (cancelRequested) {
                         dbManager.rollback();
                         return new SyncResult(filesAdded, filesUpdated, filesRemoved,
-                                             filesSkipped, errors,
-                                             System.currentTimeMillis() - startTime, "cancelled");
+                                filesSkipped, errors,
+                                System.currentTimeMillis() - startTime, "cancelled");
                     }
 
                     current++;
-                    String path = file.getAbsolutePath();
-                    processedPaths.add(path);
+                    // Absolute path : necessary to read the file (metadata extraction)
+                    String absolutePath = file.getAbsolutePath();
+                    // Relative path is the one stored in the database, relative to the music folder
+                    String relativePath = MusicPathResolver.toRelative(file.toPath(), folder);
+                    processedPaths.add(relativePath);
                     listener.onFileProcessed(current, audioFiles.size(), file.getName());
 
                     try {
-                        Optional<MusicEntity> existing = musicDao.findByPath(path);
+                        Optional<MusicEntity> existing = musicDao.findByPath(relativePath);
 
                         AudioMetadataExtractor.ExtractedMetadata metadata = metadataExtractor.extract(file);
                         if (existing.isPresent()) {
-                            // File already exists, check if update needed
-
                             if (!existing.get().getHash().equals(metadata.getHash())) {
-                                // File has changed, update it
                                 MusicEntity entity = existing.get();
                                 updateEntityFromMetadata(entity, metadata);
                                 musicDao.update(entity);
                                 filesUpdated++;
-                                listener.onFileUpdated(path);
+                                listener.onFileUpdated(relativePath);
                             } else {
                                 filesSkipped++;
                             }
                         } else {
-                            // New file, add it
-                            MusicEntity entity = createEntityFromMetadata(path, metadata);
+                            MusicEntity entity = createEntityFromMetadata(relativePath, metadata);
                             musicDao.insert(entity);
                             filesAdded++;
-                            listener.onFileAdded(path);
+                            listener.onFileAdded(relativePath);
                         }
                     } catch (IOException e) {
                         errors++;
-                        listener.onError(path, e.getMessage());
+                        listener.onError(absolutePath, e.getMessage());
                     }
                 }
 
-                // 5. Remove entries for files that no longer exist
+                // 5. Remove entries for files that no longer exist.
                 for (String existingPath : existingPaths) {
-                    // Only delete if file was in the synced folder
-                    if (existingPath.startsWith(folderPath) && !processedPaths.contains(existingPath)) {
+                    if (!processedPaths.contains(existingPath)) {
                         musicDao.deleteByPath(existingPath);
                         filesRemoved++;
                         listener.onFileRemoved(existingPath);
@@ -167,7 +166,6 @@ public class LibrarySyncService {
 
                 dbManager.commit();
 
-                // 6. Update sync log
                 syncLog.setFilesAdded(filesAdded);
                 syncLog.setFilesUpdated(filesUpdated);
                 syncLog.setFilesRemoved(filesRemoved);
@@ -181,7 +179,7 @@ public class LibrarySyncService {
 
             long duration = System.currentTimeMillis() - startTime;
             SyncResult result = new SyncResult(filesAdded, filesUpdated, filesRemoved,
-                                               filesSkipped, errors, duration, "completed");
+                    filesSkipped, errors, duration, "completed");
             listener.onSyncCompleted(result);
             return result;
 
@@ -189,7 +187,7 @@ public class LibrarySyncService {
             System.err.println("Error during synchronization: " + e.getMessage());
             long duration = System.currentTimeMillis() - startTime;
             return new SyncResult(filesAdded, filesUpdated, filesRemoved,
-                                  filesSkipped, errors + 1, duration, "error");
+                    filesSkipped, errors + 1, duration, "error");
         } finally {
             isSyncing = false;
         }
@@ -224,7 +222,17 @@ public class LibrarySyncService {
 
         Files.walkFileTree(folder, new SimpleFileVisitor<>() {
             @Override
-            public @NotNull FileVisitResult visitFile(@NotNull Path file, @NotNull BasicFileAttributes attrs) {
+            public @NotNull FileVisitResult preVisitDirectory(@NotNull Path dir,
+                                                              @NotNull BasicFileAttributes attrs) {
+                if (!dir.equals(folder) && isHidden(dir)) {
+                    return FileVisitResult.SKIP_SUBTREE;
+                }
+                return FileVisitResult.CONTINUE;
+            }
+
+            @Override
+            public @NotNull FileVisitResult visitFile(@NotNull Path file,
+                                                      @NotNull BasicFileAttributes attrs) {
                 File f = file.toFile();
                 if (metadataExtractor.isAudioFile(f)) {
                     audioFiles.add(f);
@@ -233,13 +241,19 @@ public class LibrarySyncService {
             }
 
             @Override
-            public @NotNull FileVisitResult visitFileFailed(@NotNull Path file, @NotNull IOException exc) {
+            public @NotNull FileVisitResult visitFileFailed(@NotNull Path file,
+                                                            @NotNull IOException exc) {
                 // Ignore inaccessible files
                 return FileVisitResult.CONTINUE;
             }
         });
 
         return audioFiles;
+    }
+
+    private static boolean isHidden(Path path) {
+        String name = path.getFileName().toString();
+        return name.startsWith(".");
     }
 
     /**

@@ -1,11 +1,12 @@
 package com.luciferc137.cmp.database;
 
+import com.luciferc137.cmp.settings.SettingsManager;
+
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * SQLite database connection manager.
@@ -15,7 +16,7 @@ public class DatabaseManager {
 
     private static final String APP_FOLDER_NAME = ".cmp";
     private static final String DATABASE_FILE_NAME = "library.db";
-    private static final int CURRENT_SCHEMA_VERSION = 2;
+    private static final int CURRENT_SCHEMA_VERSION = 3;
 
     private static DatabaseManager instance;
     private Connection connection;
@@ -105,7 +106,62 @@ public class DatabaseManager {
                 stmt.execute("ALTER TABLE music ADD COLUMN rating INTEGER DEFAULT 0");
                 System.out.println("Migration to schema version 2 completed: Added rating column.");
             }
-            // Future migrations go here
+            if (oldVersion < 3) {
+                migratePathsToRelative();
+                System.out.println("Migration to schema version 3 completed: Converted paths to relative.");
+            }
+        }
+    }
+
+    private void migratePathsToRelative() throws SQLException {
+        String configuredPath = SettingsManager.getInstance().getMusicFolderPath();
+        if (configuredPath == null || configuredPath.isBlank()) {
+            throw new IllegalStateException(
+                    "Music folder must be configured in settings before migrating paths.");
+        }
+        Path musicRoot = Path.of(configuredPath).toAbsolutePath().normalize();
+
+        record PathUpdate(long id, String newPath) {}
+        List<PathUpdate> updates = new ArrayList<>();
+        List<String> failures = new ArrayList<>();
+
+        try (Statement select = connection.createStatement();
+             ResultSet rs = select.executeQuery("SELECT id, path FROM music")) {
+            while (rs.next()) {
+                long id = rs.getLong("id");
+                String absolutePath = rs.getString("path");
+                try {
+                    updates.add(new PathUpdate(id, MusicPathResolver.toRelative(Paths.get(absolutePath), musicRoot)));
+                } catch (IllegalArgumentException e) {
+                    failures.add("id=" + id + " path=" + absolutePath);
+                }
+            }
+        }
+        int total = updates.size() + failures.size();
+        if (total > 0 && updates.isEmpty()) {
+            throw new IllegalStateException(
+                    "Path migration failed for all " + total + " entries against root " + musicRoot +
+                            ". Check that the configured music folder matches the one used to scan the library. " +
+                            "Example failing path: " + failures.get(0));
+        }
+        if (!failures.isEmpty()) {
+            throw new IllegalStateException(
+                    "Path migration failed for " + failures.size() + "/" + total + " entries against root " +
+                            musicRoot + ". First failure: " + failures.get(0));
+        }
+
+        beginTransaction();
+        try (PreparedStatement update = connection.prepareStatement("UPDATE music SET path = ? WHERE id = ?")) {
+            for (PathUpdate u : updates) {
+                update.setString(1, u.newPath());
+                update.setLong(2, u.id());
+                update.addBatch();
+            }
+            update.executeBatch();
+            commit();
+        } catch (SQLException e) {
+            rollback();
+            throw e;
         }
     }
 

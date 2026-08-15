@@ -3,8 +3,6 @@ package com.luciferc137.cmp.library;
 import com.luciferc137.cmp.database.LibraryService;
 import com.luciferc137.cmp.database.model.MusicEntity;
 import com.luciferc137.cmp.database.model.TagEntity;
-import com.luciferc137.cmp.database.sync.SyncProgressListener;
-import com.luciferc137.cmp.database.sync.SyncResult;
 import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyIntegerProperty;
@@ -172,13 +170,7 @@ public class MusicLibrary {
                         music = Music.fromEntity(entity);
                         musicCache.put(entity.getId(), music);
                     } else {
-                        // Update existing object with latest data from DB
-                        music.title = entity.getTitle();
-                        music.artist = entity.getArtist();
-                        music.album = entity.getAlbum();
-                        music.filePath = entity.getPath();
-                        music.duration = entity.getDuration();
-                        music.setRating(entity.getRating());
+                        music.updateFromEntity(entity);
                     }
 
                     // Load tags for this music
@@ -236,13 +228,7 @@ public class MusicLibrary {
                         music = Music.fromEntity(entity);
                         musicCache.put(entity.getId(), music);
                     } else {
-                        // Update existing object with latest data from DB
-                        music.title = entity.getTitle();
-                        music.artist = entity.getArtist();
-                        music.album = entity.getAlbum();
-                        music.filePath = entity.getPath();
-                        music.duration = entity.getDuration();
-                        music.setRating(entity.getRating());
+                        music.updateFromEntity(entity);
                     }
                     List<String> tagNames = libraryService.getMusicTagNames(entity.getId());
                     music.setTags(tagNames);
@@ -450,7 +436,7 @@ public class MusicLibrary {
     }
 
     /**
-     * Notifie les listeners que la bibliothèque a changé.
+     * Notify listeners that a rating has changed.
      */
     private void notifyLibraryChanged() {
         if (onLibraryChangedListener != null) {
@@ -459,12 +445,11 @@ public class MusicLibrary {
     }
 
     /**
-     * Retourne le comparateur pour le tri des musiques selon la colonne et l'état.
+     * Return the comparator for sorting music based on a column state.
      */
     private Comparator<Music> getComparator(SortableColumn column, ColumnSortState state) {
         Comparator<Music> comparator;
         switch (column) {
-            case TITLE -> comparator = Comparator.comparing(m -> m.title, Comparator.nullsLast(String::compareToIgnoreCase));
             case ARTIST -> comparator = Comparator.comparing(m -> m.artist, Comparator.nullsLast(String::compareToIgnoreCase));
             case ALBUM -> comparator = Comparator.comparing(m -> m.album, Comparator.nullsLast(String::compareToIgnoreCase));
             case DURATION -> comparator = Comparator.comparingLong(m -> m.duration);
@@ -477,16 +462,14 @@ public class MusicLibrary {
     }
 
     /**
-     * Synchronise le dossier musical avec la bibliothèque et notifie la progression.
-     * Lance la synchronisation en tâche de fond et rafraîchit la bibliothèque à la fin.
-     * @param folderPath Chemin du dossier à synchroniser
-     * @param listener Listener de progression pour le suivi
+     * Synchronize the music folder with the library and notify progress.
+     * Start a background thread for synchronization and refresh the library at the end.
+     * @param folderPath Path the folder to synchronize
+     * @param listener Listener for progression tracking
      */
     public void syncFolder(String folderPath, com.luciferc137.cmp.database.sync.SyncProgressListener listener) {
         new Thread(() -> {
-            // Délègue la synchronisation à LibraryService
             com.luciferc137.cmp.database.sync.SyncResult result = libraryService.syncFolder(folderPath, listener);
-            // Rafraîchit la bibliothèque après la synchro
             Platform.runLater(this::refresh);
         }).start();
     }

@@ -1,5 +1,8 @@
 package com.luciferc137.cmp.database.model;
 
+import com.luciferc137.cmp.database.MusicPathResolver;
+
+import java.nio.file.Path;
 import java.time.LocalDateTime;
 
 /**
@@ -123,6 +126,10 @@ public class MusicEntity {
                 ", duration=" + duration +
                 ", hash='" + hash + '\'' +
                 '}';
+    }
+
+    public Path getAbsolutePath() {
+        return MusicPathResolver.toAbsolute(path);
     }
 
     @Override

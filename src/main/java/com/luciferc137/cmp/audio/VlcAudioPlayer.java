@@ -27,9 +27,9 @@ public class VlcAudioPlayer implements AudioPlayer, VolumeControl {
         stop();
 
         try {
-            File file = new File(music.filePath);
+            File file = new File(music.absPath());
             if (!file.exists()) {
-                System.err.println("File Not Found: " + music.filePath);
+                System.err.println("File Not Found: " + music.absPath());
                 return;
             }
 

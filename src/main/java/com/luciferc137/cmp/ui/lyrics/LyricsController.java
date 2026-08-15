@@ -1,23 +1,19 @@
 package com.luciferc137.cmp.ui.lyrics;
 
 import com.luciferc137.cmp.audio.AudioMetadata;
-import com.luciferc137.cmp.audio.LyricsService;
+import com.luciferc137.cmp.fetch.LyricsService;
 import com.luciferc137.cmp.library.Music;
 import com.luciferc137.cmp.ui.CoverArtLoader;
 import com.luciferc137.cmp.ui.MetadataEditorDialog;
 import com.luciferc137.cmp.ui.ThemeManager;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
-import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.VBox;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.LongSupplier;
 
@@ -181,9 +177,9 @@ public class LyricsController {
     }
 
     private void loadCoverArt(Music music) {
-        if (music.filePath != null) {
+        if (music.absPath() != null) {
             // Load cover art synchronously (CoverArtLoader handles fallback to default)
-            javafx.scene.image.Image coverImage = CoverArtLoader.loadCoverArt(music.filePath, 80);
+            javafx.scene.image.Image coverImage = CoverArtLoader.loadCoverArt(music.absPath(), 80);
             coverArtView.setImage(coverImage);
         } else {
             coverArtView.setImage(CoverArtLoader.getDefaultCover(80));
@@ -191,14 +187,14 @@ public class LyricsController {
     }
 
     private void loadLyrics(Music music) {
-        if (music.filePath == null) {
+        if (music.absPath() == null) {
             lyricsLabel.setText("No lyrics available");
             statusLabel.setText("");
             return;
         }
 
         try {
-            File audioFile = new File(music.filePath);
+            File audioFile = new File(music.absPath());
             AudioMetadata metadata = AudioMetadata.fromFile(audioFile);
             String lyrics = removeLrcTimestamps(metadata.getLyrics());
             
@@ -325,13 +321,13 @@ public class LyricsController {
     }
 
     private void saveLyricsToFile(String lyrics) {
-        if (currentMusic == null || currentMusic.filePath == null) {
+        if (currentMusic == null || currentMusic.absPath() == null) {
             showErrorAlert("Error", "Cannot save lyrics: no file path available.");
             return;
         }
 
         try {
-            File audioFile = new File(currentMusic.filePath);
+            File audioFile = new File(currentMusic.absPath());
             AudioMetadata metadata = AudioMetadata.fromFile(audioFile);
             metadata.setLyrics(lyrics);
             metadata.saveToFile(audioFile);
