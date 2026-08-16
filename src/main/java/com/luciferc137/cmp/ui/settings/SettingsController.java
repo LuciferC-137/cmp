@@ -8,7 +8,7 @@ import com.luciferc137.cmp.database.sync.SyncProgressListener;
 import com.luciferc137.cmp.database.sync.SyncResult;
 import com.luciferc137.cmp.library.MusicLibrary;
 import com.luciferc137.cmp.settings.SettingsManager;
-import com.luciferc137.cmp.ui.ThemeManager;
+import com.luciferc137.cmp.ui.utils.ThemeManager;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;

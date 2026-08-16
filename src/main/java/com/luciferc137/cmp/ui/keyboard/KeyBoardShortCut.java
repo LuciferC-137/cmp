@@ -1,6 +1,6 @@
 package com.luciferc137.cmp.ui.keyboard;
 
-import com.luciferc137.cmp.ui.MainController;
+import com.luciferc137.cmp.ui.controllers.MainController;
 import javafx.application.Platform;
 import javafx.scene.Node;
 import javafx.scene.Parent;

@@ -1,7 +1,7 @@
 package com.luciferc137.cmp;
 
-import com.luciferc137.cmp.ui.MainController;
-import com.luciferc137.cmp.ui.ThemeManager;
+import com.luciferc137.cmp.ui.controllers.MainController;
+import com.luciferc137.cmp.ui.utils.ThemeManager;
 import com.luciferc137.cmp.ui.keyboard.GlobalMediaKeyListener;
 import com.luciferc137.cmp.ui.keyboard.KeyBoardShortCut;
 import javafx.application.Application;

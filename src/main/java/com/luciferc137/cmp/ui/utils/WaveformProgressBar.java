@@ -1,4 +1,4 @@
-package com.luciferc137.cmp.ui;
+package com.luciferc137.cmp.ui.utils;
 
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
@@ -72,7 +72,7 @@ public class WaveformProgressBar extends Pane {
      * @param value value between 0.0 and 1.0
      */
     public void setProgress(double value) {
-        progress.set(Math.max(0, Math.min(1, value)));
+        progress.set(Math.clamp(value, 0, 1));
     }
 
     /**

@@ -1,9 +1,12 @@
-package com.luciferc137.cmp.ui;
+package com.luciferc137.cmp.ui.controllers;
 
 import com.luciferc137.cmp.audio.VlcAudioPlayer;
 import com.luciferc137.cmp.audio.WaveformExtractor;
 import com.luciferc137.cmp.database.model.PlaylistEntity;
 import com.luciferc137.cmp.library.*;
+import com.luciferc137.cmp.ui.dialog.BatchCoverArtDialog;
+import com.luciferc137.cmp.ui.dialog.MetadataEditorDialog;
+import com.luciferc137.cmp.ui.utils.WaveformProgressBar;
 import com.luciferc137.cmp.ui.handlers.*;
 import com.luciferc137.cmp.ui.lyrics.LyricsWindow;
 import com.luciferc137.cmp.ui.settings.SettingsController;

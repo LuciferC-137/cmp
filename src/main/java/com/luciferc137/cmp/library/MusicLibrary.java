@@ -7,7 +7,7 @@ import com.luciferc137.cmp.library.sorting.AdvancedFilter;
 import com.luciferc137.cmp.library.sorting.ColumnSortState;
 import com.luciferc137.cmp.library.sorting.SortableColumn;
 import com.luciferc137.cmp.library.sorting.TagFilterState;
-import com.luciferc137.cmp.ui.MainController;
+import com.luciferc137.cmp.ui.controllers.MainController;
 import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyIntegerProperty;

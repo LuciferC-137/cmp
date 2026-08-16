@@ -4,7 +4,6 @@ import com.luciferc137.cmp.database.model.TagEntity;
 import com.luciferc137.cmp.library.sorting.AdvancedFilter;
 import com.luciferc137.cmp.library.MusicLibrary;
 import com.luciferc137.cmp.library.sorting.TagFilterState;
-import com.luciferc137.cmp.ui.ThemeManager;
 import com.luciferc137.cmp.ui.settings.SettingsController;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;

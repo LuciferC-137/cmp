@@ -1,7 +1,7 @@
 package com.luciferc137.cmp.ui.settings;
 
 import com.luciferc137.cmp.MainApp;
-import com.luciferc137.cmp.ui.ThemeManager;
+import com.luciferc137.cmp.ui.utils.ThemeManager;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.stage.Modality;

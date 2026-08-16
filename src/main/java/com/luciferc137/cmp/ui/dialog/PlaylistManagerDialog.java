@@ -1,13 +1,12 @@
-package com.luciferc137.cmp.ui;
+package com.luciferc137.cmp.ui.dialog;
 
 import com.luciferc137.cmp.database.LibraryService;
 import com.luciferc137.cmp.database.model.PlaylistEntity;
-import javafx.fxml.FXML;
+import com.luciferc137.cmp.ui.utils.ThemeManager;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
-import javafx.stage.Stage;
 
 import java.util.List;
 import java.util.Optional;

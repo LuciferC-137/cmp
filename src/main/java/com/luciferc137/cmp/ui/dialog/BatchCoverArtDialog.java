@@ -1,7 +1,9 @@
-package com.luciferc137.cmp.ui;
+package com.luciferc137.cmp.ui.dialog;
 
 import com.luciferc137.cmp.audio.AudioMetadata;
 import com.luciferc137.cmp.library.Music;
+import com.luciferc137.cmp.ui.utils.CoverArtLoader;
+import com.luciferc137.cmp.ui.utils.ThemeManager;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;

@@ -2,7 +2,7 @@ package com.luciferc137.cmp.ui.lyrics;
 
 import com.luciferc137.cmp.MainApp;
 import com.luciferc137.cmp.library.Music;
-import com.luciferc137.cmp.ui.ThemeManager;
+import com.luciferc137.cmp.ui.utils.ThemeManager;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
@@ -17,7 +17,6 @@ import java.util.logging.Level;
 
 /**
  * Manages the lyrics display window.
- * The window is non-modal, allowing the user to continue using the main application.
  */
 public class LyricsWindow {
 
@@ -27,7 +26,7 @@ public class LyricsWindow {
     /**
      * Shows the lyrics window. If already open, brings it to front and updates content.
      *
-     * @param ownerWindow The owner window (for positioning)
+     * @param ownerWindow The owner window
      * @param currentMusic The currently playing music track
      * @param onMetadataChanged Callback when metadata is changed via the edit button
      * @param positionSupplier Supplier for current playback position in milliseconds
@@ -63,10 +62,13 @@ public class LyricsWindow {
             controller.setOnMetadataChanged(onMetadataChanged);
             controller.setPlaybackSuppliers(positionSupplier, durationSupplier);
 
+            MainApp.keyBoardShortCut.bindCommonShortcuts(scene);
+
             lyricsStage.setTitle("Lyrics");
             lyricsStage.setScene(scene);
             lyricsStage.setMinWidth(700);
             lyricsStage.setMinHeight(650);
+            lyricsStage.initOwner(ownerWindow);
             
             // Try to load the lyrics icon
             try {
@@ -76,7 +78,6 @@ public class LyricsWindow {
             } catch (Exception e) {
                 // Icon not available, continue without it
             }
-
             
             // Clear references when window is closed
             lyricsStage.setOnHidden(event -> {

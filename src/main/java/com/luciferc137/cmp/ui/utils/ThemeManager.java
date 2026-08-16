@@ -1,4 +1,4 @@
-package com.luciferc137.cmp.ui;
+package com.luciferc137.cmp.ui.utils;
 
 import javafx.scene.control.Alert;
 import javafx.scene.control.Dialog;

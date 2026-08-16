@@ -1,9 +1,11 @@
-package com.luciferc137.cmp.ui;
+package com.luciferc137.cmp.ui.controllers;
 
 import com.luciferc137.cmp.audio.AudioMetadata;
 import com.luciferc137.cmp.fetch.LyricsService;
 import com.luciferc137.cmp.library.Music;
 import com.luciferc137.cmp.library.MusicLibrary;
+import com.luciferc137.cmp.ui.utils.CoverArtLoader;
+import com.luciferc137.cmp.ui.utils.ThemeManager;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;

@@ -6,7 +6,8 @@ import com.luciferc137.cmp.database.model.TagEntity;
 import com.luciferc137.cmp.library.Music;
 import com.luciferc137.cmp.library.MusicLibrary;
 import com.luciferc137.cmp.library.PlaybackQueue;
-import com.luciferc137.cmp.ui.ThemeManager;
+import com.luciferc137.cmp.ui.utils.ThemeManager;
+import com.luciferc137.cmp.ui.dialog.PlaylistManagerDialog;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.scene.control.*;
@@ -309,7 +310,7 @@ public class ContextMenuHandler {
         addToPlaylistMenu.getItems().add(new SeparatorMenuItem());
         MenuItem createPlaylistItem = new MenuItem("+ New Playlist...");
         createPlaylistItem.setOnAction(e -> {
-            com.luciferc137.cmp.ui.PlaylistManagerDialog.showCreatePlaylistDialog(() -> {
+            PlaylistManagerDialog.showCreatePlaylistDialog(() -> {
                 if (eventListener != null) {
                     eventListener.onPlaylistRefreshNeeded();
                 }

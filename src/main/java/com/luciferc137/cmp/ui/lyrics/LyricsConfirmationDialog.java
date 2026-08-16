@@ -1,6 +1,6 @@
 package com.luciferc137.cmp.ui.lyrics;
 
-import com.luciferc137.cmp.ui.ThemeManager;
+import com.luciferc137.cmp.ui.utils.ThemeManager;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.layout.Priority;

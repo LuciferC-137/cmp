@@ -1,4 +1,4 @@
-package com.luciferc137.cmp.ui;
+package com.luciferc137.cmp.ui.utils;
 
 import com.luciferc137.cmp.audio.AudioMetadata;
 import javafx.scene.image.Image;

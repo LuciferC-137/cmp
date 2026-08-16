@@ -5,7 +5,7 @@ import com.github.kwhat.jnativehook.NativeHookException;
 import com.github.kwhat.jnativehook.keyboard.NativeKeyEvent;
 import com.github.kwhat.jnativehook.keyboard.NativeKeyListener;
 import com.luciferc137.cmp.MainApp;
-import com.luciferc137.cmp.ui.MainController;
+import com.luciferc137.cmp.ui.controllers.MainController;
 import javafx.application.Platform;
 
 import java.util.logging.Level;
