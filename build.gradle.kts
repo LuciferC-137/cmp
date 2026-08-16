@@ -77,6 +77,9 @@ dependencies {
 
     // SLF4J simple logger implementation
     implementation("org.slf4j:slf4j-simple:2.0.9")
+
+    // Native Hooks for global keyboard
+    implementation("com.github.kwhat:jnativehook:2.2.2")
 }
 
 tasks.test {

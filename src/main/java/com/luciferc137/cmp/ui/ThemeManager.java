@@ -3,6 +3,8 @@ package com.luciferc137.cmp.ui;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Dialog;
 
+import java.util.Objects;
+
 /**
  * Utility class for applying themes to JavaFX components.
  */
@@ -14,7 +16,8 @@ public class ThemeManager {
      * Gets the dark theme stylesheet URL.
      */
     public static String getDarkThemeUrl() {
-        return ThemeManager.class.getResource(DARK_THEME_PATH).toExternalForm();
+        return Objects.requireNonNull(ThemeManager.class.getResource(DARK_THEME_PATH))
+                .toExternalForm();
     }
     
     /**

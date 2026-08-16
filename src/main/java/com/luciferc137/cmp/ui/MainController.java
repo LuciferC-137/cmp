@@ -600,4 +600,32 @@ public class MainController {
             volumePercentLabel.setText(value + "%");
         }
     }
+
+    // Methods for keyboard shortcuts action
+    public void openSettingsFromShortcut() {
+        onSettings();
+    }
+
+    public void onNextFromShortcut() {
+        onNext();
+    }
+
+    public void onPreviousFromShortcut() {
+        onPrevious();
+    }
+
+    public void onPlayFromShortcut() { onPlay();}
+
+    public void onPauseFromShortcut() { onPause(); }
+
+    public void fiveSecondForwardFromShortcut() {
+        System.out.println("Five seconds forward shortcut triggered");
+        playbackHandler.fiveSecondsForward();
+    }
+
+    public void fiveSecondBackwardFromShortcut() {
+        System.out.println("Five seconds backward shortcut triggered");
+        playbackHandler.fiveSecondsBack();
+    }
+
 }

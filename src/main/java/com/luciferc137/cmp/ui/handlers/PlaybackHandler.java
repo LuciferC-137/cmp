@@ -457,6 +457,19 @@ public class PlaybackHandler {
         playbackQueue.cycleLoopMode();
     }
 
+    public void fiveSecondsBack() {
+        long currentPosition = audioPlayer.getPosition();
+        long newPosition = Math.max(0, currentPosition - 5000);
+        audioPlayer.seek(newPosition);
+    }
+
+    public void fiveSecondsForward() {
+        long currentPosition = audioPlayer.getPosition();
+        long duration = audioPlayer.getDuration();
+        long newPosition = Math.min(duration, currentPosition + 5000);
+        audioPlayer.seek(newPosition);
+    }
+
     // ==================== UI Updates ====================
 
     private void updateCurrentSongLabels(Music music) {

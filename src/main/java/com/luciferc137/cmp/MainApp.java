@@ -1,13 +1,21 @@
 package com.luciferc137.cmp;
 
+import com.luciferc137.cmp.ui.MainController;
+import com.luciferc137.cmp.ui.ThemeManager;
+import com.luciferc137.cmp.ui.keyboard.GlobalMediaKeyListener;
+import com.luciferc137.cmp.ui.keyboard.KeyBoardShortCut;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
-import java.util.Objects;
+import java.util.logging.Logger;
+
 
 public class MainApp extends Application {
+    public static KeyBoardShortCut keyBoardShortCut;
+    public static GlobalMediaKeyListener globalMediaKeyListener;
+    public static Logger logger = Logger.getLogger(MainApp.class.getName());
 
     public static void main(String[] args) {
         launch(args);
@@ -20,14 +28,25 @@ public class MainApp extends Application {
         );
 
         Scene scene = new Scene(loader.load());
+        MainController controller = loader.getController();
+        keyBoardShortCut = new KeyBoardShortCut(controller);
+        keyBoardShortCut.mainSceneShortcuts(scene);
+
+        globalMediaKeyListener = new GlobalMediaKeyListener(controller);
+        globalMediaKeyListener.register();
 
         // Apply dark theme stylesheet
-        scene.getStylesheets().add(Objects.requireNonNull(getClass()
-                .getResource("/ui/styles/dark-theme.css")).toExternalForm());
+        scene.getStylesheets().add(ThemeManager.getDarkThemeUrl());
 
         stage.setTitle("Custom Music Player");
         stage.setScene(scene);
         stage.setMaximized(true);
         stage.show();
+    }
+
+    @Override
+    public void stop() throws Exception {
+        super.stop();
+        globalMediaKeyListener.unregister();
     }
 }

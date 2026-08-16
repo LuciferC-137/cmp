@@ -1,5 +1,6 @@
 package com.luciferc137.cmp.ui.settings;
 
+import com.luciferc137.cmp.MainApp;
 import com.luciferc137.cmp.ui.ThemeManager;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -61,6 +62,7 @@ public class SettingsWindow {
             Stage stage = new Stage();
             stage.setTitle("Settings");
             Scene scene = new Scene(loader.load());
+            MainApp.keyBoardShortCut.bindCommonShortcuts(scene);
 
             // Get the controller and set the callback
             SettingsController controller = loader.getController();

@@ -249,7 +249,8 @@ public class SettingsController {
         // Build confirmation message
         String message;
         if (selected.size() == 1) {
-            message = "Are you sure you want to delete the playlist \"" + selected.get(0).getName() + "\"?";
+            message = "Are you sure you want to delete the playlist \""
+                    + selected.getFirst().getName() + "\"?";
         } else {
             message = "Are you sure you want to delete " + selected.size() + " playlists?";
         }
