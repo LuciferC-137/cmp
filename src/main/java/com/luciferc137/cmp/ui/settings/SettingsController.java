@@ -3,12 +3,14 @@ package com.luciferc137.cmp.ui.settings;
 import com.luciferc137.cmp.database.LibraryService;
 import com.luciferc137.cmp.database.importer.AimpPlaylistImporter;
 import com.luciferc137.cmp.database.model.PlaylistEntity;
+import com.luciferc137.cmp.database.model.TagEntity;
 import com.luciferc137.cmp.database.sync.SyncProgressListener;
 import com.luciferc137.cmp.database.sync.SyncResult;
 import com.luciferc137.cmp.library.MusicLibrary;
 import com.luciferc137.cmp.settings.SettingsManager;
 import com.luciferc137.cmp.ui.ThemeManager;
 import javafx.application.Platform;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.StackPane;
@@ -16,6 +18,8 @@ import javafx.scene.layout.VBox;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.List;
@@ -26,47 +30,30 @@ import java.util.Optional;
  */
 public class SettingsController {
 
-    @FXML
-    private ListView<String> categoryList;
+    // Library management pane
+    @FXML private ListView<String> categoryList;
+    @FXML private StackPane contentPane;
+    @FXML private VBox libraryPane;
+    @FXML private TextField musicFolderField;
+    @FXML private Button browseButton;
+    @FXML private Button resyncButton;
+    @FXML private ProgressBar syncProgressBar;
+    @FXML private Label syncStatusLabel;
 
-    @FXML
-    private StackPane contentPane;
+    // Playlist management pane
+    @FXML private VBox playlistsPane;
+    @FXML private ListView<PlaylistEntity> playlistListView;
+    @FXML private Button createPlaylistButton;
+    @FXML private Button deletePlaylistButton;
+    @FXML private Button importAimpButton;
+    @FXML private Label importStatusLabel;
 
-    @FXML
-    private VBox libraryPane;
-
-    @FXML
-    private VBox playlistsPane;
-
-    @FXML
-    private TextField musicFolderField;
-
-    @FXML
-    private Button browseButton;
-
-    @FXML
-    private Button resyncButton;
-
-    @FXML
-    private ProgressBar syncProgressBar;
-
-    @FXML
-    private Label syncStatusLabel;
-
-    @FXML
-    private ListView<PlaylistEntity> playlistListView;
-
-    @FXML
-    private Button createPlaylistButton;
-
-    @FXML
-    private Button deletePlaylistButton;
-
-    @FXML
-    private Button importAimpButton;
-
-    @FXML
-    private Label importStatusLabel;
+    // Tag management pane
+    @FXML private VBox tagManagementPane;
+    @FXML private ListView<TagEntity> tagListView;
+    @FXML private Button createTagButton;
+    @FXML private Button refactorTagButton;
+    @FXML private Button deleteTagButton;
 
     private final SettingsManager settingsManager = SettingsManager.getInstance();
     private final MusicLibrary musicLibrary = MusicLibrary.getInstance();
@@ -78,7 +65,7 @@ public class SettingsController {
     @FXML
     public void initialize() {
         // Initialize the category list
-        categoryList.getItems().addAll("Library", "Playlists");
+        categoryList.getItems().addAll("Library", "Playlists", "Tags");
         categoryList.getSelectionModel().selectFirst();
 
         // Load saved music folder path
@@ -101,6 +88,9 @@ public class SettingsController {
 
         // Setup playlist list view
         setupPlaylistListView();
+
+        // Setup tag list view
+        setupTagListView();
     }
 
     /**
@@ -154,12 +144,38 @@ public class SettingsController {
         refreshPlaylistList();
     }
 
+    private void setupTagListView() {
+        // Disable multiple selection
+        tagListView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
+
+        // Custom cell factory to display tag names
+        tagListView.setCellFactory(lv -> new ListCell<>() {
+            @Override
+            protected void updateItem(TagEntity item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                } else {
+                    setText(item.getName());
+                }
+            }
+        });
+
+        // Load tags
+        refreshTagList();
+    }
+
     /**
      * Refreshes the playlist list from the database.
      */
     private void refreshPlaylistList() {
         List<PlaylistEntity> playlists = libraryService.getAllPlaylists();
         playlistListView.getItems().setAll(playlists);
+    }
+
+    private void refreshTagList() {
+        List<TagEntity> tags = libraryService.getAllTags();
+        tagListView.getItems().setAll(tags);
     }
 
     /**
@@ -171,6 +187,8 @@ public class SettingsController {
         libraryPane.setManaged(false);
         playlistsPane.setVisible(false);
         playlistsPane.setManaged(false);
+        tagManagementPane.setVisible(false);
+        tagManagementPane.setManaged(false);
 
         // Show the corresponding panel
         if ("Library".equals(category)) {
@@ -180,6 +198,9 @@ public class SettingsController {
             playlistsPane.setVisible(true);
             playlistsPane.setManaged(true);
             refreshPlaylistList();
+        } else if ("Tags".equals(category)) {
+            tagManagementPane.setVisible(true);
+            tagManagementPane.setManaged(true);
         }
     }
 
@@ -247,6 +268,21 @@ public class SettingsController {
         }
 
         // Build confirmation message
+        Alert confirmDialog = confirmDeletePlaylist(selected);
+        ThemeManager.applyDarkTheme(confirmDialog);
+
+        Optional<ButtonType> result = confirmDialog.showAndWait();
+        if (result.isPresent() && result.get() == ButtonType.OK) {
+            // Delete all selected playlists
+            for (PlaylistEntity playlist : selected) {
+                libraryService.deletePlaylist(playlist.getId());
+            }
+            refreshPlaylistList();
+            notifyPlaylistsChanged();
+        }
+    }
+
+    private static @NotNull Alert confirmDeletePlaylist(List<PlaylistEntity> selected) {
         String message;
         if (selected.size() == 1) {
             message = "Are you sure you want to delete the playlist \""
@@ -260,17 +296,7 @@ public class SettingsController {
         confirmDialog.setTitle("Confirm Deletion");
         confirmDialog.setHeaderText("Delete Playlist(s)");
         confirmDialog.setContentText(message);
-        ThemeManager.applyDarkTheme(confirmDialog);
-
-        Optional<ButtonType> result = confirmDialog.showAndWait();
-        if (result.isPresent() && result.get() == ButtonType.OK) {
-            // Delete all selected playlists
-            for (PlaylistEntity playlist : selected) {
-                libraryService.deletePlaylist(playlist.getId());
-            }
-            refreshPlaylistList();
-            notifyPlaylistsChanged();
-        }
+        return confirmDialog;
     }
 
     /**
@@ -445,6 +471,105 @@ public class SettingsController {
                                 finalSuccessCount, resultMessage.toString()));
             });
         }).start();
+    }
+
+    @FXML
+    public void onCreateTag(ActionEvent actionEvent) {
+        showCreateTagDialog(this::refreshTagList);
+    }
+
+    @FXML
+    public void onRefactorTag(ActionEvent actionEvent) {
+        TagEntity selectedTag = tagListView.getSelectionModel().getSelectedItem();
+        if (selectedTag == null) {
+            showAlert("No Selection", "Please select a tag to refactor.");
+            return;
+        }
+
+        TextInputDialog dialog = new TextInputDialog(selectedTag.getName());
+        dialog.setTitle("Refactor Tag");
+        dialog.setHeaderText("Refactor the selected tag");
+        dialog.setContentText("New tag name:");
+        ThemeManager.applyDarkTheme(dialog);
+
+        Optional<String> result = dialog.showAndWait();
+        result.ifPresent(newName -> {
+            if (!newName.trim().isEmpty()) {
+                selectedTag.setName(newName.trim());
+                libraryService.refactorTag(selectedTag.getId(),
+                        newName.trim(), selectedTag.getColor());
+                refreshTagList();
+                musicLibrary.refresh(); // Refresh the library to update tag associations
+            }
+        });
+    }
+
+    @FXML
+    public void onDeleteTags(ActionEvent actionEvent) {
+        List<TagEntity> selected = tagListView.getSelectionModel().getSelectedItems();
+        if (selected.isEmpty()) {
+            showAlert("No Selection", "Please select one or more tags to delete.");
+            return;
+        }
+
+        // Build confirmation message
+        Alert confirmDialog = confirmDeleteTag(selected);
+        ThemeManager.applyDarkTheme(confirmDialog);
+
+        Optional<ButtonType> result = confirmDialog.showAndWait();
+        if (result.isPresent() && result.get() == ButtonType.OK) {
+            // Delete all selected tags
+            for (TagEntity tag : selected) {
+                libraryService.deleteTag(tag.getId());
+            }
+            refreshTagList();
+            musicLibrary.refresh(); // Refresh the library to update tag associations
+        }
+    }
+
+    private static @NotNull Alert confirmDeleteTag(List<TagEntity> selected) {
+        String message;
+        if (selected.size() == 1) {
+            message = "Are you sure you want to delete the tag \""
+                    + selected.getFirst().getName() + "\"?";
+        } else {
+            message = "Are you sure you want to delete " + selected.size() + " tags?\n" +
+                    "This action will permanently remove the tags from all associated music files.";
+        }
+
+        // Show confirmation dialog
+        Alert confirmDialog = new Alert(Alert.AlertType.CONFIRMATION);
+        confirmDialog.setTitle("Confirm Deletion");
+        confirmDialog.setHeaderText("Delete Tag");
+        confirmDialog.setContentText(message);
+        return confirmDialog;
+    }
+
+    /**
+     * Shows a dialog to create a new tag.
+     */
+    public static void showCreateTagDialog(@Nullable Runnable onTagCreated) {
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("Create Tag");
+        dialog.setHeaderText("Create a new tag");
+        dialog.setContentText("Tag name:");
+        ThemeManager.applyDarkTheme(dialog);
+
+        dialog.showAndWait().ifPresent(name -> {
+            if (!name.trim().isEmpty()) {
+                MusicLibrary.getInstance().createTag(name.trim(), "#808080");
+                if (onTagCreated != null) {
+                    onTagCreated.run();
+                }
+            }
+        });
+    }
+
+    /**
+     * Shows a dialog to create a new tag.
+     */
+    public static void showCreateTagDialog() {
+        showCreateTagDialog(null);
     }
 
     /**

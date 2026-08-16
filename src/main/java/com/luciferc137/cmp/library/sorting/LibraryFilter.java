@@ -1,4 +1,6 @@
-package com.luciferc137.cmp.library;
+package com.luciferc137.cmp.library.sorting;
+
+import java.util.Objects;
 
 /**
  * Represents a filter to apply to the music library.
@@ -106,8 +108,8 @@ public class LibraryFilter {
         if (o == null || getClass() != o.getClass()) return false;
         LibraryFilter that = (LibraryFilter) o;
         if (type != that.type) return false;
-        if (entityId != null ? !entityId.equals(that.entityId) : that.entityId != null) return false;
-        return value != null ? value.equals(that.value) : that.value == null;
+        if (!Objects.equals(entityId, that.entityId)) return false;
+        return Objects.equals(value, that.value);
     }
 
     @Override

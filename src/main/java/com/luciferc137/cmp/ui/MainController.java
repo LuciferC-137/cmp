@@ -6,6 +6,7 @@ import com.luciferc137.cmp.database.model.PlaylistEntity;
 import com.luciferc137.cmp.library.*;
 import com.luciferc137.cmp.ui.handlers.*;
 import com.luciferc137.cmp.ui.lyrics.LyricsWindow;
+import com.luciferc137.cmp.ui.settings.SettingsController;
 import com.luciferc137.cmp.ui.settings.SettingsWindow;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -277,7 +278,7 @@ public class MainController {
 
             @Override
             public void onShowCreateTagDialog() {
-                filterPopupHandler.showCreateTagDialog();
+                SettingsController.showCreateTagDialog();
             }
 
             @Override

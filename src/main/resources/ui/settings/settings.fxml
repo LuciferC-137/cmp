@@ -89,6 +89,26 @@
                 <!-- Spacer -->
                 <Region VBox.vgrow="ALWAYS" />
             </VBox>
+
+            <!-- Tag Management -->
+            <VBox fx:id="tagManagementPane" spacing="15">
+                <Label styleClass="section-title" text="Tag Editor" />
+                <Separator />
+                <VBox spacing="10" VBox.vgrow="ALWAYS">
+                    <Label text="Your Tags" />
+                    <ListView fx:id="tagListView" VBox.vgrow="ALWAYS" prefHeight="200" />
+                    <HBox alignment="CENTER_LEFT" spacing="10">
+                        <Button fx:id="createTagButton" onAction="#onCreateTag" styleClass="primary-button" text="Create Tag" />
+                        <Button fx:id="refactorTagButton" onAction="#onRefactorTag" text="Refactor" />
+                        <Button fx:id="deleteTagButton" onAction="#onDeleteTags" text="Delete" />
+                    </HBox>
+                    <Label maxWidth="Infinity" styleClass="hint-text" text="Select one or more tags to delete or rename." wrapText="true" />
+                </VBox>
+
+
+                <!-- Spacer -->
+                <Region VBox.vgrow="ALWAYS" />
+            </VBox>
         </StackPane>
     </center>
 

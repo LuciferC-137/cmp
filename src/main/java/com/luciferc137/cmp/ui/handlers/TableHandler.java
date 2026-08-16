@@ -1,6 +1,9 @@
 package com.luciferc137.cmp.ui.handlers;
 
 import com.luciferc137.cmp.library.*;
+import com.luciferc137.cmp.library.sorting.AdvancedFilter;
+import com.luciferc137.cmp.library.sorting.ColumnSortState;
+import com.luciferc137.cmp.library.sorting.SortableColumn;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;

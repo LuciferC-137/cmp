@@ -336,16 +336,6 @@ public class LibraryService {
     // ==================== Tags ====================
 
     /**
-     * Creates a new tag.
-     *
-     * @param name The tag name
-     * @return The created tag
-     */
-    public Optional<TagEntity> createTag(String name) {
-        return createTag(name, "#808080");
-    }
-
-    /**
      * Creates a new tag with a color.
      *
      * @param name The tag name
@@ -387,6 +377,20 @@ public class LibraryService {
             tagDao.delete(tagId);
         } catch (SQLException e) {
             System.err.println("Error deleting tag: " + e.getMessage());
+        }
+    }
+
+    public void refactorTag(long tagId, String newName, String newColor) {
+        try {
+            Optional<TagEntity> optTag = tagDao.findById(tagId);
+            if (optTag.isPresent()) {
+                TagEntity tag = optTag.get();
+                tag.setName(newName);
+                tag.setColor(newColor);
+                tagDao.update(tag);
+            }
+        } catch (SQLException e) {
+            System.err.println("Error refactoring tag: " + e.getMessage());
         }
     }
 

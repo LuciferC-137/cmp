@@ -1,4 +1,6 @@
-package com.luciferc137.cmp.library;
+package com.luciferc137.cmp.library.sorting;
+
+import com.luciferc137.cmp.library.Music;
 
 import java.util.HashMap;
 import java.util.Map;

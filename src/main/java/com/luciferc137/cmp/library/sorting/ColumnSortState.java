@@ -1,4 +1,4 @@
-package com.luciferc137.cmp.library;
+package com.luciferc137.cmp.library.sorting;
 
 /**
  * Represents the sort state for a column.

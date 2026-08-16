@@ -1,10 +1,11 @@
 package com.luciferc137.cmp.ui.handlers;
 
 import com.luciferc137.cmp.database.model.TagEntity;
-import com.luciferc137.cmp.library.AdvancedFilter;
+import com.luciferc137.cmp.library.sorting.AdvancedFilter;
 import com.luciferc137.cmp.library.MusicLibrary;
-import com.luciferc137.cmp.library.TagFilterState;
+import com.luciferc137.cmp.library.sorting.TagFilterState;
 import com.luciferc137.cmp.ui.ThemeManager;
+import com.luciferc137.cmp.ui.settings.SettingsController;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -59,7 +60,7 @@ public class FilterPopupHandler {
         Button addTagBtn = new Button("+ New Tag");
         addTagBtn.setOnAction(e -> {
             popup.hide();
-            showCreateTagDialog();
+            SettingsController.showCreateTagDialog();
         });
         content.getChildren().add(new Separator());
         content.getChildren().add(addTagBtn);
@@ -167,24 +168,6 @@ public class FilterPopupHandler {
 
         row.getChildren().addAll(checkBox, ratingLabel);
         return row;
-    }
-
-
-    /**
-     * Shows a dialog to create a new tag.
-     */
-    public void showCreateTagDialog() {
-        TextInputDialog dialog = new TextInputDialog();
-        dialog.setTitle("Create Tag");
-        dialog.setHeaderText("Create a new tag");
-        dialog.setContentText("Tag name:");
-        ThemeManager.applyDarkTheme(dialog);
-
-        dialog.showAndWait().ifPresent(name -> {
-            if (!name.trim().isEmpty()) {
-                musicLibrary.createTag(name.trim(), "#808080");
-            }
-        });
     }
 }
 

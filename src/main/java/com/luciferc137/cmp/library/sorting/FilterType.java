@@ -1,4 +1,4 @@
-package com.luciferc137.cmp.library;
+package com.luciferc137.cmp.library.sorting;
 
 /**
  * Enum representing different filter types for the music library.
