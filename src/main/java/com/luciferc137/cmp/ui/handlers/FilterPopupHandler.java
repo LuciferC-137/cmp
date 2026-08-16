@@ -4,6 +4,7 @@ import com.luciferc137.cmp.database.model.TagEntity;
 import com.luciferc137.cmp.library.AdvancedFilter;
 import com.luciferc137.cmp.library.MusicLibrary;
 import com.luciferc137.cmp.library.TagFilterState;
+import com.luciferc137.cmp.ui.ThemeManager;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -177,6 +178,7 @@ public class FilterPopupHandler {
         dialog.setTitle("Create Tag");
         dialog.setHeaderText("Create a new tag");
         dialog.setContentText("Tag name:");
+        ThemeManager.applyDarkTheme(dialog);
 
         dialog.showAndWait().ifPresent(name -> {
             if (!name.trim().isEmpty()) {
