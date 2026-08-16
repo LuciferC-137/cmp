@@ -10,6 +10,7 @@ import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.HBox;
 
 import java.io.File;
@@ -22,6 +23,11 @@ import java.util.function.LongSupplier;
  * Handles display of current track lyrics and metadata.
  */
 public class LyricsController {
+    private static final double BASE_FONT_SIZE = 16;
+    private static final double MIN_ZOOM_PERCENT = 50;
+    private static final double MAX_ZOOM_PERCENT = 300;
+    private static final double ZOOM_STEP_PERCENT = 10;
+    private double lyricsZoomPercent = 100;
 
     @FXML private ImageView coverArtView;
     @FXML private Label titleLabel;
@@ -51,8 +57,8 @@ public class LyricsController {
             coverArtView.setImage(CoverArtLoader.getDefaultCover(80));
         }
 
-        // Setup sync scroll button
         setupSyncScrollButton();
+        setupLyricsFontZoom();
     }
 
     /**
@@ -92,6 +98,36 @@ public class LyricsController {
                 }
             });
         }
+    }
+
+    private void setupLyricsFontZoom() {
+        if (lyricsScrollPane == null || lyricsLabel == null) return;
+
+        applyLyricsFontSize();
+
+        lyricsScrollPane.addEventFilter(ScrollEvent.SCROLL, event -> {
+            if (event.isControlDown()) {
+                double relevantDelta = event.getDeltaY() != 0
+                        ? event.getDeltaY()
+                        : event.getDeltaX();
+
+                if (relevantDelta != 0) {
+                    double direction = relevantDelta > 0 ? 1 : -1;
+                    lyricsZoomPercent = Math.clamp(
+                            lyricsZoomPercent + direction * ZOOM_STEP_PERCENT,
+                            MIN_ZOOM_PERCENT,
+                            MAX_ZOOM_PERCENT
+                    );
+                    applyLyricsFontSize();
+                }
+                event.consume();
+            }
+        });
+    }
+
+    private void applyLyricsFontSize() {
+        double fontSize = BASE_FONT_SIZE * (lyricsZoomPercent / 100.0);
+        lyricsLabel.setStyle("-fx-font-size: " + fontSize + "px;");
     }
 
     /**
