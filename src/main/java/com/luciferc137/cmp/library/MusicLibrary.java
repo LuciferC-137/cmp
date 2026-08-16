@@ -3,6 +3,7 @@ package com.luciferc137.cmp.library;
 import com.luciferc137.cmp.database.LibraryService;
 import com.luciferc137.cmp.database.model.MusicEntity;
 import com.luciferc137.cmp.database.model.TagEntity;
+import com.luciferc137.cmp.ui.MainController;
 import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyIntegerProperty;
@@ -10,6 +11,7 @@ import javafx.beans.property.ReadOnlyIntegerWrapper;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -23,6 +25,7 @@ import java.util.stream.Collectors;
 public class MusicLibrary {
 
     private static MusicLibrary instance;
+    @Nullable private MainController controller;
 
     private final LibraryService libraryService;
     private final ObservableList<Music> musicList;
@@ -50,6 +53,10 @@ public class MusicLibrary {
         this.advancedFilter = new SimpleObjectProperty<>(new AdvancedFilter());
         this.musicTagCache = new HashMap<>();
         this.musicCache = new HashMap<>();
+    }
+
+    public void setController(@Nullable MainController controller) {
+        this.controller = controller;
     }
 
     /**
@@ -260,6 +267,7 @@ public class MusicLibrary {
                 notifyLibraryChanged();
             });
         }
+        if (controller != null) controller.updateMusicTableInfoLabel();
     }
 
     /**

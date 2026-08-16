@@ -50,6 +50,7 @@ public class MainController {
     @FXML private ScrollPane playlistTabsScrollPane;
     @FXML private Label currentPlaylistLabel;
     @FXML private Label playlistInfoLabel;
+    @FXML private Label musicTableInfoLabel;
     @FXML private Button syncScrollButton;
 
     @FXML private Button shuffleButton;
@@ -122,6 +123,7 @@ public class MainController {
             musicTable.refresh();
             playlistTable.refresh();
         });
+        musicLibrary.setController(this);
 
         // Link volume slider to label
         if (volumeSlider != null && volumePercentLabel != null) {
@@ -130,6 +132,8 @@ public class MainController {
                 updateVolumePercentLabel(newVal.intValue());
             });
         }
+
+        updateMusicTableInfoLabel();
     }
 
     private void initializeHandlers() {
@@ -601,7 +605,30 @@ public class MainController {
         }
     }
 
-    // Methods for keyboard shortcuts action
+    public void updateMusicTableInfoLabel() {
+        int displayedTracks = musicTable.getItems().size();
+        long totalDuration = musicTable.getItems().stream()
+                .mapToLong(m -> m.duration).sum();
+        musicTableInfoLabel.setText(displayedTracks
+                + " tracks • " + formatTime(totalDuration));
+    }
+
+    public static String formatTime(long millis) {
+        long seconds = millis / 1000;
+        long minutes = seconds / 60;
+        long hours = minutes / 60;
+        seconds = seconds % 60;
+        minutes = minutes % 60;
+
+        if (hours > 0) {
+            return String.format("%d:%02d:%02d", hours, minutes, seconds);
+        } else {
+            return String.format("%d:%02d", minutes, seconds);
+        }
+    }
+
+    // ==================== Keyboard Shortcut Handlers ====================
+
     public void openSettingsFromShortcut() {
         onSettings();
     }
@@ -619,12 +646,10 @@ public class MainController {
     public void onPauseFromShortcut() { onPause(); }
 
     public void fiveSecondForwardFromShortcut() {
-        System.out.println("Five seconds forward shortcut triggered");
         playbackHandler.fiveSecondsForward();
     }
 
     public void fiveSecondBackwardFromShortcut() {
-        System.out.println("Five seconds backward shortcut triggered");
         playbackHandler.fiveSecondsBack();
     }
 

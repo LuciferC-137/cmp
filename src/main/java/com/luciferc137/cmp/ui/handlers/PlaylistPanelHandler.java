@@ -5,6 +5,7 @@ import com.luciferc137.cmp.database.model.PlaylistEntity;
 import com.luciferc137.cmp.library.Music;
 import com.luciferc137.cmp.library.MusicLibrary;
 import com.luciferc137.cmp.library.PlaybackQueue;
+import com.luciferc137.cmp.ui.MainController;
 import com.luciferc137.cmp.ui.PlaylistManagerDialog;
 import com.luciferc137.cmp.ui.ThemeManager;
 import javafx.beans.property.SimpleStringProperty;
@@ -519,7 +520,8 @@ public class PlaylistPanelHandler {
             long totalDuration = displayedPlaylistContent.stream()
                     .mapToLong(m -> m.duration)
                     .sum();
-            playlistInfoLabel.setText(count + " tracks • " + formatTime(totalDuration));
+            playlistInfoLabel.setText(count + " tracks • "
+                    + MainController.formatTime(totalDuration));
         }
     }
 
@@ -564,19 +566,4 @@ public class PlaylistPanelHandler {
         return availablePlaylists;
     }
 
-    // ==================== Utilities ====================
-
-    private String formatTime(long millis) {
-        long seconds = millis / 1000;
-        long minutes = seconds / 60;
-        long hours = minutes / 60;
-        seconds = seconds % 60;
-        minutes = minutes % 60;
-
-        if (hours > 0) {
-            return String.format("%d:%02d:%02d", hours, minutes, seconds);
-        } else {
-            return String.format("%d:%02d", minutes, seconds);
-        }
-    }
 }
