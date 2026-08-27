@@ -70,15 +70,6 @@ public class LyricsWindow {
             lyricsStage.setMinHeight(650);
             lyricsStage.initOwner(ownerWindow);
             
-            // Try to load the lyrics icon
-            try {
-                Image icon = new Image(Objects.requireNonNull(
-                        LyricsWindow.class.getResourceAsStream("/icons/lyrics.png")));
-                lyricsStage.getIcons().add(icon);
-            } catch (Exception e) {
-                // Icon not available, continue without it
-            }
-            
             // Clear references when window is closed
             lyricsStage.setOnHidden(event -> {
                 if (controller != null) {
@@ -89,7 +80,10 @@ public class LyricsWindow {
             });
             
             // Center on screen after the window is shown and sized
-            lyricsStage.setOnShown(event -> lyricsStage.centerOnScreen());
+            lyricsStage.setOnShown(event -> {
+                lyricsStage.centerOnScreen();
+                controller.updateGradientColor();}
+            );
 
             lyricsStage.show();
             

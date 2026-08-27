@@ -14,7 +14,7 @@
     </padding>
 
     <!-- Header: Current track info -->
-    <HBox alignment="CENTER_LEFT" spacing="15" styleClass="lyrics-header">
+    <HBox fx:id="headerBox" alignment="CENTER_LEFT" spacing="15" styleClass="lyrics-header">
         <padding>
             <Insets bottom="15" />
         </padding>
@@ -34,9 +34,7 @@
                 prefWidth="34" prefHeight="34">
             <graphic>
                 <ImageView fitWidth="20" fitHeight="20" preserveRatio="true">
-                    <image>
-                        <Image url="@/icons/fetch.png"/>
-                    </image>
+                    <Image url="@/icons/fetch.png"/>
                 </ImageView>
             </graphic>
             <tooltip>
