@@ -21,7 +21,7 @@ import java.util.List;
  * - Play and queue options
  * - Add to playlist options
  */
-public class ContextMenuHandler {
+public class ContextMenuHandler implements Handler {
 
     private final MusicLibrary musicLibrary;
     private final LibraryService libraryService;

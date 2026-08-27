@@ -28,7 +28,7 @@ import java.util.List;
  * - Loading and switching between playlists
  * - Playlist CRUD operations
  */
-public class PlaylistPanelHandler {
+public class PlaylistPanelHandler implements Handler {
 
     private final LibraryService libraryService;
     private final MusicLibrary musicLibrary;
@@ -112,9 +112,7 @@ public class PlaylistPanelHandler {
         this.eventListener = listener;
     }
 
-    /**
-     * Initializes the playlist panel.
-     */
+    @Override
     public void initialize() {
         if (playlistTable == null) return;
 

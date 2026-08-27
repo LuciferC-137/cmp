@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import com.luciferc137.cmp.ui.*?>
 <?import com.luciferc137.cmp.ui.utils.WaveformProgressBar?>
 <?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
@@ -8,8 +7,8 @@
 
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.image.Image?>
-<BorderPane xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.luciferc137.cmp.ui.controllers.MainController">
 
+<BorderPane xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.luciferc137.cmp.ui.controllers.MainController">
     <top>
         <VBox spacing="5">
             <padding>
@@ -94,41 +93,9 @@
                 <!-- Playlist info -->
                 <Label fx:id="musicTableInfoLabel" text="0 tracks" style="-fx-font-size: 11px; -fx-text-fill: #666;" />
             </VBox>
-            <!-- Playlist panel (right) -->
-            <VBox spacing="5" minWidth="200" prefWidth="250">
-                <padding>
-                    <Insets top="0" right="0" bottom="0" left="5" />
-                </padding>
+            <!-- Playlist & Queue panels (stacked) (right) -->
+            <fx:include source="playlists.fxml"/>
 
-                <!-- Playlist tabs header -->
-                <HBox alignment="CENTER_LEFT" spacing="5">
-                    <ScrollPane fx:id="playlistTabsScrollPane" hbarPolicy="NEVER" vbarPolicy="NEVER"
-                                fitToHeight="true" HBox.hgrow="ALWAYS" style="-fx-background-color: transparent;">
-                        <HBox fx:id="playlistTabsContainer" spacing="3" alignment="CENTER_LEFT" />
-                    </ScrollPane>
-                    <Button fx:id="managePlaylistsButton" onAction="#onManagePlaylists"  text="⚙" prefWidth="40"
-                            style="-fx-font-size: 16px;" />
-                </HBox>
-
-                <!-- Current playlist name with sync button -->
-                <HBox alignment="CENTER" spacing="5" HBox.hgrow="ALWAYS">
-                    <Label fx:id="currentPlaylistLabel" alignment="CENTER_LEFT" text="Local" style="-fx-font-weight: bold; -fx-font-size: 13px;" />
-                    <Pane HBox.hgrow="ALWAYS" />
-                    <Button fx:id="syncScrollButton" alignment="CENTER_RIGHT" text="↕" prefWidth="24" prefHeight="24"
-                            style="-fx-font-size: 12px; -fx-padding: 2;" />
-                </HBox>
-
-                <!-- Playlist content -->
-                <TableView fx:id="playlistTable" VBox.vgrow="ALWAYS">
-                    <columns>
-                        <TableColumn fx:id="playlistTitleColumn" prefWidth="410" text="Title" />
-                        <TableColumn fx:id="playlistRatingColumn" prefWidth="90" text="Rating" />
-                    </columns>
-                </TableView>
-
-                <!-- Playlist info -->
-                <Label fx:id="playlistInfoLabel" text="0 tracks" style="-fx-font-size: 11px; -fx-text-fill: #666;" />
-            </VBox>
         </SplitPane>
     </center>
 

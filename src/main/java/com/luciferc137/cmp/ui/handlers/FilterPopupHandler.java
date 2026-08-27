@@ -20,7 +20,7 @@ import javafx.stage.Window;
  * - Rating filter popup with checkboxes (OR logic)
  * - Create tag dialog
  */
-public class FilterPopupHandler {
+public class FilterPopupHandler implements Handler {
 
     private final MusicLibrary musicLibrary;
 

@@ -1,9 +1,8 @@
 package com.luciferc137.cmp.ui.controllers;
 
-import com.luciferc137.cmp.audio.VlcAudioPlayer;
-import com.luciferc137.cmp.audio.WaveformExtractor;
 import com.luciferc137.cmp.database.model.PlaylistEntity;
 import com.luciferc137.cmp.library.*;
+import com.luciferc137.cmp.ui.Coordinator;
 import com.luciferc137.cmp.ui.dialog.BatchCoverArtDialog;
 import com.luciferc137.cmp.ui.dialog.MetadataEditorDialog;
 import com.luciferc137.cmp.ui.utils.WaveformProgressBar;
@@ -16,7 +15,6 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
-import javafx.scene.layout.HBox;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,69 +45,32 @@ public class MainController {
     @FXML private Label totalTimeLabel;
     @FXML private ImageView currentCoverArt;
 
-    @FXML private TableView<Music> playlistTable;
-    @FXML private TableColumn<Music, String> playlistTitleColumn;
-    @FXML private TableColumn<Music, String> playlistRatingColumn;
-    @FXML private HBox playlistTabsContainer;
-    @FXML private ScrollPane playlistTabsScrollPane;
-    @FXML private Label currentPlaylistLabel;
-    @FXML private Label playlistInfoLabel;
     @FXML private Label musicTableInfoLabel;
-    @FXML private Button syncScrollButton;
 
     @FXML private Button shuffleButton;
     @FXML private Button loopButton;
     @FXML private Button prevButton;
     @FXML private Button nextButton;
-    @FXML private Button managePlaylistsButton;
 
     @FXML private Label volumePercentLabel;
-
-    // ==================== Core Services ====================
-
-    private final VlcAudioPlayer audioPlayer = new VlcAudioPlayer();
-    private final WaveformExtractor waveformExtractor = new WaveformExtractor();
-    private final MusicLibrary musicLibrary = MusicLibrary.getInstance();
-    private final PlaybackQueue playbackQueue = PlaybackQueue.getInstance();
-
-    // ==================== Handlers ====================
-
-    private PlaybackHandler playbackHandler;
-    private PlaylistPanelHandler playlistPanelHandler;
-    private TableHandler tableHandler;
-    private ContextMenuHandler contextMenuHandler;
-    private FilterPopupHandler filterPopupHandler;
-    private SessionHandler sessionHandler;
-    private ShuffleLoopHandler shuffleLoopHandler;
+    
 
     // ==================== Initialization ====================
 
     @FXML
     public void initialize() {
-        initializeHandlers();
         bindHandlerUIComponents();
         configureHandlerListeners();
 
         // Setup table selection and bindings
         musicTable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-        musicTable.setItems(musicLibrary.getMusicList());
+        musicTable.setItems(Coordinator.musicLibrary().getMusicList());
 
         // Load music from database
-        musicLibrary.refresh();
+        Coordinator.musicLibrary().refresh();
 
         // Table click handlers
         setupTableClickHandlers();
-
-        // Initialize all handlers
-        tableHandler.initialize();
-        playbackHandler.initialize();
-        playlistPanelHandler.initialize();
-
-        // Restore session
-        sessionHandler.restoreSession();
-
-        // Update button styles after restore
-        shuffleLoopHandler.updateAllButtonStyles();
 
         // Setup state change listeners (after session restore)
         setupStateListeners();
@@ -123,11 +84,10 @@ public class MainController {
         // Setup periodic session save (every 10 seconds when playing)
         setupPeriodicSessionSave();
 
-        musicLibrary.setOnRatingChanged(() -> {
+        Coordinator.musicLibrary().setOnRatingChanged(() -> {
             musicTable.refresh();
-            playlistTable.refresh();
         });
-        musicLibrary.setController(this);
+        Coordinator.musicLibrary().setController(this);
 
         // Link volume slider to label
         if (volumeSlider != null && volumePercentLabel != null) {
@@ -138,20 +98,14 @@ public class MainController {
         }
 
         updateMusicTableInfoLabel();
-    }
 
-    private void initializeHandlers() {
-        playbackHandler = new PlaybackHandler(audioPlayer, waveformExtractor);
-        playlistPanelHandler = new PlaylistPanelHandler();
-        tableHandler = new TableHandler();
-        contextMenuHandler = new ContextMenuHandler();
-        filterPopupHandler = new FilterPopupHandler();
-        sessionHandler = new SessionHandler();
-        shuffleLoopHandler = new ShuffleLoopHandler();
+        configureCrossController();
+
+        Coordinator.getInstance().onMainControllerReady();
     }
 
     private void bindHandlerUIComponents() {
-        playbackHandler.bindUIComponents(
+        Coordinator.playbackHandler().bindUIComponents(
                 waveformProgressBar,
                 currentTitleLabel,
                 currentArtistLabel,
@@ -161,17 +115,7 @@ public class MainController {
                 currentCoverArt
         );
 
-        playlistPanelHandler.bindUIComponents(
-                playlistTable,
-                playlistTitleColumn,
-                playlistRatingColumn,
-                playlistTabsContainer,
-                currentPlaylistLabel,
-                playlistInfoLabel,
-                syncScrollButton
-        );
-
-        tableHandler.bindUIComponents(
+        Coordinator.tableHandler().bindUIComponents(
                 musicTable,
                 titleColumn,
                 artistColumn,
@@ -181,15 +125,19 @@ public class MainController {
                 ratingColumn
         );
 
-        shuffleLoopHandler.bindUIComponents(shuffleButton, loopButton);
+        Coordinator.shuffleLoopHandler().bindUIComponents(shuffleButton, loopButton);
+    }
+
+    private void configureCrossController() {
+        Coordinator.setMainTableRefreshAction(musicTable::refresh);
     }
 
     private void configureHandlerListeners() {
         // Playback handler events
-        playbackHandler.setEventListener(new PlaybackHandler.PlaybackEventListener() {
+        Coordinator.playbackHandler().setEventListener(new PlaybackHandler.PlaybackEventListener() {
             @Override
             public void onTrackChanged(Music music) {
-                playlistPanelHandler.updatePlaylistTabStyles();
+                Coordinator.playlistPanelHandler().updatePlaylistTabStyles();
                 // Update lyrics window if it's open
                 LyricsWindow.updateCurrentTrack(music);
             }
@@ -199,55 +147,13 @@ public class MainController {
                 saveSession();
             }
         });
-
-        // Playlist panel events
-        playlistPanelHandler.setEventListener(new PlaylistPanelHandler.PlaylistEventListener() {
-            @Override
-            public void onPlaylistTrackSelected(Music music, Long playlistId, List<Music> playlistContent, boolean isFromSavedPlaylist) {
-                if (playlistId == null) {
-                    // Playing from Local playlist
-                    playbackQueue.setLocalQueue(playlistContent, music);
-                } else {
-                    // Playing from a saved playlist - don't modify Local
-                    playlistPanelHandler.getAvailablePlaylists().stream()
-                            .filter(p -> p.getId().equals(playlistId))
-                            .findFirst().ifPresent(playlist
-                                    -> playbackQueue.loadPlaylist(playlist.getId(),
-                                    playlist.getName(), playlistContent));
-                    playbackQueue.playTrack(music);
-                }
-                playbackHandler.playTrack(music);
-                playlistPanelHandler.updatePlaylistTabStyles();
-            }
-
-            @Override
-            public void onPlaylistTabsNeedRefresh() {
-                playlistPanelHandler.refreshPlaylistTabs();
-            }
-
-            @Override
-            public void onPlaylistContextMenuRequested(List<Music> selectedMusic, double screenX, double screenY, Long playlistId) {
-                contextMenuHandler.showMusicContextMenuForPlaylist(
-                        selectedMusic,
-                        screenX,
-                        screenY,
-                        playlistTable,
-                        playlistId
-                );
-            }
-
-            @Override
-            public void onRatingChanged() {
-                // Sync main table when rating is changed in playlist view
-                musicTable.refresh();
-            }
-        });
+        Coordinator.playbackHandler().initialize();
 
         // Table handler events
-        tableHandler.setEventListener(new TableHandler.TableEventListener() {
+        Coordinator.tableHandler().setEventListener(new TableHandler.TableEventListener() {
             @Override
             public void onShowTagFilterPopup() {
-                filterPopupHandler.showTagFilterPopup(
+                Coordinator.filterPopupHandler().showTagFilterPopup(
                         musicTable.getScene().getWindow(),
                         musicTable.getScene().getWindow().getX(),
                         musicTable.getScene().getWindow().getY()
@@ -256,7 +162,7 @@ public class MainController {
 
             @Override
             public void onShowRatingFilterPopup() {
-                filterPopupHandler.showRatingFilterPopup(
+                Coordinator.filterPopupHandler().showRatingFilterPopup(
                         musicTable.getScene().getWindow(),
                         musicTable.getScene().getWindow().getX(),
                         musicTable.getScene().getWindow().getY()
@@ -266,12 +172,13 @@ public class MainController {
             @Override
             public void onRatingChanged() {
                 // Sync playlist view when rating is changed in main table
-                playlistTable.refresh();
+                Coordinator.playlistPanelHandler().refreshPlaylistTabs();
             }
         });
+        Coordinator.tableHandler().initialize();
 
         // Context menu events
-        contextMenuHandler.setEventListener(new ContextMenuHandler.ContextMenuEventListener() {
+        Coordinator.contextMenuHandler().setEventListener(new ContextMenuHandler.ContextMenuEventListener() {
             @Override
             public void onPlayRequested(Music music) {
                 musicTable.getSelectionModel().clearSelection();
@@ -286,12 +193,12 @@ public class MainController {
 
             @Override
             public void onPlaylistRefreshNeeded() {
-                playlistPanelHandler.refreshPlaylistTabs();
+                Coordinator.playlistPanelHandler().refreshPlaylistTabs();
             }
 
             @Override
             public void onDisplayedPlaylistRefreshNeeded(Long playlistId) {
-                playlistPanelHandler.refreshDisplayedPlaylist();
+                Coordinator.playlistPanelHandler().refreshDisplayedPlaylist();
             }
 
             @Override
@@ -324,63 +231,64 @@ public class MainController {
                 }
 
                 // Refresh the displayed playlist
-                playlistPanelHandler.refreshDisplayedPlaylist();
+                Coordinator.playlistPanelHandler().refreshDisplayedPlaylist();
             }
         });
+        Coordinator.contextMenuHandler().initialize();
 
         // Session restore events
-        sessionHandler.setRestoreListener(new SessionHandler.SessionRestoreListener() {
+        Coordinator.sessionHandler().setRestoreListener(new SessionHandler.SessionRestoreListener() {
             @Override
             public void onShuffleStateRestored(boolean enabled) {
-                shuffleLoopHandler.updateShuffleButtonStyle();
+                Coordinator.shuffleLoopHandler().updateShuffleButtonStyle();
             }
 
             @Override
             public void onLoopModeRestored(PlaybackQueue.LoopMode mode) {
-                shuffleLoopHandler.updateLoopButtonStyle();
+                Coordinator.shuffleLoopHandler().updateLoopButtonStyle();
             }
 
             @Override
             public void onCurrentTrackRestored(Music music) {
-                playbackHandler.displayTrackInfo(music);
+                Coordinator.playbackHandler().displayTrackInfo(music);
             }
 
             @Override
             public void onPlaybackPositionRestored(long position) {
-                playbackHandler.setRestoredPosition(position);
+                Coordinator.playbackHandler().setRestoredPosition(position);
             }
 
             @Override
             public void onDisplayedPlaylistRestored(Long playlistId) {
-                playlistPanelHandler.setDisplayedPlaylistId(playlistId);
-                playlistPanelHandler.updatePlaylistTabStyles();
+                Coordinator.playlistPanelHandler().setDisplayedPlaylistId(playlistId);
+                Coordinator.playlistPanelHandler().updatePlaylistTabStyles();
 
                 if (playlistId == null) {
-                    if (currentPlaylistLabel != null) {
-                        currentPlaylistLabel.setText("Local");
-                    }
                     // Use localPlaylistContent instead of queue for Local playlist display
-                    playlistPanelHandler.getDisplayedPlaylistContent().setAll(playbackQueue.getLocalPlaylistContent());
+                    Coordinator.playlistPanelHandler().getDisplayedPlaylistContent()
+                            .setAll(Coordinator.playbackQueue().getLocalPlaylistContent());
                 } else {
-                    String playlistName = playlistPanelHandler.getAvailablePlaylists().stream()
+                    String playlistName = Coordinator.playlistPanelHandler().getAvailablePlaylists().stream()
                             .filter(p -> p.getId().equals(playlistId))
                             .map(PlaylistEntity::getName)
                             .findFirst().orElse("Playlist");
-                    playlistPanelHandler.loadPlaylistIntoView(playlistId, playlistName);
+                    Coordinator.playlistPanelHandler().loadPlaylistIntoView(playlistId, playlistName);
                 }
+                Coordinator.refreshPlaylistTable();
             }
 
             @Override
             public void onSessionRestoreComplete() {
                 // Refresh the displayed playlist to show tracks in playback order
-                playlistPanelHandler.refreshDisplayedPlaylist();
+                Coordinator.playlistPanelHandler().refreshDisplayedPlaylist();
             }
         });
+        Coordinator.sessionHandler().initialize();
     }
 
     private void setupTableClickHandlers() {
         musicTable.setOnMouseClicked(event -> {
-            contextMenuHandler.hideActiveMenu();
+            Coordinator.contextMenuHandler().hideActiveMenu();
             if (event.getClickCount() == 2 && event.getButton() == MouseButton.PRIMARY) {
                 onPlay();
             }
@@ -396,12 +304,12 @@ public class MainController {
                     } else if (!selectedItems.contains(row.getItem())) {
                         selectedItems = List.of(row.getItem());
                     }
-                    contextMenuHandler.showMusicContextMenu(
+                    Coordinator.contextMenuHandler().showMusicContextMenu(
                             selectedItems,
                             event.getScreenX(),
                             event.getScreenY(),
                             musicTable,
-                            playlistPanelHandler.getDisplayedPlaylistId()
+                            Coordinator.playlistPanelHandler().getDisplayedPlaylistId()
                     );
                 }
             });
@@ -410,16 +318,16 @@ public class MainController {
     }
 
     private void setupStateListeners() {
-        playbackQueue.shuffleEnabledProperty().addListener((obs, old, enabled) -> {
-            shuffleLoopHandler.updateShuffleButtonStyle();
-            if (!sessionHandler.isRestoringSession()) {
+        Coordinator.playbackQueue().shuffleEnabledProperty().addListener((obs, old, enabled) -> {
+            Coordinator.shuffleLoopHandler().updateShuffleButtonStyle();
+            if (!Coordinator.sessionHandler().isRestoringSession()) {
                 saveSession();
             }
         });
 
-        playbackQueue.loopModeProperty().addListener((obs, old, mode) -> {
-            shuffleLoopHandler.updateLoopButtonStyle();
-            if (!sessionHandler.isRestoringSession()) {
+        Coordinator.playbackQueue().loopModeProperty().addListener((obs, old, mode) -> {
+            Coordinator.shuffleLoopHandler().updateLoopButtonStyle();
+            if (!Coordinator.sessionHandler().isRestoringSession()) {
                 saveSession();
             }
         });
@@ -462,7 +370,7 @@ public class MainController {
                 new javafx.animation.KeyFrame(
                         javafx.util.Duration.seconds(10),
                         event -> {
-                            if (audioPlayer.isPlaying()) {
+                            if (Coordinator.audioPlayer().isPlaying()) {
                                 saveSession();
                             }
                         }
@@ -473,9 +381,9 @@ public class MainController {
     }
 
     private void saveSession() {
-        sessionHandler.saveSession(
-                playlistPanelHandler.getDisplayedPlaylistId(),
-                playbackHandler.getCurrentPosition()
+        Coordinator.sessionHandler().saveSession(
+                Coordinator.playlistPanelHandler().getDisplayedPlaylistId(),
+                Coordinator.playbackHandler().getCurrentPosition()
         );
     }
 
@@ -490,16 +398,15 @@ public class MainController {
         musicTable.refresh();
 
         // Refresh playlist content (reload from database if needed) and refresh the table
-        playlistPanelHandler.refreshDisplayedPlaylist();
-        playlistTable.refresh();
+        Coordinator.playlistPanelHandler().refreshDisplayedPlaylist();
 
         // Refresh current track display if the current track was affected
         if (editedMusic != null) {
             // Synchronize metadata if the edited music matches the current track
-            playbackHandler.refreshCurrentTrackIfMatches(editedMusic);
+            Coordinator.playbackHandler().refreshCurrentTrackIfMatches(editedMusic);
         } else {
             // Batch operation or unknown - just refresh the display
-            playbackHandler.refreshCurrentTrackDisplay();
+            Coordinator.playbackHandler().refreshCurrentTrackDisplay();
         }
 
         // Refresh lyrics window if it's open
@@ -511,13 +418,13 @@ public class MainController {
     @FXML
     private void onSearch() {
         String query = searchField.getText();
-        musicLibrary.search(query);
+        Coordinator.musicLibrary().search(query);
     }
 
     @FXML
     private void onClearSearch() {
         searchField.clear();
-        musicLibrary.clearSearch();
+        Coordinator.musicLibrary().clearSearch();
     }
 
     @FXML
@@ -525,76 +432,67 @@ public class MainController {
         Music selected = musicTable.getSelectionModel().getSelectedItem();
         if (selected != null) {
             // Play selected track from table
-            playbackHandler.playFromTable(selected, new ArrayList<>(musicLibrary.getMusicList()));
+            Coordinator.playbackHandler().playFromTable(selected, new ArrayList<>(Coordinator.musicLibrary().getMusicList()));
         } else {
             // No selection - resume current track or play from queue
-            playbackHandler.resumeOrPlayCurrent();
+            Coordinator.playbackHandler().resumeOrPlayCurrent();
         }
-        playlistPanelHandler.updatePlaylistTabStyles();
+        Coordinator.playlistPanelHandler().updatePlaylistTabStyles();
     }
 
     @FXML
     private void onPause() {
         // If there's a restored position and nothing is playing yet, resume at that position
-        if (playbackHandler.hasRestoredPosition() && !playbackHandler.getAudioPlayer().isPlaying()) {
-            playbackHandler.resumeAtSavedPosition();
+        if (Coordinator.playbackHandler().hasRestoredPosition() && !Coordinator.playbackHandler().getAudioPlayer().isPlaying()) {
+            Coordinator.playbackHandler().resumeAtSavedPosition();
         } else {
-            playbackHandler.pause();
+            Coordinator.playbackHandler().pause();
         }
     }
 
     @FXML
     private void onStop() {
-        playbackHandler.stop();
+        Coordinator.playbackHandler().stop();
     }
 
     @FXML
     private void onPrevious() {
-        playbackHandler.previous();
+        Coordinator.playbackHandler().previous();
     }
 
     @FXML
     private void onNext() {
-        playbackHandler.next();
+        Coordinator.playbackHandler().next();
     }
 
     @FXML
     private void onShuffle() {
-        playbackHandler.toggleShuffle();
+        Coordinator.playbackHandler().toggleShuffle();
     }
 
     @FXML
     private void onToggleLoop() {
-        playbackHandler.cycleLoopMode();
-    }
-
-    @FXML
-    private void onManagePlaylists() {
-        // Open settings window on the Playlists tab
-        SettingsWindow.setOnPlaylistsChangedCallback(() -> {
-            Platform.runLater(() -> playlistPanelHandler.refreshPlaylistTabs());
-        });
-        SettingsWindow.show(musicTable.getScene().getWindow(), "Playlists");
+        Coordinator.playbackHandler().cycleLoopMode();
     }
 
     @FXML
     private void onSettings() {
         // Set callback to refresh playlist tabs when playlists change in settings
         SettingsWindow.setOnPlaylistsChangedCallback(() -> {
-            Platform.runLater(() -> playlistPanelHandler.refreshPlaylistTabs());
+            Platform.runLater(() -> Coordinator.playlistPanelHandler().refreshPlaylistTabs());
         });
         SettingsWindow.show(musicTable.getScene().getWindow());
     }
 
     @FXML
     private void onShowLyrics() {
-        Music currentMusic = playbackHandler.getCurrentMusic();
+        Music currentMusic = Coordinator.playbackHandler().getCurrentMusic();
         LyricsWindow.show(
                 musicTable.getScene().getWindow(),
                 currentMusic,
                 this::refreshAllViews,
-                audioPlayer::getPosition,
-                audioPlayer::getDuration
+                Coordinator.playbackHandler().getAudioPlayer()::getPosition,
+                Coordinator.playbackHandler().getAudioPlayer()::getDuration
         );
     }
 
@@ -615,7 +513,7 @@ public class MainController {
                 .mapToLong(m -> m.duration).sum();
         musicTableInfoLabel.setText(displayedTracks
                 + " tracks • " + formatTime(totalDuration));
-        tableHandler.updateColumnHeaders();
+        Coordinator.tableHandler().updateColumnHeaders();
     }
 
     public static String formatTime(long millis) {
@@ -651,11 +549,11 @@ public class MainController {
     public void onPauseFromShortcut() { onPause(); }
 
     public void fiveSecondForwardFromShortcut() {
-        playbackHandler.fiveSecondsForward();
+        Coordinator.playbackHandler().fiveSecondsForward();
     }
 
     public void fiveSecondBackwardFromShortcut() {
-        playbackHandler.fiveSecondsBack();
+        Coordinator.playbackHandler().fiveSecondsBack();
     }
 
 }

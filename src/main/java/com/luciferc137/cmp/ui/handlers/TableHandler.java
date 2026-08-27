@@ -17,7 +17,7 @@ import javafx.scene.layout.HBox;
  * - Rating stars display and interaction
  * - Column header updates for sort indicators
  */
-public class TableHandler {
+public class TableHandler implements Handler {
 
     private final MusicLibrary musicLibrary;
 
@@ -71,9 +71,7 @@ public class TableHandler {
         this.eventListener = listener;
     }
 
-    /**
-     * Initializes the table columns.
-     */
+    @Override
     public void initialize() {
         setupTableColumns();
     }

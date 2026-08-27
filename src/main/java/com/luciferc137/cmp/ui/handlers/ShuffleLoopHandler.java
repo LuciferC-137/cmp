@@ -6,7 +6,7 @@ import javafx.scene.control.Button;
 /**
  * Handles shuffle and loop button state and styling.
  */
-public class ShuffleLoopHandler {
+public class ShuffleLoopHandler implements Handler {
 
     private final PlaybackQueue playbackQueue;
 
@@ -54,6 +54,11 @@ public class ShuffleLoopHandler {
                     "-fx-font-size: 11px; -fx-background-color: #2196F3; -fx-text-fill: white;" :
                     "-fx-font-size: 11px;");
         }
+    }
+
+    @Override
+    public void initialize() {
+        updateAllButtonStyles();
     }
 
     /**

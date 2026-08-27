@@ -27,11 +27,11 @@ import java.util.List;
  * - Track end detection
  * - Volume control
  */
-public class PlaybackHandler {
+public class PlaybackHandler implements Handler {
 
     private final VlcAudioPlayer audioPlayer;
     private final WaveformExtractor waveformExtractor;
-    private final PlaybackQueue playbackQueue;
+    public final PlaybackQueue playbackQueue;
     private final SettingsManager settingsManager;
 
     // UI Components (injected)
@@ -97,9 +97,7 @@ public class PlaybackHandler {
         this.eventListener = listener;
     }
 
-    /**
-     * Initializes the playback handler.
-     */
+    @Override
     public void initialize() {
         initVolumeControl();
         initProgressTimer();

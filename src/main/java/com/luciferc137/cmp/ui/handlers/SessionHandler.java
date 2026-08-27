@@ -15,7 +15,7 @@ import java.util.List;
  * - Restoring session on application startup
  * - Managing shuffle/loop state persistence
  */
-public class SessionHandler {
+public class SessionHandler implements Handler {
 
     private final SettingsManager settingsManager;
     private final PlaybackQueue playbackQueue;
@@ -50,6 +50,11 @@ public class SessionHandler {
 
     public boolean isRestoringSession() {
         return isRestoringSession;
+    }
+
+    @Override
+    public void initialize() {
+        restoreSession();
     }
 
     /**
