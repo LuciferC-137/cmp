@@ -243,9 +243,7 @@ public class AdvancedFilter {
 
         // Check rating filters (OR logic - music matches if its rating is among selected ratings)
         if (hasActiveRatingFilters()) {
-            if (!selectedRatings.contains(music.getRating())) {
-                return false; // Music's rating is not among the selected ratings
-            }
+            return selectedRatings.contains(music.getRating()); // Music's rating is not among the selected ratings
         }
 
         return true;

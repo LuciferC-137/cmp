@@ -1,11 +1,13 @@
 package com.luciferc137.cmp.audio;
 
+import com.luciferc137.cmp.MainApp;
 import com.luciferc137.cmp.library.Music;
 import uk.co.caprica.vlcj.player.base.MediaPlayer;
 import uk.co.caprica.vlcj.player.base.MediaPlayerEventAdapter;
 import uk.co.caprica.vlcj.player.component.AudioPlayerComponent;
 
 import java.io.File;
+import java.util.logging.Level;
 
 public class VlcAudioPlayer implements AudioPlayer, VolumeControl {
     private int volume = 50;
@@ -32,8 +34,7 @@ public class VlcAudioPlayer implements AudioPlayer, VolumeControl {
                 System.err.println("File Not Found: " + music.absPath());
                 return;
             }
-
-            System.out.println("Loading media: " + file.getAbsolutePath());
+            MainApp.logger.log(Level.INFO, "Loading file: " + file.getAbsolutePath());
             mediaPlayer.media().play(file.getAbsolutePath());
 
         } catch (Exception e) {

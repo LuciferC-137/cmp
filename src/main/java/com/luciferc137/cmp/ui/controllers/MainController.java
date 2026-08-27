@@ -615,6 +615,7 @@ public class MainController {
                 .mapToLong(m -> m.duration).sum();
         musicTableInfoLabel.setText(displayedTracks
                 + " tracks • " + formatTime(totalDuration));
+        tableHandler.updateColumnHeaders();
     }
 
     public static String formatTime(long millis) {

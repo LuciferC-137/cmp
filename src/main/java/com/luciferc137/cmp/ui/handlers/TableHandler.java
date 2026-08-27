@@ -170,7 +170,7 @@ public class TableHandler {
     }
 
     private Label createFilterableHeader(String text, Runnable onFilterClick) {
-        Label header = new Label(text + " ▼");
+        Label header = new Label(text);
         header.setMaxWidth(Double.MAX_VALUE);
         header.setMaxHeight(Double.MAX_VALUE);
         header.setStyle("-fx-cursor: hand;");
@@ -194,6 +194,8 @@ public class TableHandler {
         updateSortableColumnHeader(artistColumn, SortableColumn.ARTIST, activeCol, activeState);
         updateSortableColumnHeader(albumColumn, SortableColumn.ALBUM, activeCol, activeState);
         updateSortableColumnHeader(durationColumn, SortableColumn.DURATION, activeCol, activeState);
+        updateTagColumnHeader();
+        updateRatingColumnHeader();
     }
 
     private void updateSortableColumnHeader(
@@ -202,11 +204,30 @@ public class TableHandler {
             SortableColumn activeCol,
             ColumnSortState activeState
     ) {
-        String text = sortCol.getDisplayName();
-        if (sortCol == activeCol && activeState != ColumnSortState.NONE) {
-            text += activeState.getSymbol();
+        if (sortCol.equals(activeCol)) {
+            String text = activeCol.getDisplayName(activeState);
+            ((Label) column.getGraphic()).setText(text);
+        } else {
+            ((Label) column.getGraphic()).setText(sortCol.getDisplayName());
         }
-        ((Label) column.getGraphic()).setText(text);
+    }
+
+    private void updateTagColumnHeader() {
+        Label header = (Label) tagsColumn.getGraphic();
+        if (musicLibrary.getAdvancedFilter().hasActiveTagFilters()) {
+            header.setText("Tags ⛛");
+        } else {
+            header.setText("Tags");
+        }
+    }
+
+    private void updateRatingColumnHeader() {
+        Label header = (Label) ratingColumn.getGraphic();
+        if (musicLibrary.getAdvancedFilter().hasActiveRatingFilters()) {
+            header.setText("Rating ⛛");
+        } else {
+            header.setText("Rating");
+        }
     }
 
     private void onColumnHeaderClicked(SortableColumn column) {

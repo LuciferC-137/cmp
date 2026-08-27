@@ -19,6 +19,10 @@ public enum SortableColumn {
         return displayName;
     }
 
+    public String getDisplayName(ColumnSortState state) {
+        return displayName + state.getSymbol();
+    }
+
     @Override
     public String toString() {
         return displayName;
