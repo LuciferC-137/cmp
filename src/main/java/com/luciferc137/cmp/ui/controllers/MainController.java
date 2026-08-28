@@ -1,6 +1,5 @@
 package com.luciferc137.cmp.ui.controllers;
 
-import com.luciferc137.cmp.database.model.PlaylistEntity;
 import com.luciferc137.cmp.library.*;
 import com.luciferc137.cmp.ui.Coordinator;
 import com.luciferc137.cmp.ui.dialog.BatchCoverArtDialog;
@@ -262,18 +261,7 @@ public class MainController {
             public void onDisplayedPlaylistRestored(Long playlistId) {
                 Coordinator.playlistPanelHandler().setDisplayedPlaylistId(playlistId);
                 Coordinator.playlistPanelHandler().updatePlaylistTabStyles();
-
-                if (playlistId == null) {
-                    // Use localPlaylistContent instead of queue for Local playlist display
-                    Coordinator.playlistPanelHandler().getDisplayedPlaylistContent()
-                            .setAll(Coordinator.playbackQueue().getLocalPlaylistContent());
-                } else {
-                    String playlistName = Coordinator.playlistPanelHandler().getAvailablePlaylists().stream()
-                            .filter(p -> p.getId().equals(playlistId))
-                            .map(PlaylistEntity::getName)
-                            .findFirst().orElse("Playlist");
-                    Coordinator.playlistPanelHandler().loadPlaylistIntoView(playlistId, playlistName);
-                }
+                Coordinator.playlistPanelHandler().loadPlaylistIntoView(playlistId);
                 Coordinator.refreshPlaylistTable();
             }
 
@@ -318,13 +306,6 @@ public class MainController {
     }
 
     private void setupStateListeners() {
-        Coordinator.playbackQueue().shuffleEnabledProperty().addListener((obs, old, enabled) -> {
-            Coordinator.shuffleLoopHandler().updateShuffleButtonStyle();
-            if (!Coordinator.sessionHandler().isRestoringSession()) {
-                saveSession();
-            }
-        });
-
         Coordinator.playbackQueue().loopModeProperty().addListener((obs, old, mode) -> {
             Coordinator.shuffleLoopHandler().updateLoopButtonStyle();
             if (!Coordinator.sessionHandler().isRestoringSession()) {
@@ -467,7 +448,7 @@ public class MainController {
 
     @FXML
     private void onShuffle() {
-        Coordinator.playbackHandler().toggleShuffle();
+        Coordinator.playbackHandler().shuffle();
     }
 
     @FXML

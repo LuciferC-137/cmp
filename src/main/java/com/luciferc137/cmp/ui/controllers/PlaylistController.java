@@ -19,8 +19,6 @@ public class PlaylistController {
     @FXML public ScrollPane playlistTabsScrollPane;
     @FXML public HBox playlistTabsContainer;
     @FXML public Button managePlaylistsButton;
-    @FXML public Label currentPlaylistLabel;
-    @FXML public Button syncScrollButton;
     @FXML public TableView<Music> playlistTable;
     @FXML public TableColumn<Music, String> playlistTitleColumn;
     @FXML public TableColumn<Music, String> playlistRatingColumn;
@@ -41,9 +39,7 @@ public class PlaylistController {
                 playlistTitleColumn,
                 playlistRatingColumn,
                 playlistTabsContainer,
-                currentPlaylistLabel,
-                playlistInfoLabel,
-                syncScrollButton
+                playlistInfoLabel
         );
 
         configureHandlerListeners();
@@ -59,20 +55,8 @@ public class PlaylistController {
     private void configureHandlerListeners() {
         Coordinator.playlistPanelHandler().setEventListener(new PlaylistPanelHandler.PlaylistEventListener() {
             @Override
-            public void onPlaylistTrackSelected(Music music, Long playlistId, List < Music > playlistContent,
-            boolean isFromSavedPlaylist){
-                if (playlistId == null) {
-                    // Playing from Local playlist
-                    Coordinator.playbackHandler().playbackQueue.setLocalQueue(playlistContent, music);
-                } else {
-                    // Playing from a saved playlist - don't modify Local
-                    Coordinator.playlistPanelHandler().getAvailablePlaylists().stream()
-                            .filter(p -> p.getId().equals(playlistId))
-                            .findFirst().ifPresent(playlist
-                                    -> Coordinator.playbackHandler().playbackQueue.loadPlaylist(playlist.getId(),
-                                    playlist.getName(), playlistContent));
-                    Coordinator.playbackHandler().playbackQueue.playTrack(music);
-                }
+            public void onPlaylistTrackSelected(Music music, Long playlistId, List<Music> playlistContent){
+                Coordinator.playbackHandler().playbackQueue.setQueue(playlistContent);
                 Coordinator.playbackHandler().playTrack(music);
                 Coordinator.playlistPanelHandler().updatePlaylistTabStyles();
             }
@@ -84,7 +68,7 @@ public class PlaylistController {
 
             @Override
             public void onPlaylistContextMenuRequested(List<Music> selectedMusic, double screenX, double screenY, Long
-            playlistId){
+                    playlistId){
                 Coordinator.contextMenuHandler().showMusicContextMenuForPlaylist(
                         selectedMusic,
                         screenX,

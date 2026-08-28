@@ -1,5 +1,6 @@
 package com.luciferc137.cmp.ui.handlers;
 
+import com.luciferc137.cmp.MainApp;
 import com.luciferc137.cmp.audio.VlcAudioPlayer;
 import com.luciferc137.cmp.audio.WaveformExtractor;
 import com.luciferc137.cmp.library.Music;
@@ -18,6 +19,7 @@ import javafx.scene.input.MouseEvent;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 
 /**
  * Handles all playback-related functionality including:
@@ -205,8 +207,8 @@ public class PlaybackHandler implements Handler {
 
     private void onTrackEnded() {
         Platform.runLater(() -> {
-            Music next = playbackQueue.nextAuto();
-            if (next != null) {
+            int next = playbackQueue.nextAuto();
+            if (next > -1) {
                 playTrack(next);
             } else {
                 audioPlayer.stop();
@@ -264,15 +266,43 @@ public class PlaybackHandler implements Handler {
             return;
         }
 
-        playbackQueue.setLocalQueue(new ArrayList<>(tableContent), selectedMusic);
-        playTrack(selectedMusic);
+        int index = 0;
+        if (!tableContent.contains(selectedMusic)) {
+            MainApp.logger.log(Level.WARNING,
+                    "Selected music not found in table content: " + selectedMusic);
+        } else {
+            index = tableContent.indexOf(selectedMusic);
+        }
+        playbackQueue.setQueue(new ArrayList<>(tableContent));
+        playTrack(index);
         notifySessionNeedsSave();
+    }
+
+    public void playTrack(Music music) {
+        if (music == null) return;
+        int index = playbackQueue.getIndexOf(music);
+        if (index > -1) {
+            playTrack(index);
+        } else {
+            MainApp.logger.log(Level.WARNING,
+                    "Music not found in playback queue: " + music);
+        }
     }
 
     /**
      * Plays a specific track.
      */
-    public void playTrack(Music music) {
+    public void playTrack(int index) {
+        if (index < 0) return; // Queue empty or terminated
+        Music music = null;
+        try {
+            playbackQueue.setCurrentIndex(index);
+            music = playbackQueue.getCurrentTrack();
+        } catch (Exception e) {
+            MainApp.logger.log(Level.WARNING,
+                    "Failed to play track at index: " + index + ": " + e.getMessage());
+        }
+
         if (music == null) return;
 
         if (currentMusic == null || !currentMusic.equals(music)) {
@@ -308,8 +338,8 @@ public class PlaybackHandler implements Handler {
         }
 
         // If no current music, try to play from queue (from beginning)
-        Music queueCurrent = playbackQueue.getCurrentTrack();
-        if (queueCurrent != null) {
+        int queueCurrent = playbackQueue.getCurrentIndex();
+        if (queueCurrent > -1) {
             // Clear restored position since we're starting fresh
             hasRestoredPosition = false;
             restoredPosition = 0;
@@ -335,8 +365,8 @@ public class PlaybackHandler implements Handler {
         }
 
         // If we have a restored position, start playing and seek to it
-        Music queueCurrent = playbackQueue.getCurrentTrack();
-        if (queueCurrent != null) {
+        int queueCurrent = playbackQueue.getCurrentIndex();
+        if (queueCurrent > -1) {
             if (hasRestoredPosition && restoredPosition > 0) {
                 // Play the track first
                 playTrack(queueCurrent);
@@ -434,21 +464,21 @@ public class PlaybackHandler implements Handler {
     }
 
     public void previous() {
-        Music prev = playbackQueue.previous();
-        if (prev != null) {
-            playTrack(prev);
+        int prevIndex = playbackQueue.previous();
+        if (prevIndex > -1) {
+            playTrack(prevIndex);
         }
     }
 
     public void next() {
-        Music next = playbackQueue.next();
-        if (next != null) {
-            playTrack(next);
+        int nextIndex = playbackQueue.next();
+        if (nextIndex > -1) {
+            playTrack(nextIndex);
         }
     }
 
-    public void toggleShuffle() {
-        playbackQueue.toggleShuffle();
+    public void shuffle() {
+        playbackQueue.shuffle();
     }
 
     public void cycleLoopMode() {

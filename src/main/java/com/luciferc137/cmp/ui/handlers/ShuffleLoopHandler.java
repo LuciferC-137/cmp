@@ -29,13 +29,7 @@ public class ShuffleLoopHandler implements Handler {
      * Updates the shuffle button style based on state.
      */
     public void updateShuffleButtonStyle() {
-        if (shuffleButton != null) {
-            boolean enabled = playbackQueue.isShuffleEnabled();
-            shuffleButton.setText(enabled ? "Shuf ✓" : "Shuf");
-            shuffleButton.setStyle(enabled ?
-                    "-fx-font-size: 11px; -fx-background-color: #4CAF50; -fx-text-fill: white;" :
-                    "-fx-font-size: 11px;");
-        }
+        // TODO
     }
 
     /**

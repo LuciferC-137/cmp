@@ -1,6 +1,8 @@
 package com.luciferc137.cmp.ui.handlers;
 
+import com.luciferc137.cmp.MainApp;
 import com.luciferc137.cmp.database.LibraryService;
+import com.luciferc137.cmp.database.model.MusicEntity;
 import com.luciferc137.cmp.database.model.PlaylistEntity;
 import com.luciferc137.cmp.library.Music;
 import com.luciferc137.cmp.library.MusicLibrary;
@@ -20,6 +22,7 @@ import javafx.scene.layout.HBox;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.logging.Level;
 
 /**
  * Handles the playlist panel functionality including:
@@ -39,17 +42,12 @@ public class PlaylistPanelHandler implements Handler {
     private TableColumn<Music, String> playlistTitleColumn;
     private TableColumn<Music, String> playlistRatingColumn;
     private HBox playlistTabsContainer;
-    private Label currentPlaylistLabel;
     private Label playlistInfoLabel;
-    private Button syncScrollButton;
 
     // State
-    private Long displayedPlaylistId = null; // null = Local, otherwise playlist ID
+    private Long displayedPlaylistId = null;
     private List<PlaylistEntity> availablePlaylists = new ArrayList<>();
     private final ObservableList<Music> displayedPlaylistContent = FXCollections.observableArrayList();
-
-    // Scroll sync state
-    private boolean scrollSyncEnabled = false;
 
     // Event listener
     private PlaylistEventListener eventListener;
@@ -59,20 +57,19 @@ public class PlaylistPanelHandler implements Handler {
      */
     public interface PlaylistEventListener {
         /**
-         * Called when a track is selected from the playlist.
+         * Called when a track is selected from a playlist.
          * @param music The selected music
-         * @param playlistId The playlist ID (null for Local)
+         * @param playlistId The playlist ID
          * @param playlistContent The content of the playlist
-         * @param isFromSavedPlaylist true if the track was selected from a saved playlist (not Local)
          */
-        void onPlaylistTrackSelected(Music music, Long playlistId, List<Music> playlistContent, boolean isFromSavedPlaylist);
+        void onPlaylistTrackSelected(Music music, Long playlistId, List<Music> playlistContent);
         void onPlaylistTabsNeedRefresh();
         /**
          * Called when a context menu is requested on playlist items.
          * @param selectedMusic The list of selected music items
          * @param screenX The screen X position for the context menu
          * @param screenY The screen Y position for the context menu
-         * @param playlistId The playlist ID (null for Local)
+         * @param playlistId The playlist ID
          */
         void onPlaylistContextMenuRequested(List<Music> selectedMusic, double screenX, double screenY, Long playlistId);
         /**
@@ -95,17 +92,13 @@ public class PlaylistPanelHandler implements Handler {
             TableColumn<Music, String> playlistTitleColumn,
             TableColumn<Music, String> playlistRatingColumn,
             HBox playlistTabsContainer,
-            Label currentPlaylistLabel,
-            Label playlistInfoLabel,
-            Button syncScrollButton
+            Label playlistInfoLabel
     ) {
         this.playlistTable = playlistTable;
         this.playlistTitleColumn = playlistTitleColumn;
         this.playlistRatingColumn = playlistRatingColumn;
         this.playlistTabsContainer = playlistTabsContainer;
-        this.currentPlaylistLabel = currentPlaylistLabel;
         this.playlistInfoLabel = playlistInfoLabel;
-        this.syncScrollButton = syncScrollButton;
     }
 
     public void setEventListener(PlaylistEventListener listener) {
@@ -125,36 +118,13 @@ public class PlaylistPanelHandler implements Handler {
         // Setup columns
         setupTableColumns();
 
-        // Custom row factory to highlight current track
-        playlistTable.setRowFactory(tv -> new TableRow<>() {
-            @Override
-            protected void updateItem(Music item, boolean empty) {
-                super.updateItem(item, empty);
-                if (empty || item == null) {
-                    getStyleClass().removeAll("playlist-current-track", "playlist-selected-track");
-                } else {
-                    boolean isCurrentTrack = item.equals(playbackQueue.getCurrentTrack());
-                    if (isCurrentTrack) {
-                        if (!getStyleClass().contains("playlist-current-track")) {
-                            getStyleClass().add("playlist-current-track");
-                        }
-                        getStyleClass().remove("playlist-selected-track");
-                    } else {
-                        getStyleClass().remove("playlist-current-track");
-                    }
-                }
-            }
-        });
-
         // Double-click to play from playlist
         playlistTable.setOnMouseClicked(event -> {
             if (event.getClickCount() == 2 && event.getButton() == MouseButton.PRIMARY) {
                 Music selected = playlistTable.getSelectionModel().getSelectedItem();
                 if (selected != null && eventListener != null) {
-                    // Pass true if this is from a saved playlist (not Local)
-                    boolean isFromSavedPlaylist = displayedPlaylistId != null;
                     eventListener.onPlaylistTrackSelected(selected, displayedPlaylistId,
-                            new ArrayList<>(displayedPlaylistContent), isFromSavedPlaylist);
+                            new ArrayList<>(displayedPlaylistContent));
                 }
             }
         });
@@ -172,43 +142,14 @@ public class PlaylistPanelHandler implements Handler {
             }
         });
 
-        // Update current track highlighting and scroll sync
-        playbackQueue.currentTrackProperty().addListener((obs, old, newTrack) -> {
-            playlistTable.refresh();
-            // Scroll to current track if sync is enabled
-            if (scrollSyncEnabled && newTrack != null) {
-                scrollToCurrentTrack();
-            }
-        });
-
         // Update playlist info when content changes
         displayedPlaylistContent.addListener((ListChangeListener<Music>) c -> updatePlaylistInfo());
-
-        // Sync Local view with Local playlist content changes (not the playback queue)
-        playbackQueue.getLocalPlaylistContent().addListener((ListChangeListener<Music>) c -> {
-            if (displayedPlaylistId == null) {
-                displayedPlaylistContent.setAll(playbackQueue.getLocalPlaylistContent());
-            }
-        });
-
-        // Refresh playlist tabs order when the playing playlist changes
-        playbackQueue.currentPlaylistIdProperty().addListener((obs, oldId, newId) -> {
-            refreshPlaylistTabs();
-            // Also refresh displayed playlist order if we're viewing the new playing playlist
-            refreshDisplayedPlaylist();
-        });
-
-        // Refresh displayed playlist order when shuffle is toggled
-        playbackQueue.shuffleEnabledProperty().addListener((obs, wasEnabled, isEnabled) -> {
-            // Refresh to show tracks in new order (shuffled or unshuffled)
-            refreshDisplayedPlaylist();
-        });
 
         // Refresh displayed playlist when playback order changes (shuffle regenerated, session restored, etc.)
         // This is the main listener for keeping the playlist view in sync with playback order
         playbackQueue.playbackOrderVersionProperty().addListener((obs, oldVersion, newVersion) -> {
             // Only refresh if we're displaying the currently playing playlist
-            long currentlyPlayingId = playbackQueue.getCurrentPlaylistId();
+            long currentlyPlayingId = playbackQueue.playbackOrderVersionProperty().getValue();
             boolean isCurrentlyPlayingPlaylist = (displayedPlaylistId == null && currentlyPlayingId == -1) ||
                     (displayedPlaylistId != null && displayedPlaylistId == currentlyPlayingId);
 
@@ -217,85 +158,8 @@ public class PlaylistPanelHandler implements Handler {
             }
         });
 
-        // Setup sync scroll button
-        setupSyncScrollButton();
-
         // Load tabs
         refreshPlaylistTabs();
-    }
-
-    /**
-     * Sets up the sync scroll button and scroll listeners.
-     */
-    private void setupSyncScrollButton() {
-        if (syncScrollButton == null) return;
-
-        // Initial style (disabled)
-        updateSyncButtonStyle();
-
-        // Toggle sync on button click
-        syncScrollButton.setOnAction(e -> {
-            scrollSyncEnabled = !scrollSyncEnabled;
-            updateSyncButtonStyle();
-            if (scrollSyncEnabled) {
-                scrollToCurrentTrack();
-            }
-        });
-
-        // Disable sync when user manually scrolls with mouse wheel
-        playlistTable.setOnScroll(event -> {
-            if (scrollSyncEnabled) {
-                scrollSyncEnabled = false;
-                updateSyncButtonStyle();
-            }
-        });
-
-        // Disable sync when user interacts with the scrollbar
-        // We need to find the vertical scrollbar and add a listener
-        playlistTable.skinProperty().addListener((obs, oldSkin, newSkin) -> {
-            if (newSkin != null) {
-                // Find the vertical scrollbar
-                playlistTable.lookupAll(".scroll-bar").forEach(node -> {
-                    if (node instanceof ScrollBar scrollBar && scrollBar.getOrientation() == javafx.geometry.Orientation.VERTICAL) {
-                        // Disable sync when user drags the scrollbar
-                        scrollBar.addEventFilter(javafx.scene.input.MouseEvent.MOUSE_PRESSED, event -> {
-                            if (scrollSyncEnabled) {
-                                scrollSyncEnabled = false;
-                                updateSyncButtonStyle();
-                            }
-                        });
-                    }
-                });
-            }
-        });
-    }
-
-    /**
-     * Updates the sync button style based on current state.
-     */
-    private void updateSyncButtonStyle() {
-        if (syncScrollButton == null) return;
-
-        if (scrollSyncEnabled) {
-            syncScrollButton.setStyle("-fx-font-size: 12px; -fx-padding: 2; -fx-background-color: #1E90FF; -fx-text-fill: white;");
-            syncScrollButton.setText("⇅");
-        } else {
-            syncScrollButton.setStyle("-fx-font-size: 12px; -fx-padding: 2; -fx-background-color: #3C3C3C; -fx-text-fill: #808080;");
-            syncScrollButton.setText("⇅");
-        }
-    }
-
-    /**
-     * Scrolls the playlist table to show the current track at the top.
-     */
-    private void scrollToCurrentTrack() {
-        Music currentTrack = playbackQueue.getCurrentTrack();
-        if (currentTrack == null || playlistTable == null) return;
-
-        int index = displayedPlaylistContent.indexOf(currentTrack);
-        if (index >= 0) {
-            playlistTable.scrollTo(index);
-        }
     }
 
     /**
@@ -374,10 +238,6 @@ public class PlaylistPanelHandler implements Handler {
         playlistTabsContainer.getChildren().clear();
         availablePlaylists = libraryService.getAllPlaylists();
 
-        // Add "Local" tab first
-        Button localTab = createPlaylistTab("Local", null);
-        playlistTabsContainer.getChildren().add(localTab);
-
         // Sort playlists alphabetically (case-insensitive)
         List<PlaylistEntity> sortedPlaylists = new ArrayList<>(availablePlaylists);
         sortedPlaylists.sort(Comparator.comparing(p -> p.getName().toLowerCase()));
@@ -399,7 +259,7 @@ public class PlaylistPanelHandler implements Handler {
         tab.setStyle("-fx-font-size: 11px; -fx-padding: 3 8; -fx-background-color: #3C3C3C; -fx-text-fill: #B0B0B0;");
         tab.setOnAction(e -> {
             displayedPlaylistId = playlistId;
-            loadPlaylistIntoView(playlistId, name);
+            loadPlaylistIntoView(playlistId);
             updatePlaylistTabStyles();
         });
 
@@ -423,17 +283,12 @@ public class PlaylistPanelHandler implements Handler {
 
         for (int i = 0; i < playlistTabsContainer.getChildren().size(); i++) {
             Button tab = (Button) playlistTabsContainer.getChildren().get(i);
-            Long tabPlaylistId = (i == 0) ? null : availablePlaylists.get(i - 1).getId();
+            Long tabPlaylistId = availablePlaylists.get(i).getId();
 
-            boolean isActive = (displayedPlaylistId == null && tabPlaylistId == null) ||
-                    (displayedPlaylistId != null && displayedPlaylistId.equals(tabPlaylistId));
-
-            boolean isPlaying = playbackQueue.getCurrentPlaylistId() == (tabPlaylistId != null ? tabPlaylistId : -1);
+            boolean isActive = displayedPlaylistId != null && displayedPlaylistId.equals(tabPlaylistId);
 
             if (isActive) {
                 tab.setStyle("-fx-font-size: 11px; -fx-padding: 3 8; -fx-background-color: #1E90FF; -fx-text-fill: white;");
-            } else if (isPlaying) {
-                tab.setStyle("-fx-font-size: 11px; -fx-padding: 3 8; -fx-background-color: #2E7D32; -fx-text-fill: white;");
             } else {
                 tab.setStyle("-fx-font-size: 11px; -fx-padding: 3 8; -fx-background-color: #3C3C3C; -fx-text-fill: #B0B0B0;");
             }
@@ -442,46 +297,28 @@ public class PlaylistPanelHandler implements Handler {
 
     /**
      * Loads a playlist into the view.
-     * If the playlist being displayed is the currently playing playlist,
-     * tracks are shown in playback order (respecting shuffle if enabled).
-     * Otherwise, tracks are shown in their stored order.
      */
-    public void loadPlaylistIntoView(Long playlistId, String name) {
-        displayedPlaylistId = playlistId;
-
-        if (currentPlaylistLabel != null) {
-            currentPlaylistLabel.setText(name);
+    public void loadPlaylistIntoView(Long playlistId) {
+        if (playlistId == null) {
+            MainApp.logger.log(Level.SEVERE, "Could not load playlist: playlistId is null");
+            return;
         }
-
+        displayedPlaylistId = playlistId;
         displayedPlaylistContent.clear();
 
-        // Check if this playlist is currently playing
-        long currentlyPlayingId = playbackQueue.getCurrentPlaylistId();
-        boolean isCurrentlyPlayingPlaylist = (playlistId == null && currentlyPlayingId == -1) ||
-                (playlistId != null && playlistId == currentlyPlayingId);
+        List<MusicEntity> playlistMusics =
+                libraryService.getPlaylistMusics(playlistId);
 
-        if (isCurrentlyPlayingPlaylist && !playbackQueue.getQueue().isEmpty()) {
-            // Display tracks in playback order (respects shuffle)
-            displayedPlaylistContent.addAll(playbackQueue.getTracksInPlaybackOrder());
-        } else if (playlistId == null) {
-            // "Local" playlist not currently playing - show stored Local content
-            displayedPlaylistContent.addAll(playbackQueue.getLocalPlaylistContent());
-        } else {
-            // Saved playlist not currently playing - load from database in stored order
-            List<com.luciferc137.cmp.database.model.MusicEntity> playlistMusics =
-                    libraryService.getPlaylistMusics(playlistId);
-
-            for (var entity : playlistMusics) {
-                // Try to get the Music from the central cache first
-                Music music = musicLibrary.getMusicById(entity.getId());
-                if (music == null) {
-                    // If not in cache, create new instance (fallback)
-                    music = Music.fromEntity(entity);
-                    List<String> tagNames = libraryService.getMusicTagNames(entity.getId());
-                    music.setTags(tagNames);
-                }
-                displayedPlaylistContent.add(music);
+        for (MusicEntity entity : playlistMusics) {
+            // Try to get the Music from the central cache first
+            Music music = musicLibrary.getMusicById(entity.getId());
+            if (music == null) {
+                // If not in cache, create new instance (fallback)
+                music = Music.fromEntity(entity);
+                List<String> tagNames = libraryService.getMusicTagNames(entity.getId());
+                music.setTags(tagNames);
             }
+            displayedPlaylistContent.add(music);
         }
 
         updatePlaylistTabStyles();
@@ -490,26 +327,20 @@ public class PlaylistPanelHandler implements Handler {
 
     /**
      * Refreshes the currently displayed playlist.
-     * If the displayed playlist is the currently playing one,
-     * tracks are shown in playback order (respecting shuffle).
      */
     public void refreshDisplayedPlaylist() {
-        // Check if the displayed playlist is currently playing
-        long currentlyPlayingId = playbackQueue.getCurrentPlaylistId();
-        boolean isCurrentlyPlayingPlaylist = (displayedPlaylistId == null && currentlyPlayingId == -1) ||
-                (displayedPlaylistId != null && displayedPlaylistId == currentlyPlayingId);
+        loadPlaylistIntoView(displayedPlaylistId);
+    }
 
-        if (isCurrentlyPlayingPlaylist && !playbackQueue.getQueue().isEmpty()) {
-            // Display tracks in playback order (respects shuffle)
-            displayedPlaylistContent.setAll(playbackQueue.getTracksInPlaybackOrder());
-        } else if (displayedPlaylistId == null) {
-            // Local playlist not currently playing
-            displayedPlaylistContent.setAll(playbackQueue.getLocalPlaylistContent());
-        } else {
-            // Saved playlist - reload from database
-            String name = currentPlaylistLabel != null ? currentPlaylistLabel.getText() : "Playlist";
-            loadPlaylistIntoView(displayedPlaylistId, name);
-        }
+    /**
+     * Returns the name of the playlist with the given ID.
+     */
+    public String getPlaylistName(Long playlistId) {
+        return availablePlaylists.stream()
+                .filter(p -> p.getId().equals(playlistId))
+                .map(PlaylistEntity::getName)
+                .findFirst()
+                .orElse("Playlist");
     }
 
     private void updatePlaylistInfo() {
@@ -554,10 +385,6 @@ public class PlaylistPanelHandler implements Handler {
 
     public void setDisplayedPlaylistId(Long playlistId) {
         this.displayedPlaylistId = playlistId;
-    }
-
-    public ObservableList<Music> getDisplayedPlaylistContent() {
-        return displayedPlaylistContent;
     }
 
     public List<PlaylistEntity> getAvailablePlaylists() {

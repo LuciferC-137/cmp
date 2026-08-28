@@ -1,5 +1,6 @@
 package com.luciferc137.cmp.ui.handlers;
 
+import com.luciferc137.cmp.MainApp;
 import com.luciferc137.cmp.database.LibraryService;
 import com.luciferc137.cmp.library.Music;
 import com.luciferc137.cmp.library.PlaybackQueue;
@@ -8,6 +9,7 @@ import com.luciferc137.cmp.settings.SettingsManager;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 
 /**
  * Handles session persistence including:
@@ -65,12 +67,7 @@ public class SessionHandler implements Handler {
             PlaybackSession session = settingsManager.getSession();
 
             // Save shuffle and loop states
-            session.setShuffleEnabled(playbackQueue.isShuffleEnabled());
             session.setLoopMode(playbackQueue.getLoopMode().name());
-
-            // Save current playlist info
-            session.setPlayingPlaylistId(playbackQueue.getCurrentPlaylistId());
-            session.setPlayingPlaylistName(playbackQueue.getCurrentPlaylistName());
 
             // Save current track info
             Music current = playbackQueue.getCurrentTrack();
@@ -84,30 +81,16 @@ public class SessionHandler implements Handler {
                 session.setPlaybackPosition(0);
             }
 
-            // Save shuffle order
-            session.setShuffleOrder(playbackQueue.getShuffleOrder());
-            session.setShufflePosition(playbackQueue.getShufflePosition());
-
             // Save queue track IDs (current playback queue)
             session.setQueueTrackIds(playbackQueue.getQueueTrackIds());
-
-            // Save Local playlist content separately (preserved even when playing other playlists)
-            session.setLocalPlaylistTrackIds(playbackQueue.getLocalPlaylistTrackIds());
 
             // Save displayed playlist
             session.setDisplayedPlaylistId(displayedPlaylistId != null ? displayedPlaylistId : -1);
 
-            // Save playlist play order (for tab ordering)
-            session.setPlaylistPlayOrder(playbackQueue.getPlaylistPlayOrder());
-
             settingsManager.saveSession();
-            System.out.println("Session saved: shuffle=" + session.isShuffleEnabled() +
-                    ", loop=" + session.getLoopMode() +
-                    ", queue=" + session.getQueueTrackIds().size() +
-                    ", local=" + session.getLocalPlaylistTrackIds().size());
+            MainApp.logger.log(Level.INFO, "Session saved: " + session);
         } catch (Exception e) {
-            System.err.println("Error saving session: " + e.getMessage());
-            e.printStackTrace();
+            MainApp.logger.log(Level.SEVERE, "Error saving session", e);
         }
     }
 
@@ -119,10 +102,7 @@ public class SessionHandler implements Handler {
         isRestoringSession = true;
 
         try {
-            System.out.println("Restoring session from file...");
-            System.out.println("  Session shuffle: " + session.isShuffleEnabled());
-            System.out.println("  Session loop: " + session.getLoopMode());
-            System.out.println("  Session tracks: " + session.getQueueTrackIds().size());
+            MainApp.logger.log(Level.INFO, "Restoring session: " + session);
 
             // Restore loop mode
             try {
@@ -131,17 +111,9 @@ public class SessionHandler implements Handler {
                 if (restoreListener != null) {
                     restoreListener.onLoopModeRestored(loopMode);
                 }
-                System.out.println("Restored loop mode: " + loopMode);
             } catch (IllegalArgumentException e) {
                 playbackQueue.setLoopMode(PlaybackQueue.LoopMode.PLAYLIST);
             }
-
-            // Restore shuffle state
-            playbackQueue.setShuffleEnabled(session.isShuffleEnabled());
-            if (restoreListener != null) {
-                restoreListener.onShuffleStateRestored(session.isShuffleEnabled());
-            }
-            System.out.println("Restored shuffle: " + session.isShuffleEnabled());
 
             // Restore queue from track IDs
             List<Long> trackIds = session.getQueueTrackIds();
@@ -157,17 +129,6 @@ public class SessionHandler implements Handler {
                 }
 
                 if (!tracks.isEmpty()) {
-                    playbackQueue.restoreQueue(tracks,
-                            session.getPlayingPlaylistName(),
-                            session.getPlayingPlaylistId());
-
-                    // Restore shuffle order if shuffle is enabled
-                    if (session.isShuffleEnabled() && !session.getShuffleOrder().isEmpty()) {
-                        playbackQueue.restoreShuffleState(
-                                session.getShuffleOrder(),
-                                session.getShufflePosition());
-                    }
-
                     // Notify that playback order is now fully restored
                     playbackQueue.notifyPlaybackOrderChanged();
 
@@ -188,26 +149,6 @@ public class SessionHandler implements Handler {
                             restoreListener.onPlaybackPositionRestored(savedPosition);
                         }
                     }
-
-                    System.out.println("Restored queue with " + tracks.size() + " tracks, current index: " + trackIndex + ", position: " + session.getPlaybackPosition() + "ms");
-                }
-            }
-
-            // Restore Local playlist content (separate from playback queue)
-            List<Long> localTrackIds = session.getLocalPlaylistTrackIds();
-            if (!localTrackIds.isEmpty()) {
-                List<Music> localTracks = new ArrayList<>();
-                for (Long trackId : localTrackIds) {
-                    libraryService.getMusicById(trackId).ifPresent(entity -> {
-                        Music music = Music.fromEntity(entity);
-                        List<String> tagNames = libraryService.getMusicTagNames(trackId);
-                        music.setTags(tagNames);
-                        localTracks.add(music);
-                    });
-                }
-                if (!localTracks.isEmpty()) {
-                    playbackQueue.restoreLocalPlaylistContent(localTracks);
-                    System.out.println("Restored Local playlist with " + localTracks.size() + " tracks");
                 }
             }
 
@@ -218,16 +159,8 @@ public class SessionHandler implements Handler {
                 restoreListener.onDisplayedPlaylistRestored(displayedPlaylistId);
             }
 
-            // Restore playlist play order (for tab ordering)
-            List<Long> playOrder = session.getPlaylistPlayOrder();
-            if (playOrder != null && !playOrder.isEmpty()) {
-                playbackQueue.setPlaylistPlayOrder(playOrder);
-                System.out.println("Restored playlist play order with " + playOrder.size() + " entries");
-            }
-
         } catch (Exception e) {
-            System.err.println("Error restoring session: " + e.getMessage());
-            e.printStackTrace();
+            MainApp.logger.log(Level.SEVERE, "Error restoring session", e);
         } finally {
             isRestoringSession = false;
             if (restoreListener != null) {

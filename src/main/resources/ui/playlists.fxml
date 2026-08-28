@@ -9,7 +9,8 @@
     <!-- Queue Tab -->
     <Tab text="Queue" closable="false">
         <VBox fx:id="queuePane" spacing="15">
-            <Label text="QUEUE PLACEHOLDER" style="-fx-font-size: 14px; -fx-font-weight: bold;"/>
+            <Label text="Queue" style="-fx-font-size: 14px; -fx-font-weight: bold;"/>
+            <Pane HBox.hgrow="ALWAYS"/>
         </VBox>
     </Tab>
     <!-- Playlist Tab -->
@@ -23,15 +24,6 @@
                 </ScrollPane>
                 <Button fx:id="managePlaylistsButton" onAction="#onManagePlaylists" text="⚙" prefWidth="40"
                         style="-fx-font-size: 16px;"/>
-            </HBox>
-
-            <!-- Current playlist name with sync button -->
-            <HBox alignment="CENTER" spacing="5" HBox.hgrow="ALWAYS">
-                <Label fx:id="currentPlaylistLabel" alignment="CENTER_LEFT" text="Local"
-                       style="-fx-font-weight: bold; -fx-font-size: 13px;"/>
-                <Pane HBox.hgrow="ALWAYS"/>
-                <Button fx:id="syncScrollButton" alignment="CENTER_RIGHT" text="↕" prefWidth="24" prefHeight="24"
-                        style="-fx-font-size: 12px; -fx-padding: 2;"/>
             </HBox>
 
             <!-- Playlist content -->
