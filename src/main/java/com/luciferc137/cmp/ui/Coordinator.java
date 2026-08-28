@@ -9,8 +9,6 @@ import com.luciferc137.cmp.ui.handlers.*;
 /**
  * The MainCoordinator class serves as a central point for coordinating
  * various UI handlers and core services in the application.
- * It holds references to different handler classes responsible
- * for managing specific aspects of the user interface.
  */
 public class Coordinator {
 
@@ -25,6 +23,7 @@ public class Coordinator {
     public SessionHandler sessionHandler;
     public ShuffleLoopHandler shuffleLoopHandler;
     public PlaylistPanelHandler playlistPanelHandler;
+    public QueuePanelHandler queuePanelHandler;
 
     // ==================== Core Services ====================
 
@@ -55,6 +54,7 @@ public class Coordinator {
         sessionHandler = new SessionHandler();
         shuffleLoopHandler = new ShuffleLoopHandler();
         playlistPanelHandler = new PlaylistPanelHandler();
+        queuePanelHandler = new QueuePanelHandler();
     }
 
     public synchronized void onMainControllerReady() {
@@ -150,5 +150,9 @@ public class Coordinator {
 
     public static PlaylistPanelHandler playlistPanelHandler() {
         return getInstance().playlistPanelHandler;
+    }
+
+    public static QueuePanelHandler queuePanelHandler() {
+        return getInstance().queuePanelHandler;
     }
 }

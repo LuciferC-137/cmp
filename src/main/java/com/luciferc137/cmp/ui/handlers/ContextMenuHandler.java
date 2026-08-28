@@ -11,6 +11,7 @@ import com.luciferc137.cmp.ui.dialog.PlaylistManagerDialog;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.scene.control.*;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -81,10 +82,10 @@ public class ContextMenuHandler implements Handler {
             List<Music> selectedMusic,
             double screenX,
             double screenY,
-            TableView<Music> musicTable,
-            Long displayedPlaylistId
+            TableView<Music> musicTable
     ) {
-        showMusicContextMenuInternal(selectedMusic, screenX, screenY, musicTable, displayedPlaylistId, false);
+        showMusicContextMenuInternal(selectedMusic, screenX, screenY,
+                musicTable, null, false);
     }
 
     /**
@@ -97,7 +98,18 @@ public class ContextMenuHandler implements Handler {
             Control playlistView,
             Long displayedPlaylistId
     ) {
-        showMusicContextMenuInternal(selectedMusic, screenX, screenY, playlistView, displayedPlaylistId, true);
+        showMusicContextMenuInternal(selectedMusic, screenX, screenY,
+                playlistView, displayedPlaylistId, false);
+    }
+
+    public void showMusicContextMenuForQueue(
+            List<Music> selectedMusic,
+            double screenX,
+            double screenY,
+            TableView<Music> queueTable
+    ) {
+        showMusicContextMenuInternal(selectedMusic, screenX, screenY, queueTable,
+                null, true);
     }
 
     private void showMusicContextMenuInternal(
@@ -105,8 +117,8 @@ public class ContextMenuHandler implements Handler {
             double screenX,
             double screenY,
             Control control,
-            Long displayedPlaylistId,
-            boolean isFromPlaylistView
+            @Nullable Long displayedPlaylistId,
+            boolean removeFromQueueOptionAvailable
     ) {
         if (selectedMusic.isEmpty()) return;
 
@@ -150,8 +162,8 @@ public class ContextMenuHandler implements Handler {
         // Add to playlist submenu
         contextMenu.getItems().add(createAddToPlaylistMenu(selectedMusic, displayedPlaylistId));
 
-        // Remove from playlist option (only shown when in a saved playlist view)
-        if (isFromPlaylistView && displayedPlaylistId != null) {
+        // Remove from playlist option (only if displayedPlaylistId is provided)
+        if (displayedPlaylistId != null) {
             MenuItem removeFromPlaylistItem = new MenuItem(isMultiple ? "Remove All from Playlist" : "Remove from Playlist");
             removeFromPlaylistItem.setOnAction(e -> {
                 if (eventListener != null) {
@@ -180,6 +192,20 @@ public class ContextMenuHandler implements Handler {
                 }
             });
             contextMenu.getItems().add(changeCoverArtItem);
+        }
+
+        // Remove from queue option (only if available)
+        if (removeFromQueueOptionAvailable) {
+            MenuItem removeFromQueueItem = new MenuItem(isMultiple ? "Remove All from Queue" : "Remove from Queue");
+            removeFromQueueItem.setOnAction(e -> {
+                for (Music music : selectedMusic) {
+                    int index = playbackQueue.getQueue().indexOf(music);
+                    if (index >= 0) {
+                        playbackQueue.removeFromQueue(index);
+                    }
+                }
+            });
+            contextMenu.getItems().add(removeFromQueueItem);
         }
 
         contextMenu.show(control, screenX, screenY);

@@ -9,8 +9,13 @@
     <!-- Queue Tab -->
     <Tab text="Queue" closable="false">
         <VBox fx:id="queuePane" spacing="15">
-            <Label text="Queue" style="-fx-font-size: 14px; -fx-font-weight: bold;"/>
-            <Pane HBox.hgrow="ALWAYS"/>
+            <!-- Playlist content -->
+            <TableView fx:id="queueTable" VBox.vgrow="ALWAYS">
+                <columns>
+                    <TableColumn fx:id="queueTitleColumn" prefWidth="410" text="Title"/>
+                    <TableColumn fx:id="queueRatingColumn" prefWidth="90" text="Rating"/>
+                </columns>
+            </TableView>
         </VBox>
     </Tab>
     <!-- Playlist Tab -->

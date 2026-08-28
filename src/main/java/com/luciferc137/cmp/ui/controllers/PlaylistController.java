@@ -5,6 +5,7 @@ import com.luciferc137.cmp.library.MusicLibrary;
 import com.luciferc137.cmp.library.PlaybackQueue;
 import com.luciferc137.cmp.ui.Coordinator;
 import com.luciferc137.cmp.ui.handlers.PlaylistPanelHandler;
+import com.luciferc137.cmp.ui.handlers.QueuePanelHandler;
 import com.luciferc137.cmp.ui.settings.SettingsWindow;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -24,6 +25,11 @@ public class PlaylistController {
     @FXML public TableColumn<Music, String> playlistRatingColumn;
     @FXML private Label playlistInfoLabel;
 
+    @FXML public TableView<Music> queueTable;
+    @FXML public TableColumn<Music, String> queueTitleColumn;
+    @FXML public TableColumn<Music, String> queueRatingColumn;
+
+
     private final MusicLibrary musicLibrary = MusicLibrary.getInstance();
     private final PlaybackQueue playbackQueue = PlaybackQueue.getInstance();
 
@@ -32,6 +38,7 @@ public class PlaylistController {
 
         musicLibrary.setOnRatingChanged(() -> {
             playlistTable.refresh();
+            queueTable.refresh();
         });
 
         Coordinator.playlistPanelHandler().bindUIComponents(
@@ -40,6 +47,12 @@ public class PlaylistController {
                 playlistRatingColumn,
                 playlistTabsContainer,
                 playlistInfoLabel
+        );
+
+        Coordinator.queuePanelHandler().bindUIComponents(
+                queueTable,
+                queueTitleColumn,
+                queueRatingColumn
         );
 
         configureHandlerListeners();
@@ -84,10 +97,55 @@ public class PlaylistController {
             }
         });
         Coordinator.playlistPanelHandler().initialize();
+
+        Coordinator.queuePanelHandler().setEventListener(new QueuePanelHandler.QueueEventListener() {
+            @Override
+            public void onQueueCleared() {
+                Coordinator.playbackHandler().stop();
+                Coordinator.playbackHandler().playbackQueue.clear();
+            }
+
+            @Override
+            public void onQueueItemBatchMoved(int[] oldIndices, int toIndex) {
+                Coordinator.playbackHandler().playbackQueue.moveBatch(oldIndices, toIndex);
+            }
+
+            @Override
+            public void onQueueItemMoved(int fromIndex, int toIndex) {
+                Coordinator.playbackHandler().playbackQueue.moveTrack(fromIndex, toIndex);
+            }
+
+            @Override
+            public void onQueueItemRemoved(int index) {
+                Coordinator.playbackHandler().playbackQueue.removeFromQueue(index);
+            }
+
+            @Override
+            public void onQueueItemSelected(Music music) {
+                Coordinator.playbackHandler().playTrack(music);
+            }
+
+            @Override
+            public void onContextMenuRequested(List<Music> musics, double screenX, double screenY) {
+                Coordinator.contextMenuHandler().showMusicContextMenuForQueue(
+                        musics,
+                        screenX,
+                        screenY,
+                        queueTable
+                );
+            }
+
+            @Override
+            public void onRatingChanged() {
+                Coordinator.refreshMainTable();
+            }
+        });
+        Coordinator.queuePanelHandler().initialize();
     }
 
     private void refreshAllViews() {
         playlistTable.refresh();
+        queueTable.refresh();
     }
 
     @FXML

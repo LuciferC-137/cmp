@@ -5,6 +5,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -169,11 +170,11 @@ public class PlaybackQueue {
         }
     }
 
-    public void moveBatch(List<Integer> indices, int toIndex) {
-        if (indices.isEmpty() || toIndex < 0 || toIndex > size()) return;
+    public void moveBatch(int[] indices, int toIndex) {
+        if (indices.length == 0 || toIndex < 0 || toIndex > size()) return;
 
         // Sort indices in descending order to avoid shifting issues
-        List<Integer> sortedIndices = new ArrayList<>(indices);
+        List<Integer> sortedIndices = new ArrayList<>(Arrays.stream(indices).boxed().toList());
         sortedIndices.sort(Collections.reverseOrder());
 
         List<Music> movingTracks = new ArrayList<>();

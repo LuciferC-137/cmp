@@ -1,5 +1,6 @@
 package com.luciferc137.cmp.ui.controllers;
 
+import com.luciferc137.cmp.database.LibraryService;
 import com.luciferc137.cmp.library.*;
 import com.luciferc137.cmp.ui.Coordinator;
 import com.luciferc137.cmp.ui.dialog.BatchCoverArtDialog;
@@ -222,7 +223,7 @@ public class MainController {
             public void onRemoveFromPlaylistRequested(List<Music> musicList, Long playlistId) {
                 if (playlistId == null) return;
 
-                com.luciferc137.cmp.database.LibraryService libraryService = com.luciferc137.cmp.database.LibraryService.getInstance();
+                LibraryService libraryService = LibraryService.getInstance();
                 for (Music music : musicList) {
                     if (music.getId() != null) {
                         libraryService.removeMusicFromPlaylist(playlistId, music.getId());
@@ -296,8 +297,7 @@ public class MainController {
                             selectedItems,
                             event.getScreenX(),
                             event.getScreenY(),
-                            musicTable,
-                            Coordinator.playlistPanelHandler().getDisplayedPlaylistId()
+                            musicTable
                     );
                 }
             });
