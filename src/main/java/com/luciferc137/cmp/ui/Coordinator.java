@@ -21,7 +21,6 @@ public class Coordinator {
     public ContextMenuHandler contextMenuHandler;
     public FilterPopupHandler filterPopupHandler;
     public SessionHandler sessionHandler;
-    public ShuffleLoopHandler shuffleLoopHandler;
     public PlaylistPanelHandler playlistPanelHandler;
     public QueuePanelHandler queuePanelHandler;
 
@@ -52,7 +51,6 @@ public class Coordinator {
         contextMenuHandler = new ContextMenuHandler();
         filterPopupHandler = new FilterPopupHandler();
         sessionHandler = new SessionHandler();
-        shuffleLoopHandler = new ShuffleLoopHandler();
         playlistPanelHandler = new PlaylistPanelHandler();
         queuePanelHandler = new QueuePanelHandler();
     }
@@ -142,10 +140,6 @@ public class Coordinator {
 
     public static SessionHandler sessionHandler() {
         return getInstance().sessionHandler;
-    }
-
-    public static ShuffleLoopHandler shuffleLoopHandler() {
-        return getInstance().shuffleLoopHandler;
     }
 
     public static PlaylistPanelHandler playlistPanelHandler() {

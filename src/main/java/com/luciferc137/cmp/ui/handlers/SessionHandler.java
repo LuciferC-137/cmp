@@ -32,7 +32,6 @@ public class SessionHandler implements Handler {
      * Listener interface for session restore events.
      */
     public interface SessionRestoreListener {
-        void onShuffleStateRestored(boolean enabled);
         void onLoopModeRestored(PlaybackQueue.LoopMode mode);
         void onCurrentTrackRestored(Music music);
         void onPlaybackPositionRestored(long position);

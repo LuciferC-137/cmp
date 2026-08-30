@@ -24,9 +24,6 @@ public class QueuePanelHandler implements Handler {
     public interface QueueEventListener {
         void onQueueItemSelected(Music music);
         void onQueueItemRemoved(int index);
-        void onQueueItemMoved(int fromIndex, int toIndex);
-        void onQueueItemBatchMoved(int[] oldIndices, int toIndex);
-        void onQueueCleared();
         void onRatingChanged();
         void onContextMenuRequested(List<Music> music, double screenX, double screenY);
     }
@@ -88,6 +85,16 @@ public class QueuePanelHandler implements Handler {
                 }
             }
         });
+    }
+
+    public void onClearQueue() {
+        playbackQueue.clear();
+        queueTable.refresh();
+    }
+
+    public void onShuffleQueue() {
+        playbackQueue.shuffle();
+        queueTable.refresh();
     }
 
     /**

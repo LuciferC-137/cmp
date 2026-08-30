@@ -47,10 +47,14 @@ public class MainController {
 
     @FXML private Label musicTableInfoLabel;
 
-    @FXML private Button shuffleButton;
     @FXML private Button loopButton;
     @FXML private Button prevButton;
     @FXML private Button nextButton;
+
+    @FXML public Button stopButton;
+    @FXML public Button playButton;
+    @FXML public Button pauseButton;
+    @FXML public Button lyricsButton;
 
     @FXML private Label volumePercentLabel;
     
@@ -124,8 +128,6 @@ public class MainController {
                 tagsColumn,
                 ratingColumn
         );
-
-        Coordinator.shuffleLoopHandler().bindUIComponents(shuffleButton, loopButton);
     }
 
     private void configureCrossController() {
@@ -238,14 +240,10 @@ public class MainController {
 
         // Session restore events
         Coordinator.sessionHandler().setRestoreListener(new SessionHandler.SessionRestoreListener() {
-            @Override
-            public void onShuffleStateRestored(boolean enabled) {
-                Coordinator.shuffleLoopHandler().updateShuffleButtonStyle();
-            }
 
             @Override
             public void onLoopModeRestored(PlaybackQueue.LoopMode mode) {
-                Coordinator.shuffleLoopHandler().updateLoopButtonStyle();
+                //TODO
             }
 
             @Override
@@ -307,10 +305,7 @@ public class MainController {
 
     private void setupStateListeners() {
         Coordinator.playbackQueue().loopModeProperty().addListener((obs, old, mode) -> {
-            Coordinator.shuffleLoopHandler().updateLoopButtonStyle();
-            if (!Coordinator.sessionHandler().isRestoringSession()) {
-                saveSession();
-            }
+            //TODO
         });
     }
 

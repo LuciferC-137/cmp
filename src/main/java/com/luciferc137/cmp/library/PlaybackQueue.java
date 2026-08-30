@@ -317,15 +317,27 @@ public class PlaybackQueue {
     // ==================== Shuffle ====================
 
     /**
-     * Shuffle the queue
+     * Shuffle the queue and place the current track at the top of the shuffled list.
      */
     public void shuffle() {
         if (queue.isEmpty()) return;
 
+        Music current = getCurrentTrack();
         Collections.shuffle(queue);
+        if (current != null) {
+            putIndexAtTop(queue.indexOf(current));
+        }
+        setCurrentIndex(0);
 
         // Notify listeners that playback order has changed
         notifyPlaybackOrderChanged();
+    }
+
+    private void putIndexAtTop(int index) {
+        if (index < 0 || index >= size()) return;
+
+        Music track = queue.remove(index);
+        queue.addFirst(track);
     }
 
     /**

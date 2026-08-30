@@ -8,6 +8,7 @@ import com.luciferc137.cmp.ui.handlers.PlaylistPanelHandler;
 import com.luciferc137.cmp.ui.handlers.QueuePanelHandler;
 import com.luciferc137.cmp.ui.settings.SettingsWindow;
 import javafx.application.Platform;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
@@ -23,6 +24,8 @@ public class PlaylistController {
     @FXML public TableView<Music> playlistTable;
     @FXML public TableColumn<Music, String> playlistTitleColumn;
     @FXML public TableColumn<Music, String> playlistRatingColumn;
+    @FXML public Button clearQueueButton;
+    @FXML public Button shuffleQueueButton;
     @FXML private Label playlistInfoLabel;
 
     @FXML public TableView<Music> queueTable;
@@ -99,21 +102,6 @@ public class PlaylistController {
         Coordinator.playlistPanelHandler().initialize();
 
         Coordinator.queuePanelHandler().setEventListener(new QueuePanelHandler.QueueEventListener() {
-            @Override
-            public void onQueueCleared() {
-                Coordinator.playbackHandler().stop();
-                Coordinator.playbackHandler().playbackQueue.clear();
-            }
-
-            @Override
-            public void onQueueItemBatchMoved(int[] oldIndices, int toIndex) {
-                Coordinator.playbackHandler().playbackQueue.moveBatch(oldIndices, toIndex);
-            }
-
-            @Override
-            public void onQueueItemMoved(int fromIndex, int toIndex) {
-                Coordinator.playbackHandler().playbackQueue.moveTrack(fromIndex, toIndex);
-            }
 
             @Override
             public void onQueueItemRemoved(int index) {
@@ -155,5 +143,15 @@ public class PlaylistController {
             Platform.runLater(() -> Coordinator.playlistPanelHandler().refreshPlaylistTabs());
         });
         SettingsWindow.show(this.managePlaylistsButton.getScene().getWindow(), "Playlists");
+    }
+
+    @FXML
+    public void onClearQueue(ActionEvent actionEvent) {
+        Coordinator.queuePanelHandler().onClearQueue();
+    }
+
+    @FXML
+    public void onShuffleQueue(ActionEvent actionEvent) {
+        Coordinator.queuePanelHandler().onShuffleQueue();
     }
 }
