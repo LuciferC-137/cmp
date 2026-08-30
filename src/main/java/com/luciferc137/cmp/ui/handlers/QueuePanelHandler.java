@@ -4,6 +4,7 @@ import com.luciferc137.cmp.library.Music;
 import com.luciferc137.cmp.library.MusicLibrary;
 import com.luciferc137.cmp.library.PlaybackQueue;
 import com.luciferc137.cmp.ui.Coordinator;
+import com.luciferc137.cmp.ui.controllers.MainController;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.geometry.Pos;
@@ -38,6 +39,7 @@ public class QueuePanelHandler implements Handler {
     public ToggleButton queueTabButton;
     public ToggleButton playlistsTabButton;
     public TabPane tabPane;
+    public Label queueInfoLabel;
 
     private QueuePanelHandler.QueueEventListener eventListener;
 
@@ -65,7 +67,9 @@ public class QueuePanelHandler implements Handler {
                                  ComboBox<String> queueSortComboBox,
                                  ToggleButton queueTabButton,
                                  ToggleButton playlistsTabButton,
-                                 TabPane tabPane) {
+                                 TabPane tabPane,
+                                 Label queueInfoLabel) {
+        this.queueInfoLabel = queueInfoLabel;
         this.queueSortComboBox = queueSortComboBox;
         this.syncQueueButton = syncQueueButton;
         this.loopModeButton = loopModeButton;
@@ -133,13 +137,17 @@ public class QueuePanelHandler implements Handler {
             return row;
         });
 
-        playbackQueue.addQueueListener((musicObservable, oldMusic, newMusic) -> {
+        playbackQueue.addCurrentTrackListener((musicObservable, oldMusic, newMusic) -> {
             queueTable.refresh();
             onTrackChange();
         });
 
         playbackQueue.loopModeProperty().addListener((obs, oldMode, newMode) -> {
             updateLoopModeButtonStyle();
+        });
+
+            playbackQueue.addQueueListener((musicObservable, oldMusic, newMusic) -> {
+            updateQueueInfo();
         });
 
         configureQueueSortComboBox();
@@ -365,6 +373,17 @@ public class QueuePanelHandler implements Handler {
             case SINGLE -> loopModeButton.getStyleClass().add("loop-button-single");
             case PLAYLIST -> loopModeButton.getStyleClass().add("loop-button-playlist");
             default -> loopModeButton.getStyleClass().add("loop-button-none");
+        }
+    }
+
+    private void updateQueueInfo() {
+        if (queueInfoLabel != null) {
+            int count = playbackQueue.getQueue().size();
+            long totalDuration = playbackQueue.getQueue().stream()
+                    .mapToLong(m -> m.duration)
+                    .sum();
+            queueInfoLabel.setText(count + " tracks • "
+                    + MainController.formatTime(totalDuration));
         }
     }
 

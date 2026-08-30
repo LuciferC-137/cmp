@@ -113,7 +113,14 @@ public class PlaybackQueue {
     }
 
     // =================== Listeners ====================
-    public void addQueueListener(ChangeListener<Music> listener) {
+
+    public void addQueueListener(ChangeListener<ObservableList<Music>> listener) {
+        queue.addListener((javafx.collections.ListChangeListener<? super Music>) change -> {
+            listener.changed(null, null, queue);
+        });
+    }
+
+    public void addCurrentTrackListener(ChangeListener<Music> listener) {
         currentTrack.addListener(listener);
     }
 

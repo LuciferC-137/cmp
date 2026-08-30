@@ -51,6 +51,8 @@
                         <TableColumn fx:id="queueRatingColumn" prefWidth="90" text="Rating"/>
                     </columns>
                 </TableView>
+                <!-- Playlist info -->
+                <Label fx:id="queueInfoLabel" text="0 tracks • 00:00" style="-fx-font-size: 11px; -fx-text-fill: #666;"/>
             </VBox>
         </Tab>
         <!-- Playlist Tab -->
@@ -78,7 +80,7 @@
                 </TableView>
 
                 <!-- Playlist info -->
-                <Label fx:id="playlistInfoLabel" text="0 tracks" style="-fx-font-size: 11px; -fx-text-fill: #666;"/>
+                <Label fx:id="playlistInfoLabel" text="0 tracks • 00:00" style="-fx-font-size: 11px; -fx-text-fill: #666;"/>
             </VBox>
         </Tab>
     </TabPane>

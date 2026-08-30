@@ -12,7 +12,6 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
 import java.util.List;
@@ -22,7 +21,7 @@ public class PlaylistController {
     @FXML public ToggleButton queueTabButton;
     @FXML public ToggleButton playlistsTabButton;
 
-    @FXML private TabPane tabPane;
+    @FXML public TabPane tabPane;
     @FXML public VBox queuePane;
     @FXML public ScrollPane playlistTabsScrollPane;
     @FXML public HBox playlistTabsContainer;
@@ -34,7 +33,8 @@ public class PlaylistController {
     @FXML public Button shuffleQueueButton;
     @FXML public Button syncQueueButton;
     @FXML public ComboBox<String> queueSortComboBox;
-    @FXML private Label playlistInfoLabel;
+    @FXML public Label playlistInfoLabel;
+    @FXML public Label queueInfoLabel;
     @FXML public Button orderButton;
     @FXML public Button loopModeButton;
 
@@ -72,7 +72,8 @@ public class PlaylistController {
                 queueSortComboBox,
                 queueTabButton,
                 playlistsTabButton,
-                tabPane
+                tabPane,
+                queueInfoLabel
         );
 
         configureHandlerListeners();
