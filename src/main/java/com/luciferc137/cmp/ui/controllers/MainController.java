@@ -47,7 +47,6 @@ public class MainController {
 
     @FXML private Label musicTableInfoLabel;
 
-    @FXML private Button loopButton;
     @FXML private Button prevButton;
     @FXML private Button nextButton;
 
@@ -243,7 +242,7 @@ public class MainController {
 
             @Override
             public void onLoopModeRestored(PlaybackQueue.LoopMode mode) {
-                //TODO
+                Coordinator.queuePanelHandler().setLoopMode(mode);
             }
 
             @Override
@@ -304,9 +303,7 @@ public class MainController {
     }
 
     private void setupStateListeners() {
-        Coordinator.playbackQueue().loopModeProperty().addListener((obs, old, mode) -> {
-            //TODO
-        });
+
     }
 
     private void setupWindowCloseHandler() {
@@ -439,16 +436,6 @@ public class MainController {
     @FXML
     private void onNext() {
         Coordinator.playbackHandler().next();
-    }
-
-    @FXML
-    private void onShuffle() {
-        Coordinator.playbackHandler().shuffle();
-    }
-
-    @FXML
-    private void onToggleLoop() {
-        Coordinator.playbackHandler().cycleLoopMode();
     }
 
     @FXML

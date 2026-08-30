@@ -38,10 +38,6 @@
                         <Button fx:id="pauseButton" onAction="#onPause" prefWidth="40" style="-fx-font-size: 16px;" text="⏸" />
                         <Button fx:id="nextButton" onAction="#onNext" prefWidth="40" style="-fx-font-size: 16px;" text="⏭" />
                     </HBox>
-                    <!-- Secondary controls: shuffle and loop -->
-                    <HBox alignment="CENTER" spacing="15">
-                        <Button fx:id="loopButton" onAction="#onToggleLoop" prefWidth="60" prefHeight="24" style="-fx-font-size: 11px;" text="Loop" />
-                    </HBox>
                 </VBox>
                 <!-- Lyrics button -->
                 <HBox alignment="CENTER" spacing="10" minWidth="100" maxWidth="100">

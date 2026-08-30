@@ -20,17 +20,18 @@
                     <Label text="Playback Queue" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-padding: 0 0 10 0;" alignment="CENTER" HBox.hgrow="ALWAYS"/>
                 </HBox>
                 <HBox alignment="CENTER_LEFT" spacing="5" style="-fx-padding: 0 3 3 3;">
-                    <Button fx:id="clearQueueButton" onAction="#onClearQueue" text="❌" prefWidth="40" style="-fx-font-size: 15px;">
+                    <Button fx:id="clearQueueButton" onAction="#onClearQueue" text="❌" prefHeight="40" prefWidth="40" style="-fx-font-size: 17px;">
                         <tooltip>
                             <Tooltip text="Clear the queue" />
                         </tooltip>
                     </Button>
-                    <Button fx:id="shuffleQueueButton" onAction="#onShuffleQueue" text="🔀" prefWidth="40" style="-fx-font-size: 15px;">
+                    <Button fx:id="loopModeButton" onAction="#onLoopMode" text="🔁" prefHeight="40" prefWidth="40" style="-fx-font-size: 17px;"/>
+                    <Button fx:id="shuffleQueueButton" onAction="#onShuffleQueue" text="🔀" prefHeight="40" prefWidth="40" style="-fx-font-size: 17px;">
                         <tooltip>
                             <Tooltip text="Shuffle the queue" />
                         </tooltip>
                     </Button>
-                    <Button fx:id="syncQueueButton" onAction="#toggleSyncQueue" text="⇅" prefWidth="40" styleClass="sync-button" style="-fx-font-size: 15px;">
+                    <Button fx:id="syncQueueButton" onAction="#toggleSyncQueue" text="⇅"  prefHeight="40" prefWidth="40" styleClass="sync-button" style="-fx-font-size: 17px;">
                         <tooltip>
                             <Tooltip text="Follow current track" />
                         </tooltip>

@@ -36,6 +36,7 @@ public class PlaylistController {
     @FXML public ComboBox<String> queueSortComboBox;
     @FXML private Label playlistInfoLabel;
     @FXML public Button orderButton;
+    @FXML public Button loopModeButton;
 
     @FXML public TableView<Music> queueTable;
     @FXML public TableColumn<Music, String> queueTitleColumn;
@@ -44,14 +45,6 @@ public class PlaylistController {
 
     private final MusicLibrary musicLibrary = MusicLibrary.getInstance();
     private final PlaybackQueue playbackQueue = PlaybackQueue.getInstance();
-
-    public static final String[] QUEUE_SORT_OPTIONS = {
-            "Title",
-            "Artist",
-            "Album",
-            "Duration",
-            "Rating"
-    };
 
     @FXML
     public void initialize() {
@@ -72,54 +65,29 @@ public class PlaylistController {
         Coordinator.queuePanelHandler().bindUIComponents(
                 queueTable,
                 queueTitleColumn,
-                queueRatingColumn
+                queueRatingColumn,
+                syncQueueButton,
+                loopModeButton,
+                orderButton,
+                queueSortComboBox,
+                queueTabButton,
+                playlistsTabButton,
+                tabPane
         );
 
         configureHandlerListeners();
         configureCrossController();
 
-        configureTabPane();
-        setupsyncQueueButton();
-        configureQueueSortComboBox();
-        updateOrderButtonStyle();
-
+        Coordinator.queuePanelHandler().updateOrderButtonStyle();
         Coordinator.getInstance().onPlaylistControllerReady();
-    }
 
-    private void configureTabPane() {
-        ToggleGroup group = new ToggleGroup();
-        queueTabButton.setToggleGroup(group);
-        playlistsTabButton.setToggleGroup(group);
-        queueTabButton.setSelected(true);
+        clearQueueButton.setFocusTraversable(false);
+        shuffleQueueButton.setFocusTraversable(false);
+        syncQueueButton.setFocusTraversable(false);
+        orderButton.setFocusTraversable(false);
+        loopModeButton.setFocusTraversable(false);
 
-        group.selectedToggleProperty().addListener((obs, oldToggle, newToggle) -> {
-            if (newToggle == null) {
-                group.selectToggle(oldToggle);
-                return;
-            }
-            if (newToggle == queueTabButton) {
-                tabPane.getSelectionModel().select(0);
-            } else if (newToggle == playlistsTabButton) {
-                tabPane.getSelectionModel().select(1);
-            }
-        });
-
-        for (Tab tab : tabPane.getTabs()) {
-            tab.setClosable(false);
-        }
-
-        // Remove the default header
-        tabPane.setFocusTraversable(false);
-        Platform.runLater(() -> {
-            Region overflowButton = (Region)  tabPane.lookup(".tab-header-area");
-            if (overflowButton != null) {
-                overflowButton.setVisible(false);
-                overflowButton.setManaged(false);
-                overflowButton.setMaxWidth(0);
-                overflowButton.setMinWidth(0);
-                overflowButton.setPrefWidth(0);
-            }
-        });
+        clearQueueButton.getStyleClass().add("delete-button");
     }
 
     private void configureCrossController() {
@@ -189,75 +157,6 @@ public class PlaylistController {
         Coordinator.queuePanelHandler().initialize();
     }
 
-    private void configureQueueSortComboBox() {
-        queueSortComboBox.setPromptText("Sort by");
-        queueSortComboBox.getItems().addAll(QUEUE_SORT_OPTIONS);
-
-        queueSortComboBox.setButtonCell(new ListCell<>() {
-            @Override
-            protected void updateItem(String item, boolean empty) {
-                super.updateItem(item, empty);
-                setText("Sort by");
-            }
-        });
-
-        queueSortComboBox.setOnAction(event -> {
-            String selected = queueSortComboBox.getValue();
-
-            if (selected != null) {
-                Coordinator.queuePanelHandler().sortQueue(selected);
-                Platform.runLater(() -> queueSortComboBox.getSelectionModel().clearSelection());
-            }
-        });
-    }
-
-    /**
-     * Sets up the sync scroll button and scroll listeners.
-     */
-    private void setupsyncQueueButton() {
-        if (syncQueueButton == null) return;
-
-        // Disable sync when user manually scrolls with mouse wheel
-        if (queueTable != null) {
-            queueTable.setOnScroll(event -> {
-                Coordinator.queuePanelHandler().disableSync();
-                updatesyncQueueButtonStyle();
-            });
-
-            // Disable sync when user interacts with the scrollbar
-            queueTable.skinProperty().addListener((obs, oldSkin, newSkin) -> {
-                if (newSkin != null) {
-                    queueTable.lookupAll(".scroll-bar").forEach(node -> {
-                        if (node instanceof ScrollBar scrollBar &&
-                                scrollBar.getOrientation() == javafx.geometry.Orientation.VERTICAL) {
-                            scrollBar.addEventFilter(javafx.scene.input.MouseEvent.MOUSE_PRESSED, event -> {
-                                Coordinator.queuePanelHandler().disableSync();
-                                updatesyncQueueButtonStyle();
-                            });
-                        }
-                    });
-                }
-            });
-        }
-    }
-
-    /**
-     * Updates the sync button style based on current state.
-     */
-    private void updatesyncQueueButtonStyle() {
-        if (syncQueueButton == null) return;
-
-        if (Coordinator.queuePanelHandler().isSyncEnabled()) {
-            syncQueueButton.setStyle("-fx-background-color: #1E90FF; -fx-text-fill: white;");
-        } else {
-            syncQueueButton.setStyle("-fx-background-color: #3C3C3C; -fx-text-fill: #808080;");
-        }
-    }
-
-    private void updateOrderButtonStyle() {
-        orderButton.setText(!Coordinator.queuePanelHandler().isAscendingSort() ? "⬆" : "⬇");
-    }
-
     private void refreshAllViews() {
         playlistTable.refresh();
         queueTable.refresh();
@@ -285,7 +184,7 @@ public class PlaylistController {
     @FXML
     public void toggleSyncQueue(ActionEvent actionEvent) {
         Coordinator.queuePanelHandler().toggleSync();
-        updatesyncQueueButtonStyle();
+        Coordinator.queuePanelHandler().updatesyncQueueButtonStyle();
         if (Coordinator.queuePanelHandler().isSyncEnabled()) {
             Coordinator.queuePanelHandler().scrollToCurrentTrack();
         }
@@ -294,6 +193,10 @@ public class PlaylistController {
     @FXML
     public void onSwitchOrder(ActionEvent actionEvent) {
         Coordinator.queuePanelHandler().switchSortOrder();
-        updateOrderButtonStyle();
+    }
+
+    @FXML
+    public void onLoopMode(ActionEvent actionEvent) {
+        Coordinator.playbackHandler().cycleLoopMode();
     }
 }

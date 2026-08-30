@@ -3,16 +3,27 @@ package com.luciferc137.cmp.ui.handlers;
 import com.luciferc137.cmp.library.Music;
 import com.luciferc137.cmp.library.MusicLibrary;
 import com.luciferc137.cmp.library.PlaybackQueue;
+import com.luciferc137.cmp.ui.Coordinator;
+import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Region;
 
 import java.util.Comparator;
 import java.util.List;
 
 public class QueuePanelHandler implements Handler {
+    public static final String[] QUEUE_SORT_OPTIONS = {
+            "Title",
+            "Artist",
+            "Album",
+            "Duration",
+            "Rating"
+    };
+
     private final MusicLibrary musicLibrary;
     private final PlaybackQueue playbackQueue;
 
@@ -20,6 +31,13 @@ public class QueuePanelHandler implements Handler {
     public TableView<Music> queueTable;
     public TableColumn<Music, String> queueTitleColumn;
     public TableColumn<Music, String> queueRatingColumn;
+    public Button syncQueueButton;
+    public Button loopModeButton;
+    public Button orderButton;
+    public ComboBox<String> queueSortComboBox;
+    public ToggleButton queueTabButton;
+    public ToggleButton playlistsTabButton;
+    public TabPane tabPane;
 
     private QueuePanelHandler.QueueEventListener eventListener;
 
@@ -40,10 +58,24 @@ public class QueuePanelHandler implements Handler {
 
     public void bindUIComponents(TableView<Music> queueTable,
                                  TableColumn<Music, String> queueTitleColumn,
-                                 TableColumn<Music, String> queueRatingColumn) {
+                                 TableColumn<Music, String> queueRatingColumn,
+                                 Button syncQueueButton,
+                                 Button loopModeButton,
+                                 Button orderButton,
+                                 ComboBox<String> queueSortComboBox,
+                                 ToggleButton queueTabButton,
+                                 ToggleButton playlistsTabButton,
+                                 TabPane tabPane) {
+        this.queueSortComboBox = queueSortComboBox;
+        this.syncQueueButton = syncQueueButton;
+        this.loopModeButton = loopModeButton;
+        this.orderButton = orderButton;
         this.queueTable = queueTable;
         this.queueTitleColumn = queueTitleColumn;
         this.queueRatingColumn = queueRatingColumn;
+        this.queueTabButton = queueTabButton;
+        this.playlistsTabButton = playlistsTabButton;
+        this.tabPane = tabPane;
     }
 
     public void setEventListener(QueueEventListener listener) {
@@ -106,6 +138,101 @@ public class QueuePanelHandler implements Handler {
             onTrackChange();
         });
 
+        playbackQueue.loopModeProperty().addListener((obs, oldMode, newMode) -> {
+            updateLoopModeButtonStyle();
+        });
+
+        configureQueueSortComboBox();
+        configureTabPane();
+        setupsyncQueueButton();
+    }
+
+    private void configureTabPane() {
+        ToggleGroup group = new ToggleGroup();
+        queueTabButton.setToggleGroup(group);
+        playlistsTabButton.setToggleGroup(group);
+        queueTabButton.setSelected(true);
+
+        group.selectedToggleProperty().addListener((obs, oldToggle, newToggle) -> {
+            if (newToggle == null) {
+                group.selectToggle(oldToggle);
+                return;
+            }
+            if (newToggle == queueTabButton) {
+                tabPane.getSelectionModel().select(0);
+            } else if (newToggle == playlistsTabButton) {
+                tabPane.getSelectionModel().select(1);
+            }
+        });
+
+        for (Tab tab : tabPane.getTabs()) {
+            tab.setClosable(false);
+        }
+
+        // Remove the default header
+        tabPane.setFocusTraversable(false);
+        Platform.runLater(() -> {
+            Region overflowButton = (Region)  tabPane.lookup(".tab-header-area");
+            if (overflowButton != null) {
+                overflowButton.setVisible(false);
+                overflowButton.setManaged(false);
+                overflowButton.setMaxWidth(0);
+                overflowButton.setMinWidth(0);
+                overflowButton.setPrefWidth(0);
+            }
+        });
+    }
+
+    private void configureQueueSortComboBox() {
+        queueSortComboBox.setPromptText("Sort by");
+        queueSortComboBox.getItems().addAll(QUEUE_SORT_OPTIONS);
+
+        queueSortComboBox.setButtonCell(new ListCell<>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                setText("Sort by");
+            }
+        });
+
+        queueSortComboBox.setOnAction(event -> {
+            String selected = queueSortComboBox.getValue();
+
+            if (selected != null) {
+                Coordinator.queuePanelHandler().sortQueue(selected);
+                Platform.runLater(() -> queueSortComboBox.getSelectionModel().clearSelection());
+            }
+        });
+    }
+
+    /**
+     * Sets up the sync scroll button and scroll listeners.
+     */
+    private void setupsyncQueueButton() {
+        if (syncQueueButton == null) return;
+
+        // Disable sync when user manually scrolls with mouse wheel
+        if (queueTable != null) {
+            queueTable.setOnScroll(event -> {
+                Coordinator.queuePanelHandler().disableSync();
+                Coordinator.queuePanelHandler().updatesyncQueueButtonStyle();
+            });
+
+            // Disable sync when user interacts with the scrollbar
+            queueTable.skinProperty().addListener((obs, oldSkin, newSkin) -> {
+                if (newSkin != null) {
+                    queueTable.lookupAll(".scroll-bar").forEach(node -> {
+                        if (node instanceof ScrollBar scrollBar &&
+                                scrollBar.getOrientation() == javafx.geometry.Orientation.VERTICAL) {
+                            scrollBar.addEventFilter(javafx.scene.input.MouseEvent.MOUSE_PRESSED, event -> {
+                                Coordinator.queuePanelHandler().disableSync();
+                                Coordinator.queuePanelHandler().updatesyncQueueButtonStyle();
+                            });
+                        }
+                    });
+                }
+            });
+        }
     }
 
     public void onClearQueue() {
@@ -164,6 +291,11 @@ public class QueuePanelHandler implements Handler {
 
     public void switchSortOrder() {
         isAscendingSort = !isAscendingSort;
+        updateOrderButtonStyle();
+    }
+
+    public void setLoopMode(PlaybackQueue.LoopMode loopMode) {
+        playbackQueue.setLoopMode(loopMode);
     }
 
     /**
@@ -187,6 +319,53 @@ public class QueuePanelHandler implements Handler {
             playbackQueue.sortQueue(comparator);
         }
         queueTable.refresh();
+    }
+
+    /**
+     * Updates the sync button style based on current state.
+     */
+    public void updatesyncQueueButtonStyle() {
+        if (syncQueueButton == null) return;
+
+        if (Coordinator.queuePanelHandler().isSyncEnabled()) {
+            syncQueueButton.setStyle("-fx-background-color: #1E90FF; -fx-text-fill: white;");
+        } else {
+            syncQueueButton.setStyle("-fx-background-color: #3C3C3C; -fx-text-fill: #808080;");
+        }
+    }
+
+    /**
+     * Updates the loop mode button style based on current loop mode.
+     */
+    public void updateOrderButtonStyle() {
+        orderButton.setText(!Coordinator.queuePanelHandler().isAscendingSort() ? "⬆" : "⬇");
+    }
+
+    public void updateLoopModeButtonStyle() {
+        if (loopModeButton == null) return;
+
+        PlaybackQueue.LoopMode mode = playbackQueue.getLoopMode();
+
+        if (mode == PlaybackQueue.LoopMode.SINGLE) {
+            loopModeButton.setText("\uD83D\uDD02");
+            loopModeButton.setTooltip(new Tooltip("Loop current track"));
+        } else if (mode == PlaybackQueue.LoopMode.PLAYLIST) {
+            loopModeButton.setText("\uD83D\uDD01");
+            loopModeButton.setTooltip(new Tooltip("Loop current queue"));
+        } else {
+            loopModeButton.setText("\uD83D\uDD01");
+            loopModeButton.setTooltip(new Tooltip("Stops when queue ends"));
+        }
+
+        loopModeButton.getStyleClass().removeAll(
+                "loop-button-none", "loop-button-single", "loop-button-playlist"
+        );
+
+        switch (mode) {
+            case SINGLE -> loopModeButton.getStyleClass().add("loop-button-single");
+            case PLAYLIST -> loopModeButton.getStyleClass().add("loop-button-playlist");
+            default -> loopModeButton.getStyleClass().add("loop-button-none");
+        }
     }
 
     /**

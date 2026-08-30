@@ -111,11 +111,20 @@
     -fx-background-color: #1570C0;
 }
 
-/* Shuffle/Loop toggle buttons - active state */
-.button.active {
-    -fx-background-color: #1E90FF;
-    -fx-text-fill: #FFFFFF;
-    -fx-border-color: #1A7AD9;
+/* === Special Buttons ===*/
+.loop-button-none {
+    -fx-text-fill: #808080;
+}
+.loop-button-single {
+    -fx-text-fill: white;
+}
+.loop-button-playlist {
+    -fx-text-fill: white;
+}
+
+.delete-button:hover {
+    -fx-border-color: #FF4C4C;
+    -fx-text-fill: #FF4C4C;
 }
 
 /* === Text Fields === */
