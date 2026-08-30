@@ -1,6 +1,7 @@
 package com.luciferc137.cmp.library;
 
 import javafx.beans.property.*;
+import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
@@ -114,6 +115,10 @@ public class PlaybackQueue {
         setLoopMode(next);
     }
 
+    // =================== Listeners ====================
+    public void addQueueListener(ChangeListener<Music> listener) {
+        currentTrack.addListener(listener);
+    }
 
     // ==================== Queue Management ====================
 

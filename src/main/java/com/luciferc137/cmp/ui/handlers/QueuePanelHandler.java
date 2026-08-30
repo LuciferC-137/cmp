@@ -5,6 +5,7 @@ import com.luciferc137.cmp.library.MusicLibrary;
 import com.luciferc137.cmp.library.PlaybackQueue;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 
@@ -85,16 +86,51 @@ public class QueuePanelHandler implements Handler {
                 }
             }
         });
+
+        queueTable.setRowFactory(tableView -> {
+            TableRow<Music> row = new TableRow<>();
+
+            row.itemProperty().addListener((obs, oldMusic, newMusic) -> {
+                updateCurrentTrackStyle(row);
+            });
+
+            return row;
+        });
+
+        playbackQueue.addQueueListener((musicObservable, oldMusic, newMusic) -> {
+            queueTable.refresh();
+            onTrackChange();
+        });
+
     }
 
     public void onClearQueue() {
         playbackQueue.clear();
-        queueTable.refresh();
     }
 
     public void onShuffleQueue() {
         playbackQueue.shuffle();
-        queueTable.refresh();
+    }
+
+    public void onTrackChange() {
+        for (Node row : queueTable.lookupAll(".table-row-cell")) {
+            if (row instanceof TableRow<?> tableRow) {
+                @SuppressWarnings("unchecked")
+                TableRow<Music> musicRow = (TableRow<Music>) tableRow;
+
+                updateCurrentTrackStyle(musicRow);
+            }
+        }
+    }
+
+    private void updateCurrentTrackStyle(TableRow<Music> row) {
+        Music music = row.getItem();
+
+        row.getStyleClass().remove("playlist-current-track");
+
+        if (music != null && music.equals(playbackQueue.getCurrentTrack())) {
+            row.getStyleClass().add("playlist-current-track");
+        }
     }
 
     /**
