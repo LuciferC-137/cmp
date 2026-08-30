@@ -128,8 +128,7 @@ public class SessionHandler implements Handler {
                 }
 
                 if (!tracks.isEmpty()) {
-                    // Notify that playback order is now fully restored
-                    playbackQueue.notifyPlaybackOrderChanged();
+                    playbackQueue.restoreQueue(tracks);
 
                     // Restore current track
                     int trackIndex = session.getCurrentTrackIndex();
@@ -148,6 +147,8 @@ public class SessionHandler implements Handler {
                             restoreListener.onPlaybackPositionRestored(savedPosition);
                         }
                     }
+                    // Notify that playback order is now fully restored
+                    playbackQueue.notifyPlaybackOrderChanged();
                 }
             }
 

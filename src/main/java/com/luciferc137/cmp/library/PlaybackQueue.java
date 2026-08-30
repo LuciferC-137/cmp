@@ -383,7 +383,7 @@ public class PlaybackQueue {
      * Restores the queue from a list of Music objects.
      */
     public void restoreQueue(List<Music> tracks) {
-        queue.setAll(tracks);
+        setQueue(tracks);
     }
 
     /**
