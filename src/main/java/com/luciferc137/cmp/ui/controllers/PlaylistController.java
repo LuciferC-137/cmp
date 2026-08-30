@@ -10,9 +10,6 @@ import com.luciferc137.cmp.ui.settings.SettingsWindow;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.geometry.Bounds;
-import javafx.scene.Node;
-import javafx.scene.Parent;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
@@ -38,6 +35,7 @@ public class PlaylistController {
     @FXML public Button syncQueueButton;
     @FXML public ComboBox<String> queueSortComboBox;
     @FXML private Label playlistInfoLabel;
+    @FXML public Button orderButton;
 
     @FXML public TableView<Music> queueTable;
     @FXML public TableColumn<Music, String> queueTitleColumn;
@@ -83,6 +81,7 @@ public class PlaylistController {
         configureTabPane();
         setupsyncQueueButton();
         configureQueueSortComboBox();
+        updateOrderButtonStyle();
 
         Coordinator.getInstance().onPlaylistControllerReady();
     }
@@ -206,9 +205,8 @@ public class PlaylistController {
             String selected = queueSortComboBox.getValue();
 
             if (selected != null) {
-                Coordinator.queuePanelHandler().sortQueue(selected, false);
-
-                queueSortComboBox.getSelectionModel().clearSelection();
+                Coordinator.queuePanelHandler().sortQueue(selected);
+                Platform.runLater(() -> queueSortComboBox.getSelectionModel().clearSelection());
             }
         });
     }
@@ -250,12 +248,14 @@ public class PlaylistController {
         if (syncQueueButton == null) return;
 
         if (Coordinator.queuePanelHandler().isSyncEnabled()) {
-            syncQueueButton.setStyle("-fx-font-size: 14px; -fx-background-color: #1E90FF; -fx-text-fill: white;");
-            syncQueueButton.setText("⇅");
+            syncQueueButton.setStyle("-fx-background-color: #1E90FF; -fx-text-fill: white;");
         } else {
-            syncQueueButton.setStyle("-fx-font-size: 14px; -fx-background-color: #3C3C3C; -fx-text-fill: #808080;");
-            syncQueueButton.setText("⇅");
+            syncQueueButton.setStyle("-fx-background-color: #3C3C3C; -fx-text-fill: #808080;");
         }
+    }
+
+    private void updateOrderButtonStyle() {
+        orderButton.setText(!Coordinator.queuePanelHandler().isAscendingSort() ? "⬆" : "⬇");
     }
 
     private void refreshAllViews() {
@@ -289,5 +289,11 @@ public class PlaylistController {
         if (Coordinator.queuePanelHandler().isSyncEnabled()) {
             Coordinator.queuePanelHandler().scrollToCurrentTrack();
         }
+    }
+
+    @FXML
+    public void onSwitchOrder(ActionEvent actionEvent) {
+        Coordinator.queuePanelHandler().switchSortOrder();
+        updateOrderButtonStyle();
     }
 }

@@ -3,7 +3,6 @@ package com.luciferc137.cmp.ui.handlers;
 import com.luciferc137.cmp.library.Music;
 import com.luciferc137.cmp.library.MusicLibrary;
 import com.luciferc137.cmp.library.PlaybackQueue;
-import com.luciferc137.cmp.ui.controllers.PlaylistController;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -25,6 +24,7 @@ public class QueuePanelHandler implements Handler {
     private QueuePanelHandler.QueueEventListener eventListener;
 
     private boolean isSyncEnabled = false;
+    private boolean isAscendingSort = true;
 
     public interface QueueEventListener {
         void onQueueItemSelected(Music music);
@@ -158,7 +158,20 @@ public class QueuePanelHandler implements Handler {
         }
     }
 
-    public void sortQueue(String sortBy, boolean ascending) {
+    public boolean isAscendingSort() {
+        return isAscendingSort;
+    }
+
+    public void switchSortOrder() {
+        isAscendingSort = !isAscendingSort;
+    }
+
+    /**
+     * Sorts the playback queue based on the specified column and current internal order.
+     *
+     * @param sortBy    The column to sort by ("Title", "Artist", "Album", "Duration", "Rating").
+     */
+    public void sortQueue(String sortBy) {
         Comparator<Music> comparator = switch (sortBy) {
             case "Title" -> Comparator.comparing(m -> m.title != null ? m.title.toLowerCase() : "");
             case "Artist" -> Comparator.comparing(m -> m.artist != null ? m.artist.toLowerCase() : "");
@@ -168,7 +181,7 @@ public class QueuePanelHandler implements Handler {
             default -> null;
         };
         if (comparator != null) {
-            if (!ascending) {
+            if (!isAscendingSort) {
                 comparator = comparator.reversed();
             }
             playbackQueue.sortQueue(comparator);

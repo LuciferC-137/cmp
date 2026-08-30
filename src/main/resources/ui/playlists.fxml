@@ -6,7 +6,7 @@
 
 <VBox xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.luciferc137.cmp.ui.controllers.PlaylistController">
-    <HBox fx:id="customTabHeader" spacing="0">
+    <HBox fx:id="customTabHeader">
         <ToggleButton fx:id="queueTabButton" text="Queue" HBox.hgrow="ALWAYS"
                       maxWidth="Infinity" styleClass="custom-tab-button" />
         <ToggleButton fx:id="playlistsTabButton" text="Playlists" HBox.hgrow="ALWAYS"
@@ -19,7 +19,7 @@
                 <HBox alignment="CENTER" HBox.hgrow="ALWAYS">
                     <Label text="Playback Queue" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-padding: 0 0 10 0;" alignment="CENTER" HBox.hgrow="ALWAYS"/>
                 </HBox>
-                <HBox alignment="CENTER_LEFT" spacing="5">
+                <HBox alignment="CENTER_LEFT" spacing="5" style="-fx-padding: 0 3 3 3;">
                     <Button fx:id="clearQueueButton" onAction="#onClearQueue" text="❌" prefWidth="40" style="-fx-font-size: 15px;">
                         <tooltip>
                             <Tooltip text="Clear the queue" />
@@ -30,11 +30,16 @@
                             <Tooltip text="Shuffle the queue" />
                         </tooltip>
                     </Button>
-                    <HBox HBox.hgrow="ALWAYS"/>
-                    <ComboBox fx:id="queueSortComboBox" prefWidth="150" promptText="Sort by"/>
-                    <Button fx:id="syncQueueButton" onAction="#toggleSyncQueue" text="⇅" prefWidth="30" styleClass="sync-button" alignment="CENTER_RIGHT">
+                    <Button fx:id="syncQueueButton" onAction="#toggleSyncQueue" text="⇅" prefWidth="40" styleClass="sync-button" style="-fx-font-size: 15px;">
                         <tooltip>
                             <Tooltip text="Follow current track" />
+                        </tooltip>
+                    </Button>
+                    <HBox HBox.hgrow="ALWAYS"/>
+                    <ComboBox fx:id="queueSortComboBox" prefWidth="150" promptText="Sort by"/>
+                    <Button fx:id="orderButton" onAction="#onSwitchOrder" text="⬇" prefWidth="30" alignment="CENTER_RIGHT">
+                        <tooltip>
+                            <Tooltip text="Switch order" />
                         </tooltip>
                     </Button>
                 </HBox>
