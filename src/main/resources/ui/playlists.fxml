@@ -8,13 +8,18 @@
          fx:controller="com.luciferc137.cmp.ui.controllers.PlaylistController">
     <!-- Queue Tab -->
     <Tab text="Queue" closable="false">
-        <VBox fx:id="queuePane" spacing="15">
+        <VBox fx:id="queuePane">
             <HBox alignment="CENTER_LEFT" spacing="5">
                 <Label text="Queue" style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
                 <Button fx:id="clearQueueButton" onAction="#onClearQueue" text="Clear Queue" prefWidth="100"
                         style="-fx-font-size: 12px;"/>
                 <Button fx:id="shuffleQueueButton" onAction="#onShuffleQueue" text="Shuffle Queue" prefWidth="100"
                         style="-fx-font-size: 12px;"/>
+                <Button fx:id="syncQueueButton" onAction="#toggleSyncQueue" text="⇅" prefWidth="100" styleClass="sync-button">
+                    <tooltip>
+                        <Tooltip text="Follow current track" />
+                    </tooltip>
+                </Button>
             </HBox>
             <!-- Playlist content -->
             <TableView fx:id="queueTable" VBox.vgrow="ALWAYS">

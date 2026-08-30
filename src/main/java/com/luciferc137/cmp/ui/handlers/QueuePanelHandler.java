@@ -22,6 +22,8 @@ public class QueuePanelHandler implements Handler {
 
     private QueuePanelHandler.QueueEventListener eventListener;
 
+    private boolean isSyncEnabled = false;
+
     public interface QueueEventListener {
         void onQueueItemSelected(Music music);
         void onQueueItemRemoved(int index);
@@ -130,6 +132,27 @@ public class QueuePanelHandler implements Handler {
 
         if (music != null && music.equals(playbackQueue.getCurrentTrack())) {
             row.getStyleClass().add("playlist-current-track");
+        }
+
+        if (isSyncEnabled) scrollToCurrentTrack();
+
+    }
+
+    public void disableSync() {
+        this.isSyncEnabled = false;
+    }
+
+    public void toggleSync() {
+        this.isSyncEnabled = !this.isSyncEnabled;
+    }
+
+    public boolean isSyncEnabled() {
+        return this.isSyncEnabled;
+    }
+
+    public void scrollToCurrentTrack() {
+        if (playbackQueue.getCurrentIndex() >= 0) {
+            queueTable.scrollTo(playbackQueue.getCurrentIndex());
         }
     }
 

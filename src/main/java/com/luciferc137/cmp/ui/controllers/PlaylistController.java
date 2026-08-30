@@ -26,6 +26,7 @@ public class PlaylistController {
     @FXML public TableColumn<Music, String> playlistRatingColumn;
     @FXML public Button clearQueueButton;
     @FXML public Button shuffleQueueButton;
+    @FXML public Button syncQueueButton;
     @FXML private Label playlistInfoLabel;
 
     @FXML public TableView<Music> queueTable;
@@ -60,6 +61,8 @@ public class PlaylistController {
 
         configureHandlerListeners();
         configureCrossController();
+
+        setupsyncQueueButton();
 
         Coordinator.getInstance().onPlaylistControllerReady();
     }
@@ -131,6 +134,51 @@ public class PlaylistController {
         Coordinator.queuePanelHandler().initialize();
     }
 
+    /**
+     * Sets up the sync scroll button and scroll listeners.
+     */
+    private void setupsyncQueueButton() {
+        if (syncQueueButton == null) return;
+
+        // Disable sync when user manually scrolls with mouse wheel
+        if (queueTable != null) {
+            queueTable.setOnScroll(event -> {
+                Coordinator.queuePanelHandler().disableSync();
+                updatesyncQueueButtonStyle();
+            });
+
+            // Disable sync when user interacts with the scrollbar
+            queueTable.skinProperty().addListener((obs, oldSkin, newSkin) -> {
+                if (newSkin != null) {
+                    queueTable.lookupAll(".scroll-bar").forEach(node -> {
+                        if (node instanceof ScrollBar scrollBar &&
+                                scrollBar.getOrientation() == javafx.geometry.Orientation.VERTICAL) {
+                            scrollBar.addEventFilter(javafx.scene.input.MouseEvent.MOUSE_PRESSED, event -> {
+                                Coordinator.queuePanelHandler().disableSync();
+                                updatesyncQueueButtonStyle();
+                            });
+                        }
+                    });
+                }
+            });
+        }
+    }
+
+    /**
+     * Updates the sync button style based on current state.
+     */
+    private void updatesyncQueueButtonStyle() {
+        if (syncQueueButton == null) return;
+
+        if (Coordinator.queuePanelHandler().isSyncEnabled()) {
+            syncQueueButton.setStyle("-fx-font-size: 14px; -fx-background-color: #1E90FF; -fx-text-fill: white;");
+            syncQueueButton.setText("⇅");
+        } else {
+            syncQueueButton.setStyle("-fx-font-size: 14px; -fx-background-color: #3C3C3C; -fx-text-fill: #808080;");
+            syncQueueButton.setText("⇅");
+        }
+    }
+
     private void refreshAllViews() {
         playlistTable.refresh();
         queueTable.refresh();
@@ -153,5 +201,14 @@ public class PlaylistController {
     @FXML
     public void onShuffleQueue(ActionEvent actionEvent) {
         Coordinator.queuePanelHandler().onShuffleQueue();
+    }
+
+    @FXML
+    public void toggleSyncQueue(ActionEvent actionEvent) {
+        Coordinator.queuePanelHandler().toggleSync();
+        updatesyncQueueButtonStyle();
+        if (Coordinator.queuePanelHandler().isSyncEnabled()) {
+            Coordinator.queuePanelHandler().scrollToCurrentTrack();
+        }
     }
 }
