@@ -10,13 +10,22 @@ import com.luciferc137.cmp.ui.settings.SettingsWindow;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.geometry.Bounds;
+import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
 import java.util.List;
 
 public class PlaylistController {
+    @FXML public HBox customTabHeader;
+    @FXML public ToggleButton queueTabButton;
+    @FXML public ToggleButton playlistsTabButton;
+
+    @FXML private TabPane tabPane;
     @FXML public VBox queuePane;
     @FXML public ScrollPane playlistTabsScrollPane;
     @FXML public HBox playlistTabsContainer;
@@ -27,6 +36,7 @@ public class PlaylistController {
     @FXML public Button clearQueueButton;
     @FXML public Button shuffleQueueButton;
     @FXML public Button syncQueueButton;
+    @FXML public ComboBox<String> queueSortComboBox;
     @FXML private Label playlistInfoLabel;
 
     @FXML public TableView<Music> queueTable;
@@ -36,6 +46,14 @@ public class PlaylistController {
 
     private final MusicLibrary musicLibrary = MusicLibrary.getInstance();
     private final PlaybackQueue playbackQueue = PlaybackQueue.getInstance();
+
+    public static final String[] QUEUE_SORT_OPTIONS = {
+            "Title",
+            "Artist",
+            "Album",
+            "Duration",
+            "Rating"
+    };
 
     @FXML
     public void initialize() {
@@ -62,9 +80,47 @@ public class PlaylistController {
         configureHandlerListeners();
         configureCrossController();
 
+        configureTabPane();
         setupsyncQueueButton();
+        configureQueueSortComboBox();
 
         Coordinator.getInstance().onPlaylistControllerReady();
+    }
+
+    private void configureTabPane() {
+        ToggleGroup group = new ToggleGroup();
+        queueTabButton.setToggleGroup(group);
+        playlistsTabButton.setToggleGroup(group);
+        queueTabButton.setSelected(true);
+
+        group.selectedToggleProperty().addListener((obs, oldToggle, newToggle) -> {
+            if (newToggle == null) {
+                group.selectToggle(oldToggle);
+                return;
+            }
+            if (newToggle == queueTabButton) {
+                tabPane.getSelectionModel().select(0);
+            } else if (newToggle == playlistsTabButton) {
+                tabPane.getSelectionModel().select(1);
+            }
+        });
+
+        for (Tab tab : tabPane.getTabs()) {
+            tab.setClosable(false);
+        }
+
+        // Remove the default header
+        tabPane.setFocusTraversable(false);
+        Platform.runLater(() -> {
+            Region overflowButton = (Region)  tabPane.lookup(".tab-header-area");
+            if (overflowButton != null) {
+                overflowButton.setVisible(false);
+                overflowButton.setManaged(false);
+                overflowButton.setMaxWidth(0);
+                overflowButton.setMinWidth(0);
+                overflowButton.setPrefWidth(0);
+            }
+        });
     }
 
     private void configureCrossController() {
@@ -132,6 +188,29 @@ public class PlaylistController {
             }
         });
         Coordinator.queuePanelHandler().initialize();
+    }
+
+    private void configureQueueSortComboBox() {
+        queueSortComboBox.setPromptText("Sort by");
+        queueSortComboBox.getItems().addAll(QUEUE_SORT_OPTIONS);
+
+        queueSortComboBox.setButtonCell(new ListCell<>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                setText("Sort by");
+            }
+        });
+
+        queueSortComboBox.setOnAction(event -> {
+            String selected = queueSortComboBox.getValue();
+
+            if (selected != null) {
+                Coordinator.queuePanelHandler().sortQueue(selected, false);
+
+                queueSortComboBox.getSelectionModel().clearSelection();
+            }
+        });
     }
 
     /**

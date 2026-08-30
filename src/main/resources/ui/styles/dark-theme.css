@@ -472,34 +472,87 @@
     -fx-border-color: #505050;
 }
 
-/* === Tab Pane === */
-.tab-pane .tab-header-area {
+/* === Custom Tab Buttons === */
+.custom-tab-button {
+    -fx-background-color: #1E1E1E;
+    -fx-background-radius: 0;
+    -fx-background-insets: 0;
+    -fx-text-fill: #888888;
+    -fx-border-color: transparent transparent #3C3C3C transparent;
+    -fx-border-width: 0 0 2 0;
+    -fx-padding: 8 0 8 0;
+    -fx-cursor: hand;
+}
+
+.custom-tab-button:hover {
     -fx-background-color: #282828;
 }
 
+.custom-tab-button:selected {
+    -fx-background-color: #383838;
+    -fx-text-fill: #E0E0E0;
+    -fx-border-color: transparent transparent #888888 transparent;
+}
+
+.custom-tab-button:focused,
+.custom-tab-button:selected:focused {
+    -fx-background-insets: 0;
+    -fx-border-color: transparent transparent #888888 transparent;
+}
+
+/* === Tab Pane === */
+.tab-pane .tab-header-area {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+
+.tab-pane .tab-header-area .headers-region {
+    -fx-alignment: CENTER;
+}
+
+.tab-pane .tab-header-background {
+    -fx-background-color: transparent;
+}
+
 .tab-pane .tab {
-    -fx-background-color: #3C3C3C;
-    -fx-border-color: transparent;
+    -fx-background-color: #1E1E1E;
+    -fx-background-radius: 0;
+    -fx-background-insets: 0;
+    -fx-border-color: transparent transparent #3C3C3C transparent;
+    -fx-border-width: 0 0 2 0;
+    -fx-padding: 8 0 8 0;
 }
 
 .tab-pane .tab .tab-label {
-    -fx-text-fill: #B0B0B0;
-}
-
-.tab-pane .tab:selected {
-    -fx-background-color: #1E90FF;
-}
-
-.tab-pane .tab:selected .tab-label {
-    -fx-text-fill: #FFFFFF;
+    -fx-text-fill: #888888;
+    -fx-alignment: CENTER;
 }
 
 .tab-pane .tab:hover {
-    -fx-background-color: #4A4A4A;
+    -fx-background-color: #282828;
+}
+
+.tab-pane .tab:selected {
+    -fx-background-color: #383838;
+    -fx-border-color: transparent transparent #888888 transparent;
+}
+
+.tab-pane .tab:selected .tab-label {
+    -fx-text-fill: #E0E0E0;
+    -fx-font-weight: bold;
 }
 
 .tab-pane .tab-content-area {
     -fx-background-color: #1E1E1E;
+}
+
+.tab-pane .tab:selected .focus-indicator {
+    -fx-border-color: transparent;
+    -fx-background-color: transparent;
+}
+
+.tab-pane .tab .focus-indicator {
+    -fx-border-color: transparent;
 }
 
 /* === Rating stars (if using special styling) === */

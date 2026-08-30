@@ -5,10 +5,7 @@ import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 /**
  * Manages the currently playing playlist with support for sequential and shuffle playback.
@@ -351,6 +348,16 @@ public class PlaybackQueue {
      */
     public void notifyPlaybackOrderChanged() {
         playbackOrderVersion.set(playbackOrderVersion.get() + 1);
+    }
+
+    // =================== Sorting ====================
+
+    /**
+     * Sorts the queue based on a given comparator.
+     */
+    public void sortQueue(Comparator<Music> comparator) {
+        FXCollections.sort(queue, comparator);
+        notifyPlaybackOrderChanged();
     }
 
     // ==================== Utility Methods ====================

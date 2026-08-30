@@ -4,55 +4,76 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<TabPane xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1"
-         fx:controller="com.luciferc137.cmp.ui.controllers.PlaylistController">
-    <!-- Queue Tab -->
-    <Tab text="Queue" closable="false">
-        <VBox fx:id="queuePane">
-            <HBox alignment="CENTER_LEFT" spacing="5">
-                <Label text="Queue" style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
-                <Button fx:id="clearQueueButton" onAction="#onClearQueue" text="Clear Queue" prefWidth="100"
-                        style="-fx-font-size: 12px;"/>
-                <Button fx:id="shuffleQueueButton" onAction="#onShuffleQueue" text="Shuffle Queue" prefWidth="100"
-                        style="-fx-font-size: 12px;"/>
-                <Button fx:id="syncQueueButton" onAction="#toggleSyncQueue" text="⇅" prefWidth="100" styleClass="sync-button">
-                    <tooltip>
-                        <Tooltip text="Follow current track" />
-                    </tooltip>
-                </Button>
-            </HBox>
-            <!-- Playlist content -->
-            <TableView fx:id="queueTable" VBox.vgrow="ALWAYS">
-                <columns>
-                    <TableColumn fx:id="queueTitleColumn" prefWidth="410" text="Title"/>
-                    <TableColumn fx:id="queueRatingColumn" prefWidth="90" text="Rating"/>
-                </columns>
-            </TableView>
-        </VBox>
-    </Tab>
-    <!-- Playlist Tab -->
-    <Tab text="Playlists" closable="false">
-        <VBox>
-            <!-- Playlist tabs header -->
-            <HBox alignment="CENTER_LEFT" spacing="5">
-                <ScrollPane fx:id="playlistTabsScrollPane" hbarPolicy="NEVER" vbarPolicy="NEVER"
-                            fitToHeight="true" HBox.hgrow="ALWAYS" style="-fx-background-color: transparent;">
-                    <HBox fx:id="playlistTabsContainer" spacing="3" alignment="CENTER_LEFT"/>
-                </ScrollPane>
-                <Button fx:id="managePlaylistsButton" onAction="#onManagePlaylists" text="⚙" prefWidth="40"
-                        style="-fx-font-size: 16px;"/>
-            </HBox>
+<VBox xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.luciferc137.cmp.ui.controllers.PlaylistController">
+    <HBox fx:id="customTabHeader" spacing="0">
+        <ToggleButton fx:id="queueTabButton" text="Queue" HBox.hgrow="ALWAYS"
+                      maxWidth="Infinity" styleClass="custom-tab-button" />
+        <ToggleButton fx:id="playlistsTabButton" text="Playlists" HBox.hgrow="ALWAYS"
+                      maxWidth="Infinity" styleClass="custom-tab-button" />
+    </HBox>
+    <TabPane fx:id="tabPane" tabMaxHeight="0" VBox.vgrow="ALWAYS">
+        <!-- Queue Tab -->
+        <Tab text="Queue" closable="false">
+            <VBox fx:id="queuePane">
+                <HBox alignment="CENTER" HBox.hgrow="ALWAYS">
+                    <Label text="Playback Queue" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-padding: 0 0 10 0;" alignment="CENTER" HBox.hgrow="ALWAYS"/>
+                </HBox>
+                <HBox alignment="CENTER_LEFT" spacing="5">
+                    <Button fx:id="clearQueueButton" onAction="#onClearQueue" text="❌" prefWidth="40" style="-fx-font-size: 15px;">
+                        <tooltip>
+                            <Tooltip text="Clear the queue" />
+                        </tooltip>
+                    </Button>
+                    <Button fx:id="shuffleQueueButton" onAction="#onShuffleQueue" text="🔀" prefWidth="40" style="-fx-font-size: 15px;">
+                        <tooltip>
+                            <Tooltip text="Shuffle the queue" />
+                        </tooltip>
+                    </Button>
+                    <HBox HBox.hgrow="ALWAYS"/>
+                    <ComboBox fx:id="queueSortComboBox" prefWidth="150" promptText="Sort by"/>
+                    <Button fx:id="syncQueueButton" onAction="#toggleSyncQueue" text="⇅" prefWidth="30" styleClass="sync-button" alignment="CENTER_RIGHT">
+                        <tooltip>
+                            <Tooltip text="Follow current track" />
+                        </tooltip>
+                    </Button>
+                </HBox>
+                <!-- Playlist content -->
+                <TableView fx:id="queueTable" VBox.vgrow="ALWAYS">
+                    <columns>
+                        <TableColumn fx:id="queueTitleColumn" prefWidth="410" text="Title"/>
+                        <TableColumn fx:id="queueRatingColumn" prefWidth="90" text="Rating"/>
+                    </columns>
+                </TableView>
+            </VBox>
+        </Tab>
+        <!-- Playlist Tab -->
+        <Tab text="Playlists" closable="false">
+            <VBox>
+                <HBox alignment="CENTER" HBox.hgrow="ALWAYS">
+                    <Label text="Playlists" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-padding: 0 0 10 0;" alignment="CENTER" HBox.hgrow="ALWAYS"/>
+                </HBox>
+                <!-- Playlist tabs header -->
+                <HBox alignment="CENTER_LEFT" spacing="5">
+                    <ScrollPane fx:id="playlistTabsScrollPane" hbarPolicy="NEVER" vbarPolicy="NEVER"
+                                fitToHeight="true" HBox.hgrow="ALWAYS" style="-fx-background-color: transparent;">
+                        <HBox fx:id="playlistTabsContainer" spacing="3" alignment="CENTER_LEFT"/>
+                    </ScrollPane>
+                    <Button fx:id="managePlaylistsButton" onAction="#onManagePlaylists" text="⚙" prefWidth="40"
+                            style="-fx-font-size: 16px;"/>
+                </HBox>
 
-            <!-- Playlist content -->
-            <TableView fx:id="playlistTable" VBox.vgrow="ALWAYS">
-                <columns>
-                    <TableColumn fx:id="playlistTitleColumn" prefWidth="410" text="Title"/>
-                    <TableColumn fx:id="playlistRatingColumn" prefWidth="90" text="Rating"/>
-                </columns>
-            </TableView>
+                <!-- Playlist content -->
+                <TableView fx:id="playlistTable" VBox.vgrow="ALWAYS">
+                    <columns>
+                        <TableColumn fx:id="playlistTitleColumn" prefWidth="410" text="Title"/>
+                        <TableColumn fx:id="playlistRatingColumn" prefWidth="90" text="Rating"/>
+                    </columns>
+                </TableView>
 
-            <!-- Playlist info -->
-            <Label fx:id="playlistInfoLabel" text="0 tracks" style="-fx-font-size: 11px; -fx-text-fill: #666;"/>
-        </VBox>
-    </Tab>
-</TabPane>
+                <!-- Playlist info -->
+                <Label fx:id="playlistInfoLabel" text="0 tracks" style="-fx-font-size: 11px; -fx-text-fill: #666;"/>
+            </VBox>
+        </Tab>
+    </TabPane>
+</VBox>

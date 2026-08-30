@@ -3,12 +3,14 @@ package com.luciferc137.cmp.ui.handlers;
 import com.luciferc137.cmp.library.Music;
 import com.luciferc137.cmp.library.MusicLibrary;
 import com.luciferc137.cmp.library.PlaybackQueue;
+import com.luciferc137.cmp.ui.controllers.PlaylistController;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 
+import java.util.Comparator;
 import java.util.List;
 
 public class QueuePanelHandler implements Handler {
@@ -154,6 +156,24 @@ public class QueuePanelHandler implements Handler {
         if (playbackQueue.getCurrentIndex() >= 0) {
             queueTable.scrollTo(playbackQueue.getCurrentIndex());
         }
+    }
+
+    public void sortQueue(String sortBy, boolean ascending) {
+        Comparator<Music> comparator = switch (sortBy) {
+            case "Title" -> Comparator.comparing(m -> m.title != null ? m.title.toLowerCase() : "");
+            case "Artist" -> Comparator.comparing(m -> m.artist != null ? m.artist.toLowerCase() : "");
+            case "Album" -> Comparator.comparing(m -> m.album != null ? m.album.toLowerCase() : "");
+            case "Duration" -> Comparator.comparingLong(m -> m.duration);
+            case "Rating" -> Comparator.comparingInt(Music::getRating);
+            default -> null;
+        };
+        if (comparator != null) {
+            if (!ascending) {
+                comparator = comparator.reversed();
+            }
+            playbackQueue.sortQueue(comparator);
+        }
+        queueTable.refresh();
     }
 
     /**
