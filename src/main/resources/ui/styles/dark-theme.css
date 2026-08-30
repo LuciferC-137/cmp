@@ -79,6 +79,8 @@
     -fx-border-color: #505050;
     -fx-border-width: 1;
     -fx-cursor: hand;
+    -fx-text-overrun: clip;
+    -fx-padding: 5 5 5 5;
 }
 
 .button:hover {

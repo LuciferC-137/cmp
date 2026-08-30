@@ -2,11 +2,13 @@ package com.luciferc137.cmp.ui.dialog;
 
 import com.luciferc137.cmp.database.LibraryService;
 import com.luciferc137.cmp.database.model.PlaylistEntity;
+import com.luciferc137.cmp.library.Music;
 import com.luciferc137.cmp.ui.utils.ThemeManager;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Optional;
@@ -75,15 +77,30 @@ public class PlaylistManagerDialog {
                     onSelect.accept(selected);
                 }
             } else if (result.get() == createButtonType) {
-                showCreatePlaylistDialog(onCreate);
+                showCreatePlaylistDialog(onCreate, null);
             }
         }
     }
 
     /**
      * Shows a dialog to create a new playlist.
+     *
+     * @param onCreate Callback when a new playlist is created
+     * @return Optional containing the created PlaylistEntity if successful, or empty if canceled
      */
     public static Optional<PlaylistEntity> showCreatePlaylistDialog(Runnable onCreate) {
+        return showCreatePlaylistDialog(onCreate, null);
+    }
+
+    /**
+     * Shows a dialog to create a new playlist.
+     *
+     * @param onCreate Callback when a new playlist is created
+     * @param initialTracks Optional list of initial tracks to add to the playlist
+     * @return Optional containing the created PlaylistEntity if successful, or empty if canceled
+     */
+    public static Optional<PlaylistEntity> showCreatePlaylistDialog(Runnable onCreate,
+                                                                    @Nullable List<Music> initialTracks) {
         Dialog<PlaylistEntity> dialog = new Dialog<>();
         dialog.setTitle("Create Playlist");
         dialog.setHeaderText("Enter playlist details");
@@ -120,6 +137,9 @@ public class PlaylistManagerDialog {
                 if (!name.isEmpty()) {
                     LibraryService libraryService = LibraryService.getInstance();
                     Optional<PlaylistEntity> created = libraryService.createPlaylist(name);
+                    if (created.isPresent() && initialTracks != null) {
+                        libraryService.addMusicToPlaylist(created.get(), initialTracks);
+                    }
                     if (created.isPresent()) {
                         if (onCreate != null) {
                             onCreate.run();

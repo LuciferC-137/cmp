@@ -377,6 +377,14 @@ public class PlaylistPanelHandler implements Handler {
                 .ifPresent(playlist -> refreshPlaylistTabs());
     }
 
+    /**
+     * Shows the create playlist dialog.
+     */
+    public void showCreatePlaylistDialog(List<Music> initialTracks) {
+        PlaylistManagerDialog.showCreatePlaylistDialog(this::refreshPlaylistTabs, initialTracks)
+                .ifPresent(playlist -> refreshPlaylistTabs());
+    }
+
     // ==================== Session Persistence Support ====================
 
     public Long getDisplayedPlaylistId() {

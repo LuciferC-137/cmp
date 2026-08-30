@@ -329,6 +329,10 @@ public class QueuePanelHandler implements Handler {
         queueTable.refresh();
     }
 
+    public void createNewPlaylist() {
+        Coordinator.playlistPanelHandler().showCreatePlaylistDialog(queueTable.getItems().stream().toList());
+    }
+
     /**
      * Updates the sync button style based on current state.
      */

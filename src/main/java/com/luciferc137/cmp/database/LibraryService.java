@@ -9,12 +9,14 @@ import com.luciferc137.cmp.database.model.TagEntity;
 import com.luciferc137.cmp.database.sync.LibrarySyncService;
 import com.luciferc137.cmp.database.sync.SyncProgressListener;
 import com.luciferc137.cmp.database.sync.SyncResult;
+import com.luciferc137.cmp.library.Music;
 
 import java.sql.SQLException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 /**
  * Main service for managing the music library.
@@ -302,6 +304,28 @@ public class LibraryService {
         } catch (SQLException e) {
             System.err.println("Error adding to playlist: " + e.getMessage());
         }
+    }
+
+    /**
+     * Adds multiple music to a playlist.
+     *
+     * @param playlistId The playlist ID
+     * @param musicIds The list of music IDs
+     */
+    public void addMusicToPlaylist(long playlistId, List<Long> musicIds) {
+        for (long musicId : musicIds) {
+            addMusicToPlaylist(playlistId, musicId);
+        }
+    }
+
+    /**
+     * Adds multiple music to a playlist.
+     *
+     * @param playlist The playlist
+     * @param music The list of music
+     */
+    public void addMusicToPlaylist(PlaylistEntity playlist, List<Music> music) {
+        addMusicToPlaylist(playlist.getId(), music.stream().map(Music::getId).collect(Collectors.toList()));
     }
 
     /**

@@ -37,6 +37,7 @@ public class PlaylistController {
     @FXML public Label queueInfoLabel;
     @FXML public Button orderButton;
     @FXML public Button loopModeButton;
+    @FXML public Button createNewPlaylistButton;
 
     @FXML public TableView<Music> queueTable;
     @FXML public TableColumn<Music, String> queueTitleColumn;
@@ -45,6 +46,7 @@ public class PlaylistController {
 
     private final MusicLibrary musicLibrary = MusicLibrary.getInstance();
     private final PlaybackQueue playbackQueue = PlaybackQueue.getInstance();
+
 
     @FXML
     public void initialize() {
@@ -199,5 +201,10 @@ public class PlaylistController {
     @FXML
     public void onLoopMode(ActionEvent actionEvent) {
         Coordinator.playbackHandler().cycleLoopMode();
+    }
+
+    @FXML
+    public void onCreateNewPlaylist(ActionEvent actionEvent) {
+        Coordinator.queuePanelHandler().createNewPlaylist();
     }
 }

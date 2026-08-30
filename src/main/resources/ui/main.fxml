@@ -32,11 +32,11 @@
                 <VBox alignment="CENTER" spacing="3" HBox.hgrow="ALWAYS">
                     <!-- Main control buttons -->
                     <HBox alignment="CENTER" spacing="10">
-                        <Button fx:id="prevButton" onAction="#onPrevious" prefWidth="40" style="-fx-font-size: 16px;" text="⏮" />
-                        <Button fx:id="stopButton" onAction="#onStop" prefWidth="40" style="-fx-font-size: 16px;" text="■" />
-                        <Button fx:id="playButton" onAction="#onPlay" prefWidth="40" style="-fx-font-size: 16px;" text="▶" />
-                        <Button fx:id="pauseButton" onAction="#onPause" prefWidth="40" style="-fx-font-size: 16px;" text="⏸" />
-                        <Button fx:id="nextButton" onAction="#onNext" prefWidth="40" style="-fx-font-size: 16px;" text="⏭" />
+                        <Button fx:id="prevButton" onAction="#onPrevious" prefHeight="40" prefWidth="40" style="-fx-font-size: 19px;" text="⏮" />
+                        <Button fx:id="stopButton" onAction="#onStop" prefHeight="40" prefWidth="40" style="-fx-font-size: 19px;" text="■" />
+                        <Button fx:id="playButton" onAction="#onPlay" prefHeight="40" prefWidth="40" style="-fx-font-size: 19px;" text="▶" />
+                        <Button fx:id="pauseButton" onAction="#onPause" prefHeight="40" prefWidth="40" style="-fx-font-size: 19px;" text="⏸" />
+                        <Button fx:id="nextButton" onAction="#onNext" prefHeight="40" prefWidth="40" style="-fx-font-size: 19px;" text="⏭" />
                     </HBox>
                 </VBox>
                 <!-- Lyrics button -->
@@ -95,26 +95,32 @@
     </center>
 
     <bottom>
-        <HBox alignment="CENTER" spacing="20">
-            <padding>
-                <Insets bottom="10" left="10" right="10" top="10" />
-            </padding>
+        <VBox>
+            <Separator />
+            <HBox alignment="CENTER" spacing="20">
+                <padding>
+                    <Insets bottom="10" left="10" right="10" top="10" />
+                </padding>
 
-            <!-- Spacer left -->
-            <Pane HBox.hgrow="ALWAYS" />
+                <!-- Settings button (right) -->
+                <Button onAction="#onSettings" text="⚙ Settings" prefHeight="30" prefWidth="80" />
 
-            <!-- Search bar (center) -->
-            <HBox alignment="CENTER" spacing="5">
-                <TextField fx:id="searchField" onAction="#onSearch" prefWidth="250" promptText="Search..." />
-                <Button onAction="#onClearSearch" prefWidth="30" text="✕" />
+                <!-- Spacer left -->
+                <Pane HBox.hgrow="ALWAYS" />
+
+                <!-- Search bar (center) -->
+                <HBox alignment="CENTER" spacing="5">
+                    <TextField fx:id="searchField" onAction="#onSearch" prefWidth="250" promptText="Search..." />
+                    <Button onAction="#onClearSearch" prefWidth="30" prefHeight="30" text="✕" />
+                </HBox>
+
+                <!-- Spacer right : to get roughly the center of the tab above -->
+                <Pane HBox.hgrow="ALWAYS" />
+                <Pane HBox.hgrow="ALWAYS" />
+                <Pane HBox.hgrow="ALWAYS" />
+
             </HBox>
-
-            <!-- Spacer right -->
-            <Pane HBox.hgrow="ALWAYS" />
-
-            <!-- Settings button (right) -->
-            <Button onAction="#onSettings" text="⚙ Settings" />
-        </HBox>
+        </VBox>
     </bottom>
 
 </BorderPane>
