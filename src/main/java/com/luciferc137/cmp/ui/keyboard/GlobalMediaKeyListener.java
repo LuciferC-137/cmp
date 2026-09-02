@@ -43,7 +43,6 @@ public class GlobalMediaKeyListener implements NativeKeyListener {
 
     @Override
     public void nativeKeyPressed(NativeKeyEvent e) {
-        System.out.println("Key Pressed: " + NativeKeyEvent.getKeyText(e.getKeyCode()));
         switch (e.getKeyCode()) {
             case NativeKeyEvent.VC_MEDIA_NEXT -> Platform.runLater(controller::onNextFromShortcut);
             case NativeKeyEvent.VC_MEDIA_PREVIOUS -> Platform.runLater(controller::onPreviousFromShortcut);
