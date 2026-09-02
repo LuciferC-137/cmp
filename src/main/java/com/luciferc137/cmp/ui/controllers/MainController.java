@@ -1,5 +1,6 @@
 package com.luciferc137.cmp.ui.controllers;
 
+import com.luciferc137.cmp.MainApp;
 import com.luciferc137.cmp.database.LibraryService;
 import com.luciferc137.cmp.library.*;
 import com.luciferc137.cmp.ui.Coordinator;
@@ -146,6 +147,11 @@ public class MainController {
             @Override
             public void onSessionNeedsSave() {
                 saveSession();
+            }
+
+            @Override
+            public void onPlaybackStatusChanged(boolean isPlaying) {
+                MainApp.mprisMediaKeyService.setPlaybackStatus(isPlaying);
             }
         });
         Coordinator.playbackHandler().initialize();
@@ -519,4 +525,7 @@ public class MainController {
         Coordinator.playbackHandler().fiveSecondsBack();
     }
 
+    public void onStopFromShortcut() {
+        Coordinator.playbackHandler().stop();
+    }
 }

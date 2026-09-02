@@ -38,7 +38,8 @@ javafx {
     modules = listOf(
         "javafx.controls",
         "javafx.fxml",
-        "javafx.media"
+        "javafx.media",
+        "javafx.swing",
     )
 }
 
@@ -80,6 +81,8 @@ dependencies {
 
     // Native Hooks for global keyboard
     implementation("com.github.kwhat:jnativehook:2.2.2")
+    implementation("com.github.hypfvieh:dbus-java-core:4.3.1")
+    implementation("com.github.hypfvieh:dbus-java-transport-native-unixsocket:4.3.1")
 }
 
 tasks.test {

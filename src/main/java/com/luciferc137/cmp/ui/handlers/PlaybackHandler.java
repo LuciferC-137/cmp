@@ -54,12 +54,16 @@ public class PlaybackHandler implements Handler {
     // Listener for playback events
     private PlaybackEventListener eventListener;
 
+    // Track playback state to notify listener only on changes
+    private boolean lastNotifiedPlayingState = false;
+
     /**
      * Listener interface for playback events.
      */
     public interface PlaybackEventListener {
         void onTrackChanged(Music music);
         void onSessionNeedsSave();
+        void onPlaybackStatusChanged(boolean isPlaying);
     }
 
     public PlaybackHandler(VlcAudioPlayer audioPlayer, WaveformExtractor waveformExtractor) {
@@ -134,11 +138,26 @@ public class PlaybackHandler implements Handler {
             public void handle(long now) {
                 if (now - lastUpdate >= 33_000_000) { // ~30fps
                     updateProgress();
+                    checkPlaybackStatusChanged();
                     lastUpdate = now;
                 }
             }
         };
         progressTimer.start();
+    }
+
+    private void checkPlaybackStatusChanged() {
+        boolean playing = audioPlayer.isPlaying();
+        if (playing != lastNotifiedPlayingState) {
+            lastNotifiedPlayingState = playing;
+            notifyPlaybackStatusChanged(playing);
+        }
+    }
+
+    private void notifyPlaybackStatusChanged(boolean playing) {
+        if (eventListener != null) {
+            eventListener.onPlaybackStatusChanged(playing);
+        }
     }
 
     private void updateProgress() {
