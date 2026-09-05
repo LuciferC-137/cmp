@@ -291,11 +291,11 @@ public class MainController {
             TableRow<Music> row = new TableRow<>();
             row.setOnContextMenuRequested(event -> {
                 if (!row.isEmpty()) {
-                    List<Music> selectedItems = new ArrayList<>(musicTable.getSelectionModel().getSelectedItems());
+                    List<Integer> selectedItems = new ArrayList<>(musicTable.getSelectionModel().getSelectedIndices());
                     if (selectedItems.isEmpty()) {
-                        selectedItems.add(row.getItem());
-                    } else if (!selectedItems.contains(row.getItem())) {
-                        selectedItems = List.of(row.getItem());
+                        selectedItems.add(row.getIndex());
+                    } else if (!selectedItems.contains(row.getIndex())) {
+                        selectedItems = List.of(row.getIndex());
                     }
                     Coordinator.contextMenuHandler().showMusicContextMenu(
                             selectedItems,

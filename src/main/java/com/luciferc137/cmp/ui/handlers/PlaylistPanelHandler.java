@@ -66,12 +66,12 @@ public class PlaylistPanelHandler implements Handler {
         void onPlaylistTabsNeedRefresh();
         /**
          * Called when a context menu is requested on playlist items.
-         * @param selectedMusic The list of selected music items
+         * @param selectedIndices The list of selected indices
          * @param screenX The screen X position for the context menu
          * @param screenY The screen Y position for the context menu
          * @param playlistId The playlist ID
          */
-        void onPlaylistContextMenuRequested(List<Music> selectedMusic, double screenX, double screenY, Long playlistId);
+        void onPlaylistContextMenuRequested(List<Integer> selectedIndices, double screenX, double screenY, Long playlistId);
         /**
          * Called when a rating is changed in the playlist view.
          */
@@ -131,7 +131,7 @@ public class PlaylistPanelHandler implements Handler {
 
         // Right-click context menu on playlist items
         playlistTable.setOnContextMenuRequested(event -> {
-            List<Music> selectedItems = new ArrayList<>(playlistTable.getSelectionModel().getSelectedItems());
+            List<Integer> selectedItems = new ArrayList<>(playlistTable.getSelectionModel().getSelectedIndices());
             if (!selectedItems.isEmpty() && eventListener != null) {
                 eventListener.onPlaylistContextMenuRequested(
                         selectedItems,
@@ -383,6 +383,14 @@ public class PlaylistPanelHandler implements Handler {
     public void showCreatePlaylistDialog(List<Music> initialTracks) {
         PlaylistManagerDialog.showCreatePlaylistDialog(this::refreshPlaylistTabs, initialTracks)
                 .ifPresent(playlist -> refreshPlaylistTabs());
+    }
+
+    public void addCurrentPlaylistToQueue() {
+        if (displayedPlaylistContent.isEmpty()) {
+            MainApp.logger.log(Level.INFO, "No tracks to add to queue from the current playlist.");
+            return;
+        }
+        playbackQueue.addToQueue(displayedPlaylistContent);
     }
 
     // ==================== Session Persistence Support ====================

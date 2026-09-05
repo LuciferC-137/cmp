@@ -143,6 +143,10 @@ public class PlaybackQueue {
         queue.add(track);
     }
 
+    public void addToQueue(List<Music> tracks) {
+        queue.addAll(tracks);
+    }
+
     public void removeFromQueue(int index) {
         if (index < 0 || index >= size()) return;
         
@@ -160,6 +164,15 @@ public class PlaybackQueue {
                 setCurrentIndex(-1);
                 currentTrack.set(null);
             }
+        }
+    }
+
+    public void removeFromQueue(List<Integer> indices) {
+        List<Integer> sortedIndices = new ArrayList<>(indices);
+        sortedIndices.sort(Collections.reverseOrder());
+
+        for (int index : sortedIndices) {
+            removeFromQueue(index);
         }
     }
 

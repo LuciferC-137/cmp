@@ -38,6 +38,7 @@ public class PlaylistController {
     @FXML public Button orderButton;
     @FXML public Button loopModeButton;
     @FXML public Button createNewPlaylistButton;
+    @FXML public Button addAllToQueueButton;
 
     @FXML public TableView<Music> queueTable;
     @FXML public TableColumn<Music, String> queueTitleColumn;
@@ -94,7 +95,7 @@ public class PlaylistController {
     }
 
     private void configureCrossController() {
-        Coordinator.setPlaylistTableRefreshAction(this::refreshAllViews);
+        Coordinator.setPlaylistTableRefreshAction(this::refreshAllTables);
     }
 
     private void configureHandlerListeners() {
@@ -112,10 +113,10 @@ public class PlaylistController {
             }
 
             @Override
-            public void onPlaylistContextMenuRequested(List<Music> selectedMusic, double screenX, double screenY, Long
+            public void onPlaylistContextMenuRequested(List<Integer> selectedIndices, double screenX, double screenY, Long
                     playlistId){
                 Coordinator.contextMenuHandler().showMusicContextMenuForPlaylist(
-                        selectedMusic,
+                        selectedIndices,
                         screenX,
                         screenY,
                         playlistTable,
@@ -138,14 +139,14 @@ public class PlaylistController {
             }
 
             @Override
-            public void onQueueItemSelected(Music music) {
-                Coordinator.playbackHandler().playTrack(music);
+            public void onQueueItemSelected(Integer index) {
+                Coordinator.playbackQueue().setCurrentIndex(index);
             }
 
             @Override
-            public void onContextMenuRequested(List<Music> musics, double screenX, double screenY) {
+            public void onContextMenuRequested(List<Integer> indices, double screenX, double screenY) {
                 Coordinator.contextMenuHandler().showMusicContextMenuForQueue(
-                        musics,
+                        indices,
                         screenX,
                         screenY,
                         queueTable
@@ -160,7 +161,7 @@ public class PlaylistController {
         Coordinator.queuePanelHandler().initialize();
     }
 
-    private void refreshAllViews() {
+    private void refreshAllTables() {
         playlistTable.refresh();
         queueTable.refresh();
     }
@@ -206,5 +207,10 @@ public class PlaylistController {
     @FXML
     public void onCreateNewPlaylist(ActionEvent actionEvent) {
         Coordinator.queuePanelHandler().createNewPlaylist();
+    }
+
+    @FXML
+    public void onAddAllToQueue(ActionEvent actionEvent) {
+        Coordinator.playlistPanelHandler().addCurrentPlaylistToQueue();
     }
 }

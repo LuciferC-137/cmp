@@ -47,10 +47,10 @@ public class QueuePanelHandler implements Handler {
     private boolean isAscendingSort = true;
 
     public interface QueueEventListener {
-        void onQueueItemSelected(Music music);
+        void onQueueItemSelected(Integer index);
         void onQueueItemRemoved(int index);
         void onRatingChanged();
-        void onContextMenuRequested(List<Music> music, double screenX, double screenY);
+        void onContextMenuRequested(List<Integer> indices, double screenX, double screenY);
     }
 
     public QueuePanelHandler() {
@@ -97,16 +97,14 @@ public class QueuePanelHandler implements Handler {
         // Double-click to play from playlist
         queueTable.setOnMouseClicked(event -> {
             if (event.getClickCount() == 2 && event.getButton() == javafx.scene.input.MouseButton.PRIMARY) {
-                Music selected = queueTable.getSelectionModel().getSelectedItem();
-                if (selected != null && eventListener != null) {
-                    eventListener.onQueueItemSelected(selected);
-                }
+                int selected = queueTable.getSelectionModel().getSelectedIndex();
+                eventListener.onQueueItemSelected(selected);
             }
         });
 
         queueTable.setOnContextMenuRequested(event -> {
             if (eventListener != null) {
-                List<Music> selected = queueTable.getSelectionModel().getSelectedItems();
+                List<Integer> selected = queueTable.getSelectionModel().getSelectedIndices();
                 if (!selected.isEmpty()) {
                     eventListener.onContextMenuRequested(selected, event.getScreenX(), event.getScreenY());
                 }
@@ -170,6 +168,7 @@ public class QueuePanelHandler implements Handler {
                 tabPane.getSelectionModel().select(0);
             } else if (newToggle == playlistsTabButton) {
                 tabPane.getSelectionModel().select(1);
+                Coordinator.playlistPanelHandler().refreshDisplayedPlaylist();
             }
         });
 
@@ -263,11 +262,11 @@ public class QueuePanelHandler implements Handler {
     }
 
     private void updateCurrentTrackStyle(TableRow<Music> row) {
-        Music music = row.getItem();
+        int current = row.getIndex();
 
         row.getStyleClass().remove("playlist-current-track");
 
-        if (music != null && music.equals(playbackQueue.getCurrentTrack())) {
+        if (current == playbackQueue.getCurrentIndex()) {
             row.getStyleClass().add("playlist-current-track");
         }
 

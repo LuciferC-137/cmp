@@ -13,6 +13,7 @@ import javafx.collections.ObservableList;
 import javafx.scene.control.*;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -79,12 +80,12 @@ public class ContextMenuHandler implements Handler {
      * Shows the context menu for one or more music items.
      */
     public void showMusicContextMenu(
-            List<Music> selectedMusic,
+            List<Integer> selectedIndices,
             double screenX,
             double screenY,
             TableView<Music> musicTable
     ) {
-        showMusicContextMenuInternal(selectedMusic, screenX, screenY,
+        showMusicContextMenuInternal(selectedIndices, screenX, screenY,
                 musicTable, null, false);
     }
 
@@ -92,35 +93,47 @@ public class ContextMenuHandler implements Handler {
      * Shows the context menu for one or more music items from a playlist view (TableView or ListView).
      */
     public void showMusicContextMenuForPlaylist(
-            List<Music> selectedMusic,
+            List<Integer> selectedIndices,
             double screenX,
             double screenY,
-            Control playlistView,
+            TableView<Music> playlistView,
             Long displayedPlaylistId
     ) {
-        showMusicContextMenuInternal(selectedMusic, screenX, screenY,
+        showMusicContextMenuInternal(selectedIndices, screenX, screenY,
                 playlistView, displayedPlaylistId, false);
     }
 
     public void showMusicContextMenuForQueue(
-            List<Music> selectedMusic,
+            List<Integer> selectedIndices,
             double screenX,
             double screenY,
             TableView<Music> queueTable
     ) {
-        showMusicContextMenuInternal(selectedMusic, screenX, screenY, queueTable,
+        showMusicContextMenuInternal(selectedIndices, screenX, screenY, queueTable,
                 null, true);
     }
 
+    /*
+     * If you wish to use the selectedMusic object, make sure the view cannot contain several
+     * identical Music objects (e.g., same file path) to avoid unwanted behavior.
+     * Make sure the queue functionality rely on the selectedIndices instead.
+     */
     private void showMusicContextMenuInternal(
-            List<Music> selectedMusic,
+            List<Integer> selectedIndices,
             double screenX,
             double screenY,
-            Control control,
+            TableView<Music> control,
             @Nullable Long displayedPlaylistId,
             boolean removeFromQueueOptionAvailable
     ) {
-        if (selectedMusic.isEmpty()) return;
+        if (selectedIndices.isEmpty()) return;
+        List<Music> selectedMusic = new ArrayList<>();
+        for (Integer index : selectedIndices) {
+            Music music = control.getItems().get(index);
+            if (music != null) {
+                selectedMusic.add(music);
+            }
+        }
 
         hideActiveMenu();
 
@@ -152,11 +165,7 @@ public class ContextMenuHandler implements Handler {
 
         // Add to queue
         MenuItem addToQueueItem = new MenuItem(isMultiple ? "Add All to Current Queue" : "Add to Current Queue");
-        addToQueueItem.setOnAction(e -> {
-            for (Music music : selectedMusic) {
-                playbackQueue.addToQueue(music);
-            }
-        });
+        addToQueueItem.setOnAction(e -> playbackQueue.addToQueue(selectedMusic));
         contextMenu.getItems().add(addToQueueItem);
 
         // Add to playlist submenu
@@ -197,14 +206,7 @@ public class ContextMenuHandler implements Handler {
         // Remove from queue option (only if available)
         if (removeFromQueueOptionAvailable) {
             MenuItem removeFromQueueItem = new MenuItem(isMultiple ? "Remove All from Queue" : "Remove from Queue");
-            removeFromQueueItem.setOnAction(e -> {
-                for (Music music : selectedMusic) {
-                    int index = playbackQueue.getQueue().indexOf(music);
-                    if (index >= 0) {
-                        playbackQueue.removeFromQueue(index);
-                    }
-                }
-            });
+            removeFromQueueItem.setOnAction(e -> Platform.runLater(() -> playbackQueue.removeFromQueue(selectedIndices)));
             contextMenu.getItems().add(removeFromQueueItem);
         }
 
