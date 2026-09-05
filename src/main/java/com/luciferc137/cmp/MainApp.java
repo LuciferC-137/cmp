@@ -4,7 +4,6 @@ import com.luciferc137.cmp.ui.Coordinator;
 import com.luciferc137.cmp.ui.controllers.MainController;
 import com.luciferc137.cmp.ui.keyboard.MprisMediaKeyService;
 import com.luciferc137.cmp.ui.utils.ThemeManager;
-import com.luciferc137.cmp.ui.keyboard.GlobalMediaKeyListener;
 import com.luciferc137.cmp.ui.keyboard.KeyBoardShortCut;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
@@ -16,7 +15,6 @@ import java.util.logging.Logger;
 
 public class MainApp extends Application {
     public static KeyBoardShortCut keyBoardShortCut;
-    public static GlobalMediaKeyListener globalMediaKeyListener;
     public static MprisMediaKeyService mprisMediaKeyService;
     public static Logger logger = Logger.getLogger(MainApp.class.getName());
 
@@ -35,8 +33,6 @@ public class MainApp extends Application {
         keyBoardShortCut = new KeyBoardShortCut(controller);
         keyBoardShortCut.mainSceneShortcuts(scene);
 
-        globalMediaKeyListener = new GlobalMediaKeyListener(controller);
-        globalMediaKeyListener.register();
         mprisMediaKeyService = new MprisMediaKeyService(controller, "CMP", "CMP");
         mprisMediaKeyService.register();
         MainApp.mprisMediaKeyService.setPositionSupplier(Coordinator.playbackHandler()::getCurrentPosition);
@@ -53,7 +49,6 @@ public class MainApp extends Application {
     @Override
     public void stop() throws Exception {
         super.stop();
-        globalMediaKeyListener.unregister();
         mprisMediaKeyService.unregister();
     }
 }

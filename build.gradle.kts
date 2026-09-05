@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "com.luciferc137.cmp"
-version = "0.2.0"
+version = "0.3.0"
 
 val appName = "cmp"
 val appDescription = "Custom Music Player - A modern music player for your local library"
@@ -24,7 +24,8 @@ val jpackageModules = listOf(
     "java.net.http",
     "jdk.crypto.ec",        // Required for TLS/SSL with elliptic curve algorithms
     "jdk.crypto.cryptoki",  // Additional crypto support
-    "jdk.unsupported"
+    "jdk.unsupported",
+    "jdk.security.auth"
 ).joinToString(",")
 
 java {
@@ -80,7 +81,6 @@ dependencies {
     implementation("org.slf4j:slf4j-simple:2.0.9")
 
     // Native Hooks for global keyboard
-    implementation("com.github.kwhat:jnativehook:2.2.2")
     implementation("com.github.hypfvieh:dbus-java-core:4.3.1")
     implementation("com.github.hypfvieh:dbus-java-transport-native-unixsocket:4.3.1")
 }
