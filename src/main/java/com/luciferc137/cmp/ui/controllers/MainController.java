@@ -142,6 +142,7 @@ public class MainController {
                 Coordinator.playlistPanelHandler().updatePlaylistTabStyles();
                 // Update lyrics window if it's open
                 LyricsWindow.updateCurrentTrack(music);
+                MainApp.mprisMediaKeyService.setNowPlaying(music);
             }
 
             @Override

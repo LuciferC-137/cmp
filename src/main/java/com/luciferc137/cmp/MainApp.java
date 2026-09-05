@@ -1,5 +1,6 @@
 package com.luciferc137.cmp;
 
+import com.luciferc137.cmp.ui.Coordinator;
 import com.luciferc137.cmp.ui.controllers.MainController;
 import com.luciferc137.cmp.ui.keyboard.MprisMediaKeyService;
 import com.luciferc137.cmp.ui.utils.ThemeManager;
@@ -38,6 +39,7 @@ public class MainApp extends Application {
         globalMediaKeyListener.register();
         mprisMediaKeyService = new MprisMediaKeyService(controller, "CMP", "CMP");
         mprisMediaKeyService.register();
+        MainApp.mprisMediaKeyService.setPositionSupplier(Coordinator.playbackHandler()::getCurrentPosition);
 
         // Apply dark theme stylesheet
         scene.getStylesheets().add(ThemeManager.getDarkThemeUrl());
