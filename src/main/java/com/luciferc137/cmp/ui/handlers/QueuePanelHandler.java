@@ -10,9 +10,13 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.*;
+import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.Dragboard;
+import javafx.scene.input.TransferMode;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
@@ -45,6 +49,9 @@ public class QueuePanelHandler implements Handler {
 
     private boolean isSyncEnabled = false;
     private boolean isAscendingSort = true;
+
+    // Drag-and-drop support
+    private List<Integer> draggedTracks;
 
     public interface QueueEventListener {
         void onQueueItemSelected(Integer index);
@@ -125,11 +132,88 @@ public class QueuePanelHandler implements Handler {
             }
         });
 
+        // Drag-and-drop support for reordering tracks
         queueTable.setRowFactory(tableView -> {
             TableRow<Music> row = new TableRow<>();
 
             row.itemProperty().addListener((obs, oldMusic, newMusic) -> {
                 updateCurrentTrackStyle(row);
+            });
+
+            // Drag detected event for initiating drag-and-drop
+            row.setOnDragDetected(event -> {
+                if (row.isEmpty()) return;
+
+                int index = row.getIndex();
+
+                if (!row.isSelected()) {
+                    queueTable.getSelectionModel().clearSelection();
+                    queueTable.getSelectionModel().select(index);
+                }
+
+                List<Integer> selectedTracks = new ArrayList<>();
+
+                for (Music music : queueTable.getSelectionModel().getSelectedItems()) {
+                    selectedTracks.add(playbackQueue.getQueue().indexOf(music));
+                }
+
+                if (selectedTracks.isEmpty()) return;
+
+                Dragboard dragboard = row.startDragAndDrop(TransferMode.MOVE);
+
+                ClipboardContent content = new ClipboardContent();
+                content.putString("queue-reorder");
+
+                dragboard.setContent(content);
+
+                draggedTracks = selectedTracks;
+
+                event.consume();
+            });
+
+            // Drag over event to allow dropping
+            row.setOnDragOver(event -> {
+                if (draggedTracks != null && !draggedTracks.isEmpty()) {
+                    if (!row.isEmpty() && !draggedTracks.contains(row.getIndex())) {
+                        // Display visual feedback for valid drop target
+                        if (!row.getStyleClass().contains("drag-over-row")) {
+                            row.getStyleClass().add("drag-over-row");
+                        }
+                        event.acceptTransferModes(TransferMode.MOVE);
+                    } else {
+                        row.getStyleClass().remove("drag-over-row");
+                    }
+                    event.consume();
+                }
+            });
+
+            row.setOnDragExited(event -> row.getStyleClass().remove("drag-over-row"));
+
+            // Drop
+            row.setOnDragDropped(event -> {
+                if (draggedTracks == null || draggedTracks.isEmpty()) {
+                    return;
+                }
+
+                int targetIndex = row.getIndex();
+
+                playbackQueue.moveBatch(draggedTracks, targetIndex);
+
+                draggedTracks = null;
+
+                row.getStyleClass().remove("drag-over-row");
+
+                queueTable.getSelectionModel().clearSelection();
+
+                event.setDropCompleted(true);
+                event.consume();
+            });
+
+            // Drag done event to clear the dragged tracks
+            row.setOnDragDone(event -> {
+                draggedTracks = null;
+                row.getStyleClass().remove("drag-over-row");
+                event.consume();
             });
 
             return row;

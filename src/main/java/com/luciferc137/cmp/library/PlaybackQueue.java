@@ -176,53 +176,68 @@ public class PlaybackQueue {
         }
     }
 
-    public void moveTrack(int fromIndex, int toIndex) {
-        if (fromIndex < 0 || fromIndex >= size() || toIndex < 0 || toIndex >= size()) return;
-
-        Music track = queue.remove(fromIndex);
-        queue.add(toIndex, track);
-
-        // Adjust current index if needed
-        if (fromIndex == getCurrentIndex()) {
-            setCurrentIndex(toIndex);
-        } else if (fromIndex < getCurrentIndex() && toIndex >= getCurrentIndex()) {
-            currentIndex.set(getCurrentIndex() - 1);
-        } else if (fromIndex > getCurrentIndex() && toIndex <= getCurrentIndex()) {
-            currentIndex.set(getCurrentIndex() + 1);
-        }
+    public void moveBatch(List<Integer> indices, int toIndex) {
+        int[] indicesArray = indices.stream().mapToInt(Integer::intValue).toArray();
+        moveBatch(indicesArray, toIndex);
     }
 
     public void moveBatch(int[] indices, int toIndex) {
         if (indices.length == 0 || toIndex < 0 || toIndex > size()) return;
 
-        // Sort indices in descending order to avoid shifting issues
-        List<Integer> sortedIndices = new ArrayList<>(Arrays.stream(indices).boxed().toList());
-        sortedIndices.sort(Collections.reverseOrder());
+        List<Integer> sortedIndices = Arrays.stream(indices)
+                .boxed()
+                .filter(index -> index >= 0 && index < size())
+                .distinct()
+                .sorted()
+                .toList();
+
+        if (sortedIndices.isEmpty()) return;
+
+        int oldCurrentIndex = getCurrentIndex();
+        int currentMovedPosition = -1;
+
+        for (int i = 0; i < sortedIndices.size(); i++) {
+            if (sortedIndices.get(i) == oldCurrentIndex) {
+                currentMovedPosition = i;
+                break;
+            }
+        }
 
         List<Music> movingTracks = new ArrayList<>();
+
+        for (int i = sortedIndices.size() - 1; i >= 0; i--) {
+            int index = sortedIndices.get(i);
+            movingTracks.addFirst(queue.remove(index));
+        }
+
+        int removedBeforeTarget = 0;
+
         for (int index : sortedIndices) {
-            if (index >= 0 && index < size()) {
-                movingTracks.add(queue.remove(index));
+            if (index < toIndex) {
+                removedBeforeTarget++;
             }
         }
 
-        // Insert tracks at the target index
-        queue.addAll(toIndex, movingTracks);
+        int insertionIndex = toIndex - removedBeforeTarget;
+        insertionIndex = Math.clamp(insertionIndex, 0, queue.size());
 
-        // Adjust current index if needed
-        if (sortedIndices.contains(getCurrentIndex())) {
-            // Current track is being moved
-            int newCurrentIndex = toIndex + movingTracks.indexOf(getCurrentTrack());
-            setCurrentIndex(newCurrentIndex);
-        } else {
-            // Adjust current index based on the movement of other tracks
-            int adjustment = 0;
+        queue.addAll(insertionIndex, movingTracks);
+
+        if (currentMovedPosition >= 0) {
+            setCurrentIndex(insertionIndex + currentMovedPosition);
+        } else if (oldCurrentIndex >= 0) {
+            int newCurrentIndex = oldCurrentIndex;
             for (int index : sortedIndices) {
-                if (index < getCurrentIndex()) adjustment--;
-                else if (index > getCurrentIndex() && index < toIndex) adjustment++;
+                if (index < oldCurrentIndex) {
+                    newCurrentIndex--;
+                }
             }
-            currentIndex.set(getCurrentIndex() + adjustment);
+            if (insertionIndex <= newCurrentIndex) {
+                newCurrentIndex += movingTracks.size();
+            }
+            setCurrentIndex(newCurrentIndex);
         }
+        notifyPlaybackOrderChanged();
     }
 
     /**

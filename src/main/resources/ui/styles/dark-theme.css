@@ -246,6 +246,13 @@
     -fx-background-color: #282828;
 }
 
+.table-view .drag-over-row {
+    -fx-background-color: transparent;
+    -fx-border-color: #1E90FF transparent transparent transparent;
+    -fx-border-width: 2 0 0 0;
+    -fx-border-insets: 0;
+}
+
 /* === List View === */
 .list-view {
     -fx-background-color: #1E1E1E;
