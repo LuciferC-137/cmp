@@ -8,49 +8,60 @@ import javafx.scene.image.Image;
 import java.io.InputStream;
 import java.util.Objects;
 
-
+/**
+ * Public facade of the shader background system — the only class the rest
+ * of the app (controllers, FXML) should ever reference.
+ */
 public final class ShaderBackgroundEngine {
 
     private static final String PLACEHOLDER_IMAGE_PATH = "/assets/placeholder_bg.png";
+    private static final String FRAGMENT_SHADER_RESOURCE = "/assets/shaders/warp_rb.frag";
+    private static final int DEFAULT_WIDTH = 16;
+    private static final int DEFAULT_HEIGHT = 16;
 
     private final ReadOnlyObjectWrapper<Image> outputImage =
             new ReadOnlyObjectWrapper<>(this, "outputImage");
     private final SimpleBooleanProperty running =
             new SimpleBooleanProperty(this, "running", false);
 
-    private int viewportWidth = 0;
-    private int viewportHeight = 0;
+    private int viewportWidth = DEFAULT_WIDTH;
+    private int viewportHeight = DEFAULT_HEIGHT;
+    private ShaderRenderer renderer;
 
     /**
      * Start the engine. Must be called from the JavaFX Application Thread.
-     * Target : initialize the offscreen GL context, compile the shader and start
-     * the rendering loop (dedicated GL thread + synchronization with the FX Application Thread for frame publication).
+     * Shows the static placeholder immediately, then spawns the dedicated
+     * GL render thread, which takes over {@link #outputImageProperty()} as
+     * soon as its first frame is ready. Call {@link #resize} beforehand (or
+     * shortly after) with the real background size — it defaults to a small
+     * placeholder size otherwise.
      */
     public void start() {
         if (running.get()) {
             return;
         }
         loadPlaceholderImage();
+        renderer = new ShaderRenderer(FRAGMENT_SHADER_RESOURCE, viewportWidth, viewportHeight, outputImage::set);
+        renderer.start();
         running.set(true);
-        // TODO (LWJGL) : créer le contexte GL offscreen (OffscreenGLContext),
-        //                compiler/linker le shader (ShaderProgram),
-        //                démarrer la boucle de rendu (ShaderRenderer + PixelTransfer).
     }
 
     /**
-     * Stop the engine and release any GL resources that may have been allocated.
+     * Stop the engine and release its GL resources. Blocks briefly (up to
+     * ~1s) until the render thread has shut down cleanly.
      */
     public void stop() {
         if (!running.get()) {
             return;
         }
+        renderer.stop();
+        renderer = null;
         running.set(false);
-        // TODO (LWJGL) : arrêter la boucle de rendu, détruire le FBO/contexte GL.
     }
 
     /**
-     * Inform the engine of the current display size of the background (in JavaFX scene pixels),
-     * so that it can correctly size the rendering target.
+     * Inform the engine of the current display size of the background (in
+     * JavaFX scene pixels), so it can correctly size the rendering target.
      */
     public void resize(int width, int height) {
         if (width <= 0 || height <= 0) {
@@ -58,7 +69,9 @@ public final class ShaderBackgroundEngine {
         }
         this.viewportWidth = width;
         this.viewportHeight = height;
-        // TODO (LWJGL) : redimensionner le framebuffer/texture GL cible.
+        if (renderer != null) {
+            renderer.requestResize(width, height);
+        }
     }
 
     /**

@@ -9,7 +9,7 @@
 <?import javafx.scene.image.Image?>
 
 
-<StackPane xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.luciferc137.cmp.ui.controllers.MainController">
+<StackPane fx:id="rootStack" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.luciferc137.cmp.ui.controllers.MainController">
 
     <ImageView fx:id="shaderBackgroundView" preserveRatio="false" smooth="true" mouseTransparent="true" />
 

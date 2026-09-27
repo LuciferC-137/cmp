@@ -13,10 +13,12 @@ import com.luciferc137.cmp.ui.lyrics.LyricsWindow;
 import com.luciferc137.cmp.ui.settings.SettingsController;
 import com.luciferc137.cmp.ui.settings.SettingsWindow;
 import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
+import javafx.scene.layout.StackPane;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,6 +28,8 @@ import java.util.List;
  * Acts as a coordinator between specialized handlers and FXML components.
  */
 public class MainController {
+    @FXML public StackPane rootStack;
+    @FXML private ImageView shaderBackgroundView;
 
     // ==================== FXML Components ====================
 
@@ -58,8 +62,6 @@ public class MainController {
     @FXML public Button lyricsButton;
 
     @FXML private Label volumePercentLabel;
-
-    @FXML private ImageView shaderBackgroundView;
 
     // ==================== Class attributes ====================
 
@@ -111,6 +113,7 @@ public class MainController {
         // Bind shader engine output to background view
         shaderBackgroundView.imageProperty().bind(shaderEngine.outputImageProperty());
         shaderEngine.start();
+        bindShaderBackground();
 
         updateMusicTableInfoLabel();
 
@@ -139,6 +142,24 @@ public class MainController {
                 tagsColumn,
                 ratingColumn
         );
+    }
+
+    private void bindShaderBackground() {
+        shaderBackgroundView.imageProperty().bind(shaderEngine.outputImageProperty());
+
+        ChangeListener<Number> resizeListener = (obs, oldVal, newVal) ->
+                shaderEngine.resize(
+                        (int) Math.round(rootStack.getWidth()),
+                        (int) Math.round(rootStack.getHeight())
+                );
+        rootStack.widthProperty().addListener(resizeListener);
+        rootStack.heightProperty().addListener(resizeListener);
+
+        shaderEngine.start();
+
+        if (rootStack.getWidth() > 0 && rootStack.getHeight() > 0) {
+            shaderEngine.resize((int) Math.round(rootStack.getWidth()), (int) Math.round(rootStack.getHeight()));
+        }
     }
 
     private void configureCrossController() {

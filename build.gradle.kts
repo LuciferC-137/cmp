@@ -56,6 +56,9 @@ repositories {
     mavenCentral()
 }
 
+val lwjglVersion = "3.4.3"
+val lwjglNatives = "natives-linux"
+
 dependencies {
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
@@ -83,6 +86,21 @@ dependencies {
     // Native Hooks for global keyboard
     implementation("com.github.hypfvieh:dbus-java-core:4.3.1")
     implementation("com.github.hypfvieh:dbus-java-transport-native-unixsocket:4.3.1")
+
+    // LWJGL for OpenGL rendering and native libraries
+    implementation(platform("org.lwjgl:lwjgl-bom:$lwjglVersion"))
+    implementation("org.lwjgl:lwjgl")
+    implementation("org.lwjgl:lwjgl-assimp")
+    implementation("org.lwjgl:lwjgl-glfw")
+    implementation("org.lwjgl:lwjgl-openal")
+    implementation("org.lwjgl:lwjgl-opengl")
+    implementation("org.lwjgl:lwjgl-stb")
+    implementation("org.lwjgl:lwjgl::$lwjglNatives")
+    implementation("org.lwjgl:lwjgl-assimp::$lwjglNatives")
+    implementation("org.lwjgl:lwjgl-glfw::$lwjglNatives")
+    implementation("org.lwjgl:lwjgl-openal::$lwjglNatives")
+    implementation("org.lwjgl:lwjgl-opengl::$lwjglNatives")
+    implementation("org.lwjgl:lwjgl-stb::$lwjglNatives")
 }
 
 tasks.test {
