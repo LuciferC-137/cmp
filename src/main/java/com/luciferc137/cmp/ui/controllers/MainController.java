@@ -3,6 +3,7 @@ package com.luciferc137.cmp.ui.controllers;
 import com.luciferc137.cmp.MainApp;
 import com.luciferc137.cmp.database.LibraryService;
 import com.luciferc137.cmp.library.*;
+import com.luciferc137.cmp.shader.ShaderBackgroundEngine;
 import com.luciferc137.cmp.ui.Coordinator;
 import com.luciferc137.cmp.ui.dialog.BatchCoverArtDialog;
 import com.luciferc137.cmp.ui.dialog.MetadataEditorDialog;
@@ -57,6 +58,12 @@ public class MainController {
     @FXML public Button lyricsButton;
 
     @FXML private Label volumePercentLabel;
+
+    @FXML private ImageView shaderBackgroundView;
+
+    // ==================== Class attributes ====================
+
+    private final ShaderBackgroundEngine shaderEngine = new ShaderBackgroundEngine();
     
 
     // ==================== Initialization ====================
@@ -100,6 +107,10 @@ public class MainController {
                 updateVolumePercentLabel(newVal.intValue());
             });
         }
+
+        // Bind shader engine output to background view
+        shaderBackgroundView.imageProperty().bind(shaderEngine.outputImageProperty());
+        shaderEngine.start();
 
         updateMusicTableInfoLabel();
 
@@ -316,7 +327,7 @@ public class MainController {
     private void setupWindowCloseHandler() {
         Platform.runLater(() -> {
             if (musicTable.getScene() != null && musicTable.getScene().getWindow() != null) {
-                musicTable.getScene().getWindow().setOnCloseRequest(event -> saveSession());
+                musicTable.getScene().getWindow().setOnCloseRequest(event -> {saveSession(); shaderEngine.stop();});
             }
         });
     }

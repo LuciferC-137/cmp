@@ -19,10 +19,10 @@ public class WaveformProgressBar extends Pane {
     private float[] waveformData;
     private final DoubleProperty progress = new SimpleDoubleProperty(0);
 
-    private Color waveformColor = Color.rgb(100, 100, 100, 0.5);
+    private Color waveformColor = Color.rgb(100, 100, 100);
     private Color waveformPlayedColor = Color.rgb(30, 144, 255, 0.8);
     private Color progressLineColor = Color.rgb(30, 144, 255);
-    private Color backgroundColor = Color.rgb(30, 30, 30);
+    private Color backgroundColor = Color.rgb(0, 0, 0, 0.0);
 
     public WaveformProgressBar() {
         waveformCanvas = new Canvas();
@@ -44,7 +44,6 @@ public class WaveformProgressBar extends Pane {
         progress.addListener((obs, oldVal, newVal) -> drawProgress());
 
         // Default style
-        setStyle("-fx-background-color: #282828;");
         setMinHeight(50);
         setPrefHeight(60);
     }
