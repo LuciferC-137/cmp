@@ -15,7 +15,7 @@ import java.util.Objects;
 public final class ShaderBackgroundEngine {
 
     private static final String PLACEHOLDER_IMAGE_PATH = "/assets/placeholder_bg.png";
-    private static final String FRAGMENT_SHADER_RESOURCE = "/assets/shaders/warp_rb.frag";
+    private static final String FRAGMENT_SHADER_RESOURCE = "/assets/shaders/levels.frag";
     private static final int DEFAULT_WIDTH = 16;
     private static final int DEFAULT_HEIGHT = 16;
 
@@ -67,8 +67,8 @@ public final class ShaderBackgroundEngine {
         if (width <= 0 || height <= 0) {
             return;
         }
-        this.viewportWidth = width;
-        this.viewportHeight = height;
+        this.viewportWidth  = Math.min(width, 4096);
+        this.viewportHeight = Math.min(height, 4096);
         if (renderer != null) {
             renderer.requestResize(width, height);
         }

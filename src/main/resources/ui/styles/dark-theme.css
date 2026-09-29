@@ -27,9 +27,9 @@
     -white: #FFFFFF;
 
     /* --- Palette : solid colors --- */
-    -accent-hover: #3AA0FF;
+    -accent-hover: #1570C0;
     -accent-pressed: #1570C0;
-    -accent-border: #1A7AD9;
+    -accent-border: #1570C0;
     -danger: #FF4C4C;
     -rating-gold: #FFD700;
 
@@ -38,7 +38,7 @@
     -fx-background: -gray-950;
     -fx-control-inner-background: -gray-850;
     -fx-control-inner-background-alt: -gray-800;
-    -fx-accent: #1E90FF;
+    -fx-accent: #1570C0;
     -fx-focus-color: -fx-accent;
     -fx-faint-focus-color: rgba(30, 144, 255, 0.3);
     -fx-selection-bar: -fx-accent;
