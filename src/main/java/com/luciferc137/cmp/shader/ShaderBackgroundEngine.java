@@ -15,7 +15,7 @@ import java.util.Objects;
 public final class ShaderBackgroundEngine {
 
     private static final String PLACEHOLDER_IMAGE_PATH = "/assets/placeholder_bg.png";
-    private static final String FRAGMENT_SHADER_RESOURCE = "/assets/shaders/levels.frag";
+    private static final String FRAGMENT_SHADER_RESOURCE = "/assets/shaders/square_bg.frag";
     private static final int DEFAULT_WIDTH = 16;
     private static final int DEFAULT_HEIGHT = 16;
 
