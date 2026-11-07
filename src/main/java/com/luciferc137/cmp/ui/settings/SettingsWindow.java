@@ -77,7 +77,7 @@ public class SettingsWindow {
             }
 
             // Apply dark theme stylesheet
-            scene.getStylesheets().add(ThemeManager.getDarkThemeUrl());
+            ThemeManager.applyDarkTheme(scene);
             stage.setScene(scene);
             stage.initModality(Modality.WINDOW_MODAL);
             stage.initOwner(owner);

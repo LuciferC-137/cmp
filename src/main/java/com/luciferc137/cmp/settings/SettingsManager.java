@@ -2,6 +2,7 @@ package com.luciferc137.cmp.settings;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.luciferc137.cmp.shader.ShaderBackgroundEngine;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -171,6 +172,21 @@ public class SettingsManager {
      */
     public void setMusicFolderPath(String path) {
         settings.setMusicFolderPath(path);
+        save();
+    }
+
+    /**
+     * Gets the background render mode.
+     */
+    public ShaderBackgroundEngine.RenderMode getRenderMode() {
+        return settings.getRenderMode();
+    }
+
+    /**
+     * Sets and saves the background render mode.
+     */
+    public void setRenderMode(ShaderBackgroundEngine.RenderMode mode) {
+        settings.setRenderMode(mode);
         save();
     }
 

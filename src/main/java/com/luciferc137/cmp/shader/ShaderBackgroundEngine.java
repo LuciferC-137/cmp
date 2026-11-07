@@ -4,18 +4,35 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.image.Image;
+import javafx.scene.image.WritableImage;
+import javafx.scene.paint.Color;
 
 import java.io.InputStream;
 import java.util.Objects;
 
 /**
- * Public facade of the shader background system — the only class the rest
- * of the app (controllers, FXML) should ever reference.
+ * Public facade of the shader background system.
  */
 public final class ShaderBackgroundEngine {
 
+
+    public enum RenderMode {
+        SHADER("Shader"),
+        STATIC_IMAGE("Static Image"),
+        BG_COLOR("Background Color");
+
+        private String displayName;
+        RenderMode(String displayName) {
+            this.displayName = displayName;
+        }
+        
+        public String getDisplayName() {
+            return displayName;
+        }
+    }
+
     private static final String PLACEHOLDER_IMAGE_PATH = "/assets/placeholder_bg.png";
-    private static final String FRAGMENT_SHADER_RESOURCE = "/assets/shaders/square_bg.frag";
+    private static final String FRAGMENT_SHADER_RESOURCE = "/assets/shaders/default_bg.frag";
     private static final int DEFAULT_WIDTH = 16;
     private static final int DEFAULT_HEIGHT = 16;
 
@@ -26,6 +43,7 @@ public final class ShaderBackgroundEngine {
 
     private int viewportWidth = DEFAULT_WIDTH;
     private int viewportHeight = DEFAULT_HEIGHT;
+    private RenderMode renderMode = RenderMode.SHADER;
     private ShaderRenderer renderer;
 
     /**
@@ -40,10 +58,33 @@ public final class ShaderBackgroundEngine {
         if (running.get()) {
             return;
         }
-        loadPlaceholderImage();
-        renderer = new ShaderRenderer(FRAGMENT_SHADER_RESOURCE, viewportWidth, viewportHeight, outputImage::set);
-        renderer.start();
-        running.set(true);
+        if (renderMode == RenderMode.SHADER) {
+            renderer = new ShaderRenderer(FRAGMENT_SHADER_RESOURCE, viewportWidth, viewportHeight, outputImage::set);
+            renderer.start();
+            running.set(true);
+        }
+        if (renderMode == RenderMode.STATIC_IMAGE) {
+            loadPlaceholderImage();
+            running.set(true);
+        }
+        if (renderMode == RenderMode.BG_COLOR) {
+            loadSolidBackground(Color.LIGHTGRAY);
+            running.set(true);
+        }
+    }
+
+    /**
+     * Switches the engine to a different render mode. Restarts the engine.
+     */
+    public void setRenderMode(RenderMode mode) {
+        if (renderMode == mode) {
+            return;
+        }
+        renderMode = mode;
+        if (running.get()) {
+            stop();
+            start();
+        }
     }
 
     /**
@@ -99,5 +140,11 @@ public final class ShaderBackgroundEngine {
             throw new IllegalStateException(
                     "Could not load placeholder image (" + PLACEHOLDER_IMAGE_PATH + ")", e);
         }
+    }
+
+    private void loadSolidBackground(Color color) {
+        WritableImage image = new WritableImage(1, 1);
+        image.getPixelWriter().setColor(0, 0, color);
+        outputImage.set(image);
     }
 }

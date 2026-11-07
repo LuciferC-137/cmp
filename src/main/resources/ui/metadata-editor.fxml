@@ -11,7 +11,7 @@
             prefWidth="700" prefHeight="650">
 
     <content>
-        <TabPane fx:id="tabPane" tabClosingPolicy="UNAVAILABLE" prefWidth="620" prefHeight="500">
+        <TabPane fx:id="tabPane" tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS" prefWidth="620" prefHeight="500">
 
             <!-- Info Tab -->
             <Tab text="Info">

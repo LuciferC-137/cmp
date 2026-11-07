@@ -55,6 +55,10 @@ public class SettingsController {
     @FXML private Button refactorTagButton;
     @FXML private Button deleteTagButton;
 
+    // Background settings pane
+    @FXML private VBox backgroundSettingsPane;
+    @FXML private ComboBox<String> renderModeComboBox;
+
     private final SettingsManager settingsManager = SettingsManager.getInstance();
     private final MusicLibrary musicLibrary = MusicLibrary.getInstance();
     private final LibraryService libraryService = LibraryService.getInstance();
@@ -65,7 +69,7 @@ public class SettingsController {
     @FXML
     public void initialize() {
         // Initialize the category list
-        categoryList.getItems().addAll("Library", "Playlists", "Tags");
+        categoryList.getItems().addAll("Library", "Playlists", "Tags", "Background");
         categoryList.getSelectionModel().selectFirst();
 
         // Load saved music folder path
@@ -189,6 +193,8 @@ public class SettingsController {
         playlistsPane.setManaged(false);
         tagManagementPane.setVisible(false);
         tagManagementPane.setManaged(false);
+        backgroundSettingsPane.setVisible(false);
+        backgroundSettingsPane.setManaged(false);
 
         // Show the corresponding panel
         if ("Library".equals(category)) {
@@ -201,6 +207,9 @@ public class SettingsController {
         } else if ("Tags".equals(category)) {
             tagManagementPane.setVisible(true);
             tagManagementPane.setManaged(true);
+        } else if ("Background".equals(category)) {
+            backgroundSettingsPane.setVisible(true);
+            backgroundSettingsPane.setManaged(true);
         }
     }
 

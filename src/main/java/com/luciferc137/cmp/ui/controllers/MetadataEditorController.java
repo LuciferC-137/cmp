@@ -22,6 +22,8 @@ import java.io.IOException;
  */
 public class MetadataEditorController {
 
+    @FXML private TabPane tabPane;
+
     // Info tab fields
     @FXML private ImageView coverArtView;
     @FXML private StackPane imageWrapper;
@@ -71,6 +73,12 @@ public class MetadataEditorController {
         if (coverArtView != null) {
             coverArtView.setImage(CoverArtLoader.getDefaultCover(COVER_ART_SIZE));
         }
+
+        tabPane.widthProperty().addListener((observable, oldValue, newValue) ->
+        {
+            tabPane.setTabMinWidth(tabPane.getWidth() / tabPane.getTabs().size() - 20);
+            tabPane.setTabMaxWidth(tabPane.getWidth() / tabPane.getTabs().size() - 20);
+        });
     }
 
     /**

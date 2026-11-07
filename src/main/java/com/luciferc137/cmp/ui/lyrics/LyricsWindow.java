@@ -55,7 +55,7 @@ public class LyricsWindow {
             Scene scene = new Scene(loader.load());
             
             // Apply dark theme
-            scene.getStylesheets().add(ThemeManager.getDarkThemeUrl());
+            ThemeManager.applyDarkTheme(scene);
             
             controller = loader.getController();
             controller.setMusic(currentMusic);

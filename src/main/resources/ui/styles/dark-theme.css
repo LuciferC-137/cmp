@@ -17,6 +17,11 @@
     -gray-500: rgba(100, 100, 100, 0.75); /* thumb scrollbar hover, arrows */
     -gray-450: rgba(36, 36, 36, 0.50);    /* alternate lines */
 
+    /* --- Palette : solid backgrounds for secondary windows --- */
+    -gray-solid-950: #1E1E1E;
+    -gray-solid-900: #282828;
+    -gray-solid-850: #2D2D2D;
+
     /* --- Palette : greys for text and icons: opaques --- */
     -text-primary: #E0E0E0;
     -text-secondary: #B0B0B0;
@@ -57,6 +62,21 @@
 /* === General Pane/Border Pane === */
 .border-pane, .pane, .vbox, .hbox, .stack-pane {
     -fx-background-color: -gray-950;
+}
+
+/* === Secondary Windows === */
+
+.secondary-window {
+    -fx-background-color: -gray-solid-950;
+    -fx-background: -gray-solid-950;
+}
+
+.secondary-window .border-pane,
+.secondary-window .pane,
+.secondary-window .vbox,
+.secondary-window .hbox,
+.secondary-window .stack-pane {
+    -fx-background-color: -gray-solid-950;
 }
 
 /* === Labels === */
@@ -370,7 +390,7 @@
 
 /* === Settings Window === */
 .settings-window {
-    -fx-background-color: -gray-950;
+    -fx-background-color: -gray-solid-950;
 }
 
 .category-panel {
@@ -400,7 +420,7 @@
 
 /* === Tooltips === */
 .tooltip {
-    -fx-background-color: -gray-650;
+    -fx-background-color: -gray-solid-850;
     -fx-text-fill: -text-primary;
     -fx-background-radius: 4;
     -fx-border-radius: 4;
@@ -410,7 +430,7 @@
 
 /* === Context Menu === */
 .context-menu {
-    -fx-background-color: -gray-850;
+    -fx-background-color: -gray-solid-850;
     -fx-background-radius: 4;
     -fx-border-radius: 4;
     -fx-border-color: -gray-550;
@@ -441,11 +461,11 @@
 
 /* === Dialog Pane === */
 .dialog-pane {
-    -fx-background-color: -gray-950;
+    -fx-background-color: -gray-solid-950;
 }
 
 .dialog-pane .header-panel {
-    -fx-background-color: -gray-900;
+    -fx-background-color: -gray-solid-900;
 }
 
 .dialog-pane .header-panel .label {
@@ -454,11 +474,11 @@
 }
 
 .dialog-pane .content {
-    -fx-background-color: -gray-950;
+    -fx-background-color: -gray-solid-950;
 }
 
 .dialog-pane .button-bar {
-    -fx-background-color: -gray-900;
+    -fx-background-color: -gray-solid-900;
 }
 
 /* === Check Box === */
@@ -512,7 +532,7 @@
 }
 
 .combo-box-popup .list-view {
-    -fx-background-color: -gray-850;
+    -fx-background-color: -gray-solid-850;
     -fx-border-color: -gray-550;
 }
 
@@ -568,7 +588,6 @@
 }
 
 .tab-pane .tab .tab-label {
-    -fx-text-fill: -text-hint;
     -fx-alignment: CENTER;
 }
 

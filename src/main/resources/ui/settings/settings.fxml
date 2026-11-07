@@ -109,6 +109,16 @@
                 <!-- Spacer -->
                 <Region VBox.vgrow="ALWAYS" />
             </VBox>
+
+            <!-- Background Settings -->
+            <VBox fx:id="backgroundSettingsPane" spacing="15" visible="false" managed="false">
+                <Label styleClass="section-title" text="Background Settings" />
+                <Separator />
+                <VBox spacing="10" VBox.vgrow="ALWAYS">
+                    <Label text="Background Render Mode" />
+                    <ComboBox fx:id="renderModeComboBox" prefWidth="200" promptText="Select Render Mode" />
+                </VBox>
+            </VBox>
         </StackPane>
     </center>
 

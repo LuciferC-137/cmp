@@ -16,8 +16,7 @@ import static org.lwjgl.opengl.GL33.*;
  * Must be created, used and deleted on the GL render thread, after
  * {@link OffscreenGLContext#create()}.
  * Fragment shaders are expected to expose {@code uniform vec2 iResolution}
- * and {@code uniform float iTime}, matching the Shadertoy-style convention
- * already used for the WebView prototype.
+ * and {@code uniform float iTime}, matching the Shadertoy-style convention.
  */
 public final class ShaderProgram {
 
