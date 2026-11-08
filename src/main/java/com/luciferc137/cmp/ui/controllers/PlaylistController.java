@@ -7,7 +7,6 @@ import com.luciferc137.cmp.ui.Coordinator;
 import com.luciferc137.cmp.ui.handlers.PlaylistPanelHandler;
 import com.luciferc137.cmp.ui.handlers.QueuePanelHandler;
 import com.luciferc137.cmp.ui.settings.SettingsWindow;
-import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -168,10 +167,6 @@ public class PlaylistController {
 
     @FXML
     private void onManagePlaylists() {
-        // Open settings window on the Playlists tab
-        SettingsWindow.setOnPlaylistsChangedCallback(() -> {
-            Platform.runLater(() -> Coordinator.playlistPanelHandler().refreshPlaylistTabs());
-        });
         SettingsWindow.show(this.managePlaylistsButton.getScene().getWindow(), "Playlists");
     }
 

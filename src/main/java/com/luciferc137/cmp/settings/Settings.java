@@ -56,6 +56,7 @@ public class Settings {
         return "Settings{" +
                 "lastVolume=" + lastVolume +
                 ", musicFolderPath='" + musicFolderPath + '\'' +
+                ", renderMode=" + renderMode.toString() +
                 '}';
     }
 }

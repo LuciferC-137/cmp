@@ -10,7 +10,6 @@ import com.luciferc137.cmp.ui.dialog.MetadataEditorDialog;
 import com.luciferc137.cmp.ui.utils.WaveformProgressBar;
 import com.luciferc137.cmp.ui.handlers.*;
 import com.luciferc137.cmp.ui.lyrics.LyricsWindow;
-import com.luciferc137.cmp.ui.settings.SettingsController;
 import com.luciferc137.cmp.ui.settings.SettingsWindow;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
@@ -228,7 +227,7 @@ public class MainController {
 
             @Override
             public void onShowCreateTagDialog() {
-                SettingsController.showCreateTagDialog();
+                SettingsHandler.showCreateTagDialog();
             }
 
             @Override
@@ -479,10 +478,6 @@ public class MainController {
 
     @FXML
     private void onSettings() {
-        // Set callback to refresh playlist tabs when playlists change in settings
-        SettingsWindow.setOnPlaylistsChangedCallback(() -> {
-            Platform.runLater(() -> Coordinator.playlistPanelHandler().refreshPlaylistTabs());
-        });
         SettingsWindow.show(musicTable.getScene().getWindow());
     }
 

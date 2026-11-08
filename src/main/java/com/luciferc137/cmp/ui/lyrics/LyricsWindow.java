@@ -5,12 +5,10 @@ import com.luciferc137.cmp.library.Music;
 import com.luciferc137.cmp.ui.utils.ThemeManager;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
-import javafx.scene.image.Image;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 
 import java.io.IOException;
-import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.LongSupplier;
 import java.util.logging.Level;

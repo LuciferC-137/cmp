@@ -23,6 +23,7 @@ public class Coordinator {
     public SessionHandler sessionHandler;
     public PlaylistPanelHandler playlistPanelHandler;
     public QueuePanelHandler queuePanelHandler;
+    public SettingsHandler settingsHandler;
 
     // ==================== Core Services ====================
 
@@ -53,6 +54,7 @@ public class Coordinator {
         sessionHandler = new SessionHandler();
         playlistPanelHandler = new PlaylistPanelHandler();
         queuePanelHandler = new QueuePanelHandler();
+        settingsHandler = new SettingsHandler();
     }
 
     public synchronized void onMainControllerReady() {
@@ -148,5 +150,9 @@ public class Coordinator {
 
     public static QueuePanelHandler queuePanelHandler() {
         return getInstance().queuePanelHandler;
+    }
+
+    public static SettingsHandler settingsHandler() {
+        return getInstance().settingsHandler;
     }
 }

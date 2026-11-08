@@ -17,14 +17,6 @@ public class SettingsWindow {
 
     private static Stage settingsStage = null;
     private static SettingsController currentController = null;
-    private static Runnable onPlaylistsChangedCallback = null;
-
-    /**
-     * Sets the callback to be called when playlists change.
-     */
-    public static void setOnPlaylistsChangedCallback(Runnable callback) {
-        onPlaylistsChangedCallback = callback;
-    }
 
     /**
      * Opens the settings window.
@@ -68,9 +60,6 @@ public class SettingsWindow {
             SettingsController controller = loader.getController();
             currentController = controller;
             if (controller != null) {
-                if (onPlaylistsChangedCallback != null) {
-                    controller.setOnPlaylistsChangedCallback(onPlaylistsChangedCallback);
-                }
                 if (initialCategory != null) {
                     controller.selectCategory(initialCategory);
                 }

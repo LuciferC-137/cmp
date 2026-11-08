@@ -4,7 +4,6 @@ import com.luciferc137.cmp.database.model.TagEntity;
 import com.luciferc137.cmp.library.sorting.AdvancedFilter;
 import com.luciferc137.cmp.library.MusicLibrary;
 import com.luciferc137.cmp.library.sorting.TagFilterState;
-import com.luciferc137.cmp.ui.settings.SettingsController;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -59,7 +58,7 @@ public class FilterPopupHandler implements Handler {
         Button addTagBtn = new Button("+ New Tag");
         addTagBtn.setOnAction(e -> {
             popup.hide();
-            SettingsController.showCreateTagDialog();
+            SettingsHandler.showCreateTagDialog();
         });
         content.getChildren().add(new Separator());
         content.getChildren().add(addTagBtn);
